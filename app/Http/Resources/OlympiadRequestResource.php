@@ -11,26 +11,31 @@ class OlympiadRequestResource extends JsonResource
     {
         return [
             'id' => $this->id,
-
             'status' => $this->status,
-
+            'completed' => (bool) $this->completed,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'grade' => $this->grade,
+            'language' => $this->language,
+            'parent_name' => $this->parent_name,
+            'parent_phone' => $this->parent_phone,
+            'parent_email' => $this->parent_email,
+            'created_at' => $this->created_at,
             'subject' => $this->whenLoaded('subject', function () {
                 return [
                     'id' => $this->subject?->id,
                     'name' => $this->subject?->name,
                 ];
             }),
-
-            'user' => [
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user?->id,
+                    'name' => $this->user?->name,
+                    'email' => $this->user?->email,
+                ];
+            }, [
                 'id' => $this->user_id,
-            ],
-
-            'first_name' => $this->first_name,
-            'last_name' => $this->last_name,
-            'grade' => $this->grade,
-            'language' => $this->language,
-
-            'created_at' => $this->created_at
+            ]),
         ];
     }
 }

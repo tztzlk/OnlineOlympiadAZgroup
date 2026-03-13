@@ -15,7 +15,7 @@
         <div class="stat">
           <span class="stat__num">4.9</span>
           <div class="stat__stars">
-            <svg v-for="i in 5" :key="i" width="14" height="14" viewBox="0 0 24 24" fill="#6366f1" stroke="none">
+            <svg v-for="i in 5" :key="i" width="14" height="14" viewBox="0 0 24 24" fill="#E11D48" stroke="none">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
@@ -56,7 +56,7 @@
           <p class="review__text">{{ review.text }}</p>
 
           <div class="review__stars">
-            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#6366f1" stroke="none">
+            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#E11D48" stroke="none">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
@@ -136,15 +136,12 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
-
 * { box-sizing: border-box; }
 
 .reviews {
   padding: 90px 28px;
   max-width: 1200px;
   margin: 0 auto;
-  font-family: 'Manrope', sans-serif;
 }
 
 /* Header */
@@ -161,26 +158,25 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #E11D48;
+  background: rgba(225, 29, 72, 0.15);
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid #c7d2fe;
+  border: 1px solid rgba(225, 29, 72, 0.3);
   margin-bottom: 18px;
 }
 
 .reviews__title {
-  font-family: 'Playfair Display', serif;
   font-size: 38px;
   font-weight: 700;
-  color: #1e1b4b;
+  color: #FFFFFF;
   margin: 0 0 12px;
   line-height: 1.2;
 }
 
 .reviews__subtitle {
   font-size: 16px;
-  color: #94a3b8;
+  color: #A1A1AA;
   margin: 0 0 32px;
 }
 
@@ -189,22 +185,22 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   display: inline-flex;
   align-items: center;
   gap: 28px;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: #1A1A1A;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 16px 32px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .stat__num {
   font-size: 22px;
   font-weight: 700;
-  color: #1e1b4b;
+  color: #FFFFFF;
   line-height: 1;
 }
 .stat__stars { display: flex; gap: 2px; }
-.stat__label { font-size: 12px; color: #94a3b8; font-weight: 600; }
-.stat-divider { width: 1px; height: 36px; background: #e2e8f0; }
+.stat__label { font-size: 12px; color: #A1A1AA; font-weight: 600; }
+.stat-divider { width: 1px; height: 36px; background: rgba(255, 255, 255, 0.08); }
 
 /* Scroll wrapper */
 .reviews__wrapper {
@@ -226,11 +222,11 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 /* Review card */
 .review {
   flex: 0 0 340px;
-  background: white;
+  background: #1A1A1A;
   border-radius: 24px;
   padding: 30px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
   scroll-snap-align: start;
   transition: all 0.3s ease;
   display: flex;
@@ -244,25 +240,25 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #818cf8, #6366f1, #a78bfa);
+  background: #E11D48;
   opacity: 0;
   transition: opacity 0.3s;
 }
 .review:hover {
   transform: translateY(-6px);
-  box-shadow: 0 16px 48px rgba(79, 70, 229, 0.12);
-  border-color: #c7d2fe;
+  box-shadow: 0 16px 48px rgba(225, 29, 72, 0.15);
+  border-color: rgba(225, 29, 72, 0.3);
 }
 .review:hover::before { opacity: 1; }
 
 .review__quote {
-  color: #e0e7ff;
+  color: rgba(225, 29, 72, 0.5);
   line-height: 0;
 }
 
 .review__text {
   font-size: 15px;
-  color: #475569;
+  color: #A1A1AA;
   line-height: 1.7;
   margin: 0;
   flex: 1;
@@ -275,25 +271,25 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   align-items: center;
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .review__avatar {
   width: 40px; height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: #E11D48;
   color: white;
   font-size: 15px;
   font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.35);
 }
 
 .review__name {
   font-size: 14px;
   font-weight: 700;
-  color: #1e1b4b;
+  color: #FFFFFF;
   margin-bottom: 3px;
 }
 
@@ -302,8 +298,8 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #E11D48;
+  background: rgba(225, 29, 72, 0.15);
   padding: 3px 9px;
   border-radius: 10px;
   font-weight: 600;
@@ -316,20 +312,20 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   transform: translateY(-50%);
   width: 44px; height: 44px;
   border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #4f46e5;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1A1A1A;
+  color: #E11D48;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   transition: all 0.2s;
   z-index: 2;
 }
 .scroll-btn:hover {
-  background: #eef2ff;
-  border-color: #c7d2fe;
+  background: rgba(225, 29, 72, 0.15);
+  border-color: rgba(225, 29, 72, 0.4);
   transform: translateY(-50%) scale(1.08);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.25);
 }
 .left { left: -22px; }
 .right { right: -22px; }
@@ -344,14 +340,14 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .dot {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.15);
   cursor: pointer;
   transition: all 0.3s;
 }
 .dot.active {
   width: 24px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  background: #E11D48;
 }
 
 /* Responsive */

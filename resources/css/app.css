@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -6,6 +7,70 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Tailwind v4: sans uses Inter globally */
+    --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* Theme: CSS variables for light/dark */
+:root {
+    --bg: #ffffff;
+    --text: #111111;
+    --card: #f5f5f5;
+    --accent: #E11D48;
+    --accent-hover: #BE123C;
+    --border: rgba(0, 0, 0, 0.08);
+    --text-secondary: #666666;
+    /* Aliases for components */
+    --bg-primary: var(--bg);
+    --bg-surface: var(--card);
+    --text-primary: var(--text);
+}
+
+.dark {
+    --bg: #0F0F0F;
+    --text: #ffffff;
+    --card: #1A1A1A;
+    --accent: #E11D48;
+    --accent-hover: #BE123C;
+    --border: rgba(255, 255, 255, 0.08);
+    --text-secondary: #A1A1AA;
+    --bg-primary: var(--bg);
+    --bg-surface: var(--card);
+    --text-primary: var(--text);
+}
+
+/* Typography: Inter globally, consistent scale and line-height */
+body {
+    font-family: 'Inter';
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    background: var(--bg);
+    color: var(--text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+/* Section headings: 28–32px */
+h1 { font-size: clamp(28px, 4vw, 32px); }
+h2 { font-size: clamp(26px, 3.5vw, 30px); }
+
+button, .btn-primary, .btn-ghost, .start-btn, a[class*="btn"] {
+    font-family: var(--font-sans);
+    font-weight: 500;
+}
+
+input, textarea, select {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+}
+
+nav, .card, [class*="card"],
+form, [class*="form"] {
+    font-family: var(--font-sans);
 }

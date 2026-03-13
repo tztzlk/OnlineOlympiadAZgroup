@@ -84,7 +84,7 @@ router.beforeEach(async (to, from, next) => {
 
       const user = res.data
 
-      if (user.is_admin === 1) {
+      if (user.is_admin) {
         return next()
       }
 

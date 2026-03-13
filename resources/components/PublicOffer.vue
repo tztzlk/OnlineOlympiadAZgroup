@@ -167,8 +167,6 @@ const confirmOffer = async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Cormorant+Garamond:wght@600;700&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .offer-page {
@@ -177,8 +175,7 @@ const confirmOffer = async () => {
   align-items: flex-start;
   justify-content: center;
   padding: 48px 16px 64px;
-  background: #EEF4FF;
-  font-family: 'Sora', sans-serif;
+  background: #0F0F0F;
   position: relative;
   overflow: hidden;
 }
@@ -192,13 +189,13 @@ const confirmOffer = async () => {
 }
 .bg-orb--1 {
   width: 500px; height: 500px;
-  background: radial-gradient(circle, #BFDBFE, transparent 70%);
+  background: radial-gradient(circle, rgba(225,29,72,0.1), transparent 70%);
   top: -100px; right: -80px;
   opacity: 0.6;
 }
 .bg-orb--2 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, #C7D2FE, transparent 70%);
+  background: radial-gradient(circle, rgba(225,29,72,0.08), transparent 70%);
   bottom: -80px; left: -60px;
   opacity: 0.5;
 }
@@ -208,15 +205,13 @@ const confirmOffer = async () => {
   position: relative;
   width: 100%;
   max-width: 740px;
-  background: rgba(255, 255, 255, 0.85);
+  background: #1A1A1A;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 44px 48px;
-  box-shadow:
-    0 4px 6px rgba(0,0,0,0.03),
-    0 20px 60px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   animation: cardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -236,26 +231,25 @@ const confirmOffer = async () => {
   align-items: center;
   justify-content: center;
   width: 56px; height: 56px;
-  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  background: rgba(225, 29, 72, 0.2);
   border-radius: 16px;
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+  color: #E11D48;
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.2);
   margin-bottom: 18px;
 }
 
 .offer-title {
-  font-family: 'Cormorant Garamond', serif;
   font-size: 32px;
   font-weight: 700;
-  color: #0F2355;
+  color: #FFFFFF;
   letter-spacing: -0.5px;
   margin-bottom: 8px;
 }
 
 .offer-subtitle {
   font-size: 13.5px;
-  color: #93B4D8;
+  color: #A1A1AA;
   font-weight: 300;
 }
 
@@ -267,22 +261,22 @@ const confirmOffer = async () => {
   padding-right: 12px;
   margin-bottom: 6px;
   scrollbar-width: thin;
-  scrollbar-color: #BFDBFE #F0F5FF;
+  scrollbar-color: rgba(225,29,72,0.3) rgba(255,255,255,0.06);
 }
 
 .offer-content::-webkit-scrollbar { width: 4px; }
-.offer-content::-webkit-scrollbar-track { background: #F0F5FF; border-radius: 4px; }
-.offer-content::-webkit-scrollbar-thumb { background: #BFDBFE; border-radius: 4px; }
+.offer-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 4px; }
+.offer-content::-webkit-scrollbar-thumb { background: rgba(225,29,72,0.3); border-radius: 4px; }
 
 .offer-intro {
   font-size: 14px;
   line-height: 1.75;
-  color: #6B84B0;
+  color: #A1A1AA;
   margin-bottom: 24px;
   padding: 16px 18px;
-  background: #F0F5FF;
+  background: rgba(225, 29, 72, 0.08);
   border-radius: 12px;
-  border-left: 3px solid #3B82F6;
+  border-left: 3px solid #E11D48;
 }
 
 /* Sections */
@@ -290,16 +284,15 @@ const confirmOffer = async () => {
   display: flex;
   gap: 18px;
   padding: 20px 0;
-  border-bottom: 1px solid #F0F5FF;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .offer-section:last-of-type { border-bottom: none; }
 
 .offer-section__num {
-  font-family: 'DM Mono', monospace;
   font-size: 11px;
   font-weight: 500;
-  color: #BFDBFE;
+  color: #E11D48;
   letter-spacing: 0.5px;
   flex-shrink: 0;
   padding-top: 3px;
@@ -309,7 +302,7 @@ const confirmOffer = async () => {
 .offer-section__title {
   font-size: 14px;
   font-weight: 600;
-  color: #0F2355;
+  color: #FFFFFF;
   margin-bottom: 8px;
   letter-spacing: -0.1px;
 }
@@ -317,7 +310,7 @@ const confirmOffer = async () => {
 .offer-section p {
   font-size: 13.5px;
   line-height: 1.7;
-  color: #5B78AA;
+  color: #A1A1AA;
   font-weight: 300;
 }
 
@@ -340,7 +333,7 @@ const confirmOffer = async () => {
   justify-content: center;
   gap: 6px;
   font-size: 11.5px;
-  color: #93B4D8;
+  color: #A1A1AA;
   margin-bottom: 20px;
   transition: opacity 0.3s;
   animation: bounce 2s ease-in-out infinite;
@@ -354,7 +347,7 @@ const confirmOffer = async () => {
 
 /* Agreement */
 .offer-agreement {
-  border-top: 1px solid #EEF2FF;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 24px;
   display: flex;
   flex-direction: column;
@@ -369,14 +362,14 @@ const confirmOffer = async () => {
   cursor: pointer;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1.5px solid #E2EAFC;
-  background: #F8FAFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
   transition: border-color 0.2s, background 0.2s;
 }
 
 .checkbox-wrap.checked {
-  border-color: #BFDBFE;
-  background: #EFF6FF;
+  border-color: rgba(225, 29, 72, 0.4);
+  background: rgba(225, 29, 72, 0.1);
 }
 
 .checkbox-wrap input { display: none; }
@@ -384,21 +377,21 @@ const confirmOffer = async () => {
 .checkbox-custom {
   width: 20px; height: 20px;
   border-radius: 6px;
-  border: 1.5px solid #BFDBFE;
-  background: white;
+  border: 1.5px solid rgba(225, 29, 72, 0.4);
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: background 0.2s, border-color 0.2s;
 }
 
 .checkbox-wrap.checked .checkbox-custom {
-  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-  border-color: #3B82F6;
+  background: #E11D48;
+  border-color: #E11D48;
 }
 
 .checkbox-label {
   font-size: 13.5px;
-  color: #2C3E6A;
+  color: #FFFFFF;
   line-height: 1.4;
   font-weight: 400;
 }
@@ -413,25 +406,25 @@ const confirmOffer = async () => {
   padding: 14px;
   border: none;
   border-radius: 12px;
-  font-family: 'Sora', sans-serif;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  background: #E2EAFC;
-  color: #93B4D8;
+  background: rgba(255, 255, 255, 0.06);
+  color: #A1A1AA;
   transition: all 0.25s;
   min-height: 50px;
 }
 
 .confirm-btn--active {
-  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  background: #E11D48;
   color: white;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35);
 }
 
 .confirm-btn--active:hover {
+  background: #BE123C;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.45);
 }
 
 .confirm-btn:disabled { cursor: not-allowed; }

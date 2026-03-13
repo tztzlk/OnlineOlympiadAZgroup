@@ -110,15 +110,12 @@ const icons = [
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
-
 * { box-sizing: border-box; }
 
 .rules-page {
   min-height: 100vh;
-  background: #f7f8fc;
+  background: #0F0F0F;
   padding: 80px 28px 100px;
-  font-family: 'Manrope', sans-serif;
   position: relative;
   overflow: hidden;
 }
@@ -126,8 +123,8 @@ const icons = [
 /* Orbs */
 .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.3; }
-.orb-1 { width: 550px; height: 550px; background: radial-gradient(circle, #c7d2fe, #a5b4fc); top: -180px; right: -120px; }
-.orb-2 { width: 450px; height: 450px; background: radial-gradient(circle, #ddd6fe, #c4b5fd); bottom: -120px; left: -80px; }
+.orb-1 { width: 550px; height: 550px; background: radial-gradient(circle, rgba(225,29,72,0.12), transparent); top: -180px; right: -120px; }
+.orb-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(225,29,72,0.08), transparent); bottom: -120px; left: -80px; }
 
 .rules-container {
   max-width: 1100px;
@@ -146,22 +143,21 @@ const icons = [
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #E11D48;
+  background: rgba(225, 29, 72, 0.15);
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid #c7d2fe;
+  border: 1px solid rgba(225, 29, 72, 0.3);
   margin-bottom: 18px;
 }
 .page-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 42px;
-  font-weight: 700;
-  color: #1e1b4b;
+  font-size: 30px;
+  font-weight: 600;
+  color: #FFFFFF;
   margin: 0 0 14px;
-  line-height: 1.2;
+  line-height: 1.25;
 }
-.page-subtitle { font-size: 16px; color: #94a3b8; margin: 0; }
+.page-subtitle { font-size: 16px; font-weight: 400; color: #A1A1AA; margin: 0; line-height: 1.6; }
 
 /* Notice */
 .notice {
@@ -194,18 +190,18 @@ const icons = [
 .rules-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 24px;
   margin-bottom: 48px;
 }
 
 /* Rule card */
 .rule-card {
   position: relative;
-  background: white;
-  padding: 28px;
+  background: #1A1A1A;
+  padding: 24px;
   border-radius: 24px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   transition: all 0.3s ease;
   animation: fadeUp 0.5s ease both;
@@ -221,14 +217,14 @@ const icons = [
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #818cf8, #6366f1, #a78bfa);
+  background: linear-gradient(90deg, #E11D48, #E11D48, #BE123C);
   opacity: 0;
   transition: opacity 0.3s;
 }
 .rule-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 48px rgba(79, 70, 229, 0.12);
-  border-color: #c7d2fe;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border-color: rgba(225, 29, 72, 0.35);
 }
 .rule-card:hover::before { opacity: 1; }
 
@@ -240,40 +236,38 @@ const icons = [
 }
 
 .rule-number {
-  font-family: 'Playfair Display', serif;
   font-size: 28px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.2);
   line-height: 1;
   letter-spacing: -1px;
 }
 
 .rule-icon {
   width: 42px; height: 42px;
-  background: #eef2ff;
+  background: rgba(225, 29, 72, 0.15);
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  color: #6366f1;
+  color: #E11D48;
   transition: all 0.3s;
 }
 .rule-card:hover .rule-icon {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: linear-gradient(135deg, #E11D48, #BE123C);
   color: white;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
 }
 
 .rule-title {
-  font-family: 'Playfair Display', serif;
   font-size: 18px;
-  font-weight: 700;
-  color: #1e1b4b;
+  font-weight: 600;
+  color: #FFFFFF;
   margin: 0 0 10px;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .rule-desc {
   font-size: 14px;
-  color: #64748b;
+  color: #A1A1AA;
   line-height: 1.7;
   margin: 0;
 }
@@ -285,11 +279,11 @@ const icons = [
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: #1A1A1A;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 22px 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 .cta-check {
   width: 32px; height: 32px;
@@ -302,7 +296,7 @@ const icons = [
 .rules-cta span {
   font-size: 15px;
   font-weight: 600;
-  color: #374151;
+  color: #FFFFFF;
   flex: 1;
   min-width: 200px;
 }
@@ -312,20 +306,19 @@ const icons = [
   gap: 8px;
   padding: 12px 24px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: linear-gradient(135deg, #E11D48, #BE123C);
   color: white;
-  font-family: 'Manrope', sans-serif;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
   transition: all 0.2s;
   white-space: nowrap;
 }
 .cta-btn svg { transition: transform 0.2s; }
 .cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 8px 22px rgba(225, 29, 72, 0.45);
 }
 .cta-btn:hover svg { transform: translateX(4px); }
 

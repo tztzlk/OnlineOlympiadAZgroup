@@ -38,7 +38,8 @@ api.interceptors.response.use(
         userStore.logout?.()
       } catch {}
 
-      window.location.href = '/login'
+      const isAdminPath = window.location.pathname.startsWith('/admin')
+      window.location.href = isAdminPath ? '/admin-login' : '/login'
     }
 
     return Promise.reject(error)

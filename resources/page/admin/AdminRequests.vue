@@ -1,485 +1,586 @@
 <template>
   <div class="admin-page">
-
-    <!-- Topbar -->
-    <header class="topbar">
-      <div class="topbar__left">
-        <h1 class="page-title">Заявки</h1>
-        <span class="page-subtitle">Всего: {{ filteredRequests.length }}</span>
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Admissions</p>
+        <h1>Заявки</h1>
+        <p class="subtext">Проверяйте участников, подтверждайте доступ и держите поток заявок под контролем.</p>
       </div>
-      <div class="topbar__right">
-        <div class="search-box">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="6" cy="6" r="4.5" stroke="#93B4D8" stroke-width="1.5"/>
-            <path d="M9.5 9.5L12 12" stroke="#93B4D8" stroke-width="1.5" stroke-linecap="round"/>
+
+      <div class="toolbar">
+        <label class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M20 20L17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
           </svg>
-          <input v-model="search" type="text" placeholder="Поиск по имени или email..." />
-        </div>
-        <div class="filter-tabs">
+          <input v-model="search" type="text" placeholder="Поиск по имени, email или предмету" />
+        </label>
+
+        <div class="filter-group">
           <button
-            v-for="f in filters"
-            :key="f.value"
-            class="filter-tab"
-            :class="{ 'filter-tab--active': activeFilter === f.value }"
-            @click="activeFilter = f.value"
+            v-for="filter in filters"
+            :key="filter.value"
+            type="button"
+            class="filter-btn"
+            :class="{ active: activeFilter === filter.value }"
+            @click="activeFilter = filter.value"
           >
-            {{ f.label }}
+            {{ filter.label }}
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Skeleton -->
-    <div v-if="loading" class="table-wrap">
-      <div class="skeleton-row" v-for="i in 5" :key="i" :style="{ animationDelay: i * 0.07 + 's' }"></div>
-    </div>
-
-    <!-- Empty -->
-    <div v-else-if="!filteredRequests.length" class="empty">
-      <div class="empty__icon">
-        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-          <path d="M4 8a2 2 0 012-2h24a2 2 0 012 2v20a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="#BFDBFE" stroke-width="2"/>
-          <path d="M10 14h16M10 19h10" stroke="#BFDBFE" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+    <div class="stats-row" v-if="!loading">
+      <div class="stat-card">
+        <span>Всего</span>
+        <strong>{{ requests.length }}</strong>
       </div>
-      <p class="empty__text">Заявок не найдено</p>
+      <div class="stat-card pending">
+        <span>Ожидают</span>
+        <strong>{{ requestsByStatus.pending }}</strong>
+      </div>
+      <div class="stat-card approved">
+        <span>Одобрены</span>
+        <strong>{{ requestsByStatus.approved }}</strong>
+      </div>
+      <div class="stat-card rejected">
+        <span>Отклонены</span>
+        <strong>{{ requestsByStatus.rejected }}</strong>
+      </div>
     </div>
 
-    <!-- Table -->
-    <div v-else class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th @click="sortBy('id')" class="th-sortable">
-              ID
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" :class="{ 'sort-active': sortKey === 'id', 'sort-desc': sortKey === 'id' && sortDesc }">
-                <path d="M5 2v6M2.5 5.5L5 8l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </th>
-            <th @click="sortBy('name')" class="th-sortable">
-              Имя
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" :class="{ 'sort-active': sortKey === 'name', 'sort-desc': sortKey === 'name' && sortDesc }">
-                <path d="M5 2v6M2.5 5.5L5 8l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </th>
-            <th>Email</th>
-            <th>Статус</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(req, i) in filteredRequests"
-            :key="req.id"
-            class="table-row"
-            :style="{ animationDelay: i * 0.04 + 's' }"
+    <div v-if="loading" class="state-card">Загружаем заявки...</div>
+    <div v-else-if="errorMessage" class="state-card error-card">{{ errorMessage }}</div>
+    <div v-else-if="!filteredRequests.length" class="state-card">По текущим фильтрам заявок нет.</div>
+
+    <div v-else class="request-grid">
+      <article v-for="request in filteredRequests" :key="request.id" class="request-card">
+        <div class="request-top">
+          <div>
+            <p class="request-id">Заявка #{{ request.id }}</p>
+            <h2>{{ request.name }}</h2>
+            <p class="request-meta">{{ request.subjectName }}</p>
+          </div>
+          <span class="status-pill" :class="request.status">{{ statusLabel(request.status) }}</span>
+        </div>
+
+        <div class="request-details">
+          <div class="detail">
+            <span>Email родителя</span>
+            <strong>{{ request.email }}</strong>
+          </div>
+          <div class="detail">
+            <span>Класс</span>
+            <strong>{{ request.grade || 'Не указан' }}</strong>
+          </div>
+          <div class="detail">
+            <span>Язык</span>
+            <strong>{{ request.language || 'Не указан' }}</strong>
+          </div>
+          <div class="detail">
+            <span>Дата заявки</span>
+            <strong>{{ formatDate(request.created_at) }}</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="ghost-btn" @click="viewRequest(request)">Подробнее</button>
+          <button
+            v-if="request.status !== 'approved'"
+            type="button"
+            class="success-btn"
+            @click="updateStatus(request, 'approved')"
           >
-            <td class="td-id">#{{ req.id }}</td>
-            <td class="td-name">
-              <div class="user-cell">
-                <div class="user-avatar" :style="{ background: avatarColor(req.name) }">
-                  {{ req.name?.charAt(0).toUpperCase() }}
-                </div>
-                <span>{{ req.name }}</span>
-              </div>
-            </td>
-            <td class="td-email">{{ req.email }}</td>
-            <td>
-              <span class="status-badge" :class="'status-badge--' + req.status">
-                <span class="status-dot"></span>
-                {{ statusLabel(req.status) }}
-              </span>
-            </td>
-            <td class="td-actions">
-              <button class="action-btn action-btn--view" title="Просмотр" @click="viewRequest(req)">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M1 7s2-4.5 6-4.5S13 7 13 7s-2 4.5-6 4.5S1 7 1 7z" stroke="currentColor" stroke-width="1.4"/>
-                  <circle cx="7" cy="7" r="1.8" stroke="currentColor" stroke-width="1.4"/>
-                </svg>
-              </button>
-              <button class="action-btn action-btn--approve" title="Одобрить" @click="updateStatus(req, 'approved')" v-if="req.status !== 'approved'">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-              <button class="action-btn action-btn--reject" title="Отклонить" @click="updateStatus(req, 'rejected')" v-if="req.status !== 'rejected'">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            Одобрить
+          </button>
+          <button
+            v-if="request.status !== 'rejected'"
+            type="button"
+            class="danger-btn"
+            @click="updateStatus(request, 'rejected')"
+          >
+            Отклонить
+          </button>
+        </div>
+      </article>
     </div>
 
+    <div v-if="selectedRequest" class="modal-backdrop" @click.self="selectedRequest = null">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Request Details</p>
+            <h2>{{ selectedRequest.name }}</h2>
+            <p class="subtext">{{ selectedRequest.subjectName }}</p>
+          </div>
+          <button type="button" class="close-btn" @click="selectedRequest = null">x</button>
+        </div>
+
+        <div class="modal-grid">
+          <div class="modal-field">
+            <span>Статус</span>
+            <strong>{{ statusLabel(selectedRequest.status) }}</strong>
+          </div>
+          <div class="modal-field">
+            <span>Почта родителя</span>
+            <strong>{{ selectedRequest.email }}</strong>
+          </div>
+          <div class="modal-field">
+            <span>Телефон родителя</span>
+            <strong>{{ selectedRequest.parent_phone || 'Не указан' }}</strong>
+          </div>
+          <div class="modal-field">
+            <span>Родитель</span>
+            <strong>{{ selectedRequest.parent_name || 'Не указан' }}</strong>
+          </div>
+          <div class="modal-field">
+            <span>Класс</span>
+            <strong>{{ selectedRequest.grade || 'Не указан' }}</strong>
+          </div>
+          <div class="modal-field">
+            <span>Язык</span>
+            <strong>{{ selectedRequest.language || 'Не указан' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue"
-import api from "../../js/api"
+import { computed, onMounted, ref } from 'vue'
+import api from '../../js/api'
 
-
-const requests = ref([])
 const loading = ref(true)
-const search = ref("")
-const activeFilter = ref("all")
-const sortKey = ref("id")
-const sortDesc = ref(false)
+const errorMessage = ref('')
+const requests = ref([])
+const selectedRequest = ref(null)
+const search = ref('')
+const activeFilter = ref('all')
 
 const filters = [
-  { value: "all",      label: "Все" },
-  { value: "pending",  label: "Ожидают" },
-  { value: "approved", label: "Одобрены" },
-  { value: "rejected", label: "Отклонены" },
+  { value: 'all', label: 'Все' },
+  { value: 'pending', label: 'Ожидают' },
+  { value: 'approved', label: 'Одобрены' },
+  { value: 'rejected', label: 'Отклонены' },
 ]
 
-const statusLabel = (s) => ({
-  pending:  "Ожидает",
-  approved: "Одобрена",
-  rejected: "Отклонена",
-}[s] ?? s)
+const statusLabel = (status) => ({
+  pending: 'Ожидает',
+  approved: 'Одобрена',
+  rejected: 'Отклонена',
+}[status] ?? status)
 
-const avatarColors = ["#3B82F6","#6366F1","#0EA5E9","#8B5CF6","#06B6D4","#2563EB"]
-const avatarColor = (name) => avatarColors[(name?.charCodeAt(0) ?? 0) % avatarColors.length]
+const formatDate = (date) => {
+  if (!date) return 'Не указана'
+  return new Date(date).toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const requestsByStatus = computed(() => ({
+  pending: requests.value.filter((item) => item.status === 'pending').length,
+  approved: requests.value.filter((item) => item.status === 'approved').length,
+  rejected: requests.value.filter((item) => item.status === 'rejected').length,
+}))
 
 const filteredRequests = computed(() => {
-  let list = requests.value
-  if (activeFilter.value !== "all") list = list.filter(r => r.status === activeFilter.value)
-  if (search.value.trim()) {
-    const q = search.value.toLowerCase()
-    list = list.filter(r => r.name?.toLowerCase().includes(q) || r.email?.toLowerCase().includes(q))
-  }
-  return [...list].sort((a, b) => {
-    const va = a[sortKey.value], vb = b[sortKey.value]
-    return sortDesc.value ? (va < vb ? 1 : -1) : (va > vb ? 1 : -1)
+  const query = search.value.trim().toLowerCase()
+
+  return requests.value.filter((request) => {
+    const filterMatch = activeFilter.value === 'all' || request.status === activeFilter.value
+    const searchMatch =
+      !query ||
+      request.name.toLowerCase().includes(query) ||
+      request.email.toLowerCase().includes(query) ||
+      request.subjectName.toLowerCase().includes(query)
+
+    return filterMatch && searchMatch
   })
 })
 
-const sortBy = (key) => {
-  if (sortKey.value === key) sortDesc.value = !sortDesc.value
-  else { sortKey.value = key; sortDesc.value = false }
-}
+const mapRequest = (item) => ({
+  ...item,
+  name: `${item.first_name || ''} ${item.last_name || ''}`.trim() || 'Без имени',
+  email: item.parent_email || item.user?.email || 'Не указан',
+  subjectName: item.subject?.name || 'Без предмета',
+})
 
-const updateStatus = async (req, status) => {
+const loadRequests = async () => {
+  loading.value = true
+  errorMessage.value = ''
+
   try {
-    await api.patch(`/admin/requests/${req.id}/status`, { status })
-
-    req.status = status
-
-  } catch (e) {
-    alert("Ошибка обновления статуса")
-  }
-}
-
-const viewRequest = (req) => {
-  alert(`Заявка #${req.id}\nИмя: ${req.name}\nEmail: ${req.email}\nСтатус: ${statusLabel(req.status)}`)
-}
-
-onMounted(async () => {
-  try {
-    const res = await api.get('/admin/requests')
-
-   requests.value = res.data.data.map(r => ({
-  ...r,
-  name: `${r.first_name} ${r.last_name}`,
-  email: r.parent_email
-}))
-
-  } catch (e) {
-    console.error(e)
-    alert("Ошибка загрузки заявок")
+    const { data } = await api.get('/admin/requests')
+    requests.value = (data.data || []).map(mapRequest)
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = error.response?.data?.message || 'Не удалось загрузить заявки.'
   } finally {
     loading.value = false
   }
-})
+}
+
+const updateStatus = async (request, status) => {
+  try {
+    await api.patch(`/admin/requests/${request.id}/status`, { status })
+    request.status = status
+    if (selectedRequest.value?.id === request.id) {
+      selectedRequest.value = { ...selectedRequest.value, status }
+    }
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = error.response?.data?.message || 'Не удалось обновить статус.'
+  }
+}
+
+const viewRequest = (request) => {
+  selectedRequest.value = request
+}
+
+onMounted(loadRequests)
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; }
 
 .admin-page {
-  padding: 28px 32px;
-  background: #F0F5FF;
   min-height: 100vh;
-  font-family: 'Sora', sans-serif;
+  background:
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+    linear-gradient(180deg, #f4f7fb 0%, #e9eef7 100%);
+  padding: 28px;
+  color: #102347;
+}
+
+.page-head {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-/* ── Topbar ── */
-.topbar {
+.eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #102347;
+}
+
+h1 {
+  font-size: clamp(30px, 5vw, 44px);
+}
+
+.subtext {
+  margin: 10px 0 0;
+  max-width: 760px;
+  color: #5a6e8c;
+}
+
+.toolbar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.topbar__left {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.page-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: #0F2355;
-  letter-spacing: -0.4px;
-}
-
-.page-subtitle {
-  font-size: 12.5px;
-  color: #93B4D8;
-  font-weight: 300;
-}
-
-.topbar__right {
-  display: flex;
+  gap: 14px;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   flex-wrap: wrap;
+}
+
+.search-box,
+.filter-group,
+.state-card,
+.stat-card,
+.request-card,
+.modal-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 48px rgba(15, 35, 85, 0.08);
 }
 
 .search-box {
+  min-width: min(100%, 420px);
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #FFFFFF;
-  border: 1px solid #DBEAFE;
-  border-radius: 10px;
-  padding: 9px 14px;
+  gap: 12px;
+  padding: 0 16px;
+  border-radius: 18px;
+  color: #64748b;
 }
 
 .search-box input {
-  border: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #102347;
+  padding: 16px 0;
   outline: none;
-  font-family: 'Sora', sans-serif;
-  font-size: 13px;
-  color: #0F2355;
-  background: transparent;
-  width: 210px;
+  font-size: 15px;
 }
 
-.search-box input::placeholder { color: #B0C8E4; }
+.search-box input::placeholder {
+  color: #8ea1bc;
+}
 
-.filter-tabs {
+.filter-group {
   display: flex;
-  gap: 4px;
-  background: #FFFFFF;
-  border: 1px solid #DBEAFE;
-  border-radius: 10px;
-  padding: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 18px;
 }
 
-.filter-tab {
-  padding: 6px 13px;
-  border: none;
-  border-radius: 7px;
-  font-family: 'Sora', sans-serif;
-  font-size: 12.5px;
-  cursor: pointer;
+.filter-btn {
+  border: 0;
   background: transparent;
-  color: #6B84B0;
-  transition: all 0.15s;
+  color: #58708f;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filter-btn.active {
+  background: #102347;
+  color: #fff;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.stat-card {
+  border-radius: 22px;
+  padding: 18px 20px;
+}
+
+.stat-card span {
+  display: block;
+  color: #60758f;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.stat-card strong {
+  color: #102347;
+  font-size: 32px;
+}
+
+.stat-card.pending { background: linear-gradient(180deg, #fff9e8 0%, #fff 100%); }
+.stat-card.approved { background: linear-gradient(180deg, #ecfdf3 0%, #fff 100%); }
+.stat-card.rejected { background: linear-gradient(180deg, #fff1f2 0%, #fff 100%); }
+
+.state-card {
+  border-radius: 24px;
+  padding: 28px;
+  color: #546a86;
+}
+
+.error-card {
+  color: #b42318;
+  background: #fff5f5;
+}
+
+.request-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.request-card {
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.request-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.request-id {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.request-meta {
+  margin: 8px 0 0;
+  color: #60758f;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 800;
   white-space: nowrap;
 }
 
-.filter-tab--active {
-  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
-  color: #2563EB;
-  font-weight: 500;
-}
+.status-pill.pending { background: #fff3c4; color: #9a6700; }
+.status-pill.approved { background: #ddf7e7; color: #146c43; }
+.status-pill.rejected { background: #ffe1e3; color: #b42318; }
 
-/* ── Skeleton ── */
-.skeleton-row {
-  height: 52px;
-  background: linear-gradient(90deg, #E8EFFC 25%, #F3F7FF 50%, #E8EFFC 75%);
-  background-size: 200% 100%;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  animation: shimmer 1.4s infinite;
-}
-
-@keyframes shimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
-}
-
-/* ── Empty ── */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.request-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 64px 24px;
-  background: #FFFFFF;
-  border-radius: 18px;
-  border: 1px dashed #BFDBFE;
 }
 
-.empty__icon {
-  width: 68px; height: 68px;
-  background: #EFF6FF;
+.detail {
+  background: #f8fbff;
+  border: 1px solid #e2eaf6;
   border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
+  padding: 14px;
 }
 
-.empty__text {
-  font-size: 14px;
-  color: #93B4D8;
-  font-weight: 300;
+.detail span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 6px;
 }
 
-/* ── Table wrap ── */
-.table-wrap {
-  background: #FFFFFF;
-  border-radius: 18px;
-  border: 1px solid #E2EAFC;
-  overflow: hidden;
+.detail strong {
+  color: #102347;
+  word-break: break-word;
 }
 
-/* ── Table ── */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table thead tr {
-  border-bottom: 1px solid #EEF2FF;
-}
-
-.table th {
-  padding: 14px 18px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: #93B4D8;
-  text-align: left;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: #F8FAFF;
-  user-select: none;
-}
-
-.th-sortable {
-  cursor: pointer;
-  display: table-cell;
-}
-
-.th-sortable:hover { color: #3B82F6; }
-
-.th-sortable svg {
-  margin-left: 4px;
-  vertical-align: middle;
-  color: #C8D9F0;
-  transition: transform 0.2s, color 0.2s;
-}
-
-.th-sortable svg.sort-active { color: #3B82F6; }
-.th-sortable svg.sort-desc { transform: rotate(180deg); }
-
-/* Rows */
-.table-row {
-  border-bottom: 1px solid #F0F5FF;
-  animation: fadeIn 0.3s ease both;
-  transition: background 0.12s;
-}
-
-.table-row:last-child { border-bottom: none; }
-.table-row:hover { background: #F8FAFF; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.table td {
-  padding: 14px 18px;
-  font-size: 13.5px;
-  color: #2C3E6A;
-  vertical-align: middle;
-}
-
-.td-id {
-  font-family: 'DM Mono', monospace;
-  font-size: 12.5px;
-  color: #93B4D8;
-  width: 60px;
-}
-
-.td-name { font-weight: 500; }
-
-.user-cell {
+.actions {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  margin-top: 18px;
 }
 
-.user-avatar {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.td-email {
-  font-size: 13px;
-  color: #6B84B0;
-}
-
-/* Status badge */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.status-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.status-badge--pending  { background: #FEF9C3; color: #CA8A04; }
-.status-badge--approved { background: #DCFCE7; color: #16A34A; }
-.status-badge--rejected { background: #FEE2E2; color: #DC2626; }
-
-/* Action buttons */
-.td-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.action-btn {
-  width: 30px; height: 30px;
-  border: none;
-  border-radius: 7px;
+.ghost-btn,
+.success-btn,
+.danger-btn,
+.close-btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 800;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, color 0.15s, transform 0.1s;
 }
 
-.action-btn:active { transform: scale(0.92); }
+.ghost-btn {
+  background: #edf4ff;
+  color: #173a72;
+}
 
-.action-btn--view    { background: #EFF6FF; color: #3B82F6; }
-.action-btn--view:hover { background: #DBEAFE; }
+.success-btn {
+  background: #dcfce7;
+  color: #166534;
+}
 
-.action-btn--approve { background: #F0FDF4; color: #16A34A; }
-.action-btn--approve:hover { background: #DCFCE7; }
+.danger-btn {
+  background: #ffe4e6;
+  color: #be123c;
+}
 
-.action-btn--reject  { background: #FEF2F2; color: #DC2626; }
-.action-btn--reject:hover { background: #FEE2E2; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.modal-card {
+  width: min(760px, 100%);
+  border-radius: 28px;
+  padding: 26px;
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.close-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  background: #f3f6fb;
+  color: #102347;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-field {
+  background: #f8fbff;
+  border: 1px solid #e2eaf6;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.modal-field span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.modal-field strong {
+  color: #102347;
+}
+
+@media (max-width: 980px) {
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-page {
+    padding: 18px;
+  }
+
+  .request-details,
+  .modal-grid,
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar,
+  .request-top,
+  .modal-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+    min-width: 0;
+  }
+}
 </style>

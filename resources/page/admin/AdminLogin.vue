@@ -97,6 +97,7 @@
 import { ref } from "vue"
 import api from "../../js/api"
 import { useRouter } from "vue-router"
+import { useUserStore } from "../../stores/user"
 
 const email = ref("")
 const password = ref("")
@@ -105,6 +106,7 @@ const loading = ref(false)
 const showPassword = ref(false)
 const focusedField = ref("")
 const router = useRouter()
+const userStore = useUserStore()
 
 const login = async () => {
   loading.value = true
@@ -119,13 +121,15 @@ const login = async () => {
 
     const user = res.data.user
 
-    // 🔥 защита — проверяем admin роль
-    if (user.is_admin !== 1) {
+    // Backend returns is_admin as boolean; accept 1 or true
+    if (!user.is_admin) {
       throw new Error("Доступ только для администратора")
     }
 
-    localStorage.setItem("token", res.data.token)
+    const token = res.data.token
+    localStorage.setItem("token", token)
     localStorage.setItem("user", JSON.stringify(user))
+    userStore.setAuth(user, token)
 
     router.push("/admin")
 
@@ -141,8 +145,6 @@ const login = async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -155,7 +157,6 @@ const login = async () => {
   align-items: center;
   justify-content: center;
   background: #EEF4FF;
-  font-family: 'DM Sans', sans-serif;
   position: relative;
   overflow: hidden;
   padding: 24px;
@@ -229,7 +230,6 @@ const login = async () => {
 }
 
 .card__title {
-  font-family: 'Cormorant Garamond', serif;
   font-size: 28px;
   font-weight: 600;
   color: #2C2417;
@@ -297,7 +297,6 @@ const login = async () => {
   background: rgba(247, 244, 239, 0.8);
   border: 1.5px solid #E8E0D5;
   border-radius: 12px;
-  font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   color: #2C2417;
   outline: none;
@@ -362,7 +361,6 @@ const login = async () => {
   color: #FFFFFF;
   border: none;
   border-radius: 12px;
-  font-family: 'DM Sans', sans-serif;
   font-size: 14.5px;
   font-weight: 500;
   letter-spacing: 0.3px;

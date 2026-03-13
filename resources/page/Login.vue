@@ -110,6 +110,7 @@
 
         <div class="form-footer">
           <p>Нет аккаунта? <router-link to="/register">Зарегистрироваться</router-link></p>
+          <p class="admin-link">Вход для администратора: <router-link to="/admin-login">Панель управления</router-link></p>
         </div>
       </div>
     </div>
@@ -167,8 +168,6 @@ router.push('/')
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -176,12 +175,11 @@ router.push('/')
 }
 
 .login-page {
-  font-family: 'Sora', sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1f4f9;
+  background: #0F0F0F;
   padding: 24px;
   position: relative;
   overflow: hidden;
@@ -198,14 +196,14 @@ router.push('/')
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.45;
+  opacity: 0.25;
   animation: drift 12s ease-in-out infinite alternate;
 }
 
 .orb-1 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, #c7d2fe, transparent 70%);
+  background: radial-gradient(circle, rgba(225,29,72,0.15), transparent 70%);
   top: -120px;
   left: -100px;
   animation-duration: 14s;
@@ -214,7 +212,7 @@ router.push('/')
 .orb-2 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #bfdbfe, transparent 70%);
+  background: radial-gradient(circle, rgba(225,29,72,0.1), transparent 70%);
   bottom: -80px;
   right: -60px;
   animation-duration: 10s;
@@ -224,7 +222,7 @@ router.push('/')
 .orb-3 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, #ddd6fe, transparent 70%);
+  background: radial-gradient(circle, rgba(225,29,72,0.08), transparent 70%);
   top: 40%;
   left: 50%;
   opacity: 0.35;
@@ -245,7 +243,8 @@ router.push('/')
   min-height: 560px;
   border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1), 0 0 0 1px rgba(0,0,0,0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   z-index: 1;
   animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -259,7 +258,8 @@ router.push('/')
 /* --- Art panel --- */
 .card-art {
   width: 42%;
-  background: linear-gradient(145deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  background: linear-gradient(145deg, #1A1A1A 0%, #0F0F0F 50%, #1A1A1A 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 48px 40px;
   display: flex;
   flex-direction: column;
@@ -330,13 +330,12 @@ router.push('/')
 .art-footer {
   font-size: 11px;
   color: rgba(255,255,255,0.35);
-  font-family: 'JetBrains Mono', monospace;
 }
 
 /* --- Form panel --- */
 .card-form {
   flex: 1;
-  background: #ffffff;
+  background: #1A1A1A;
   padding: 52px 48px;
   display: flex;
   flex-direction: column;
@@ -350,14 +349,14 @@ router.push('/')
 .form-header h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #111827;
+  color: #FFFFFF;
   margin-bottom: 8px;
   letter-spacing: -0.5px;
 }
 
 .form-header p {
   font-size: 14px;
-  color: #9ca3af;
+  color: #A1A1AA;
 }
 
 /* --- Fields --- */
@@ -377,12 +376,12 @@ router.push('/')
 label {
   font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
+  color: #A1A1AA;
   transition: color 0.2s;
 }
 
 .field.focused label {
-  color: #6366f1;
+  color: #E11D48;
 }
 
 .input-wrap {
@@ -396,36 +395,50 @@ label {
   left: 14px;
   width: 18px;
   height: 18px;
-  color: #d1d5db;
+  color: #52525b;
   transition: color 0.2s;
   pointer-events: none;
 }
 
 .field.focused .field-icon {
-  color: #6366f1;
+  color: #E11D48;
 }
 
 input {
   width: 100%;
-  background: #f9fafb;
-  border: 1.5px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 13px 44px 13px 42px;
   font-size: 15px;
-  font-family: 'Sora', sans-serif;
-  color: #111827;
+  color: #FFFFFF;
+  caret-color: #E11D48;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   outline: none;
 }
 
 input::placeholder {
-  color: #c4c9d4;
+  color: #52525b;
 }
 
 input:focus {
-  border-color: #6366f1;
+  border-color: #E11D48;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  color: #111827;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+}
+
+.field.focused .eye-btn,
+.field.focused .field-icon {
+  color: #6b7280;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111827;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .eye-btn {
@@ -435,13 +448,13 @@ input:focus {
   border: none;
   cursor: pointer;
   padding: 4px;
-  color: #d1d5db;
+  color: #52525b;
   display: flex;
   align-items: center;
   transition: color 0.2s;
 }
 
-.eye-btn:hover { color: #6b7280; }
+.eye-btn:hover { color: #A1A1AA; }
 
 .eye-btn svg {
   width: 18px;
@@ -477,24 +490,24 @@ input:focus {
   padding: 15px 24px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: #E11D48;
   color: white;
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Sora', sans-serif;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 20px rgba(225, 29, 72, 0.35);
   margin-top: 24px;
 }
 
 .submit-btn:hover:not(:disabled) {
+  background: #BE123C;
   transform: translateY(-1px);
-  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 8px 28px rgba(225, 29, 72, 0.45);
 }
 
 .submit-btn:active:not(:disabled) {
@@ -534,18 +547,22 @@ input:focus {
 
 .form-footer p {
   font-size: 14px;
-  color: #9ca3af;
+  color: #A1A1AA;
+}
+
+.form-footer .admin-link {
+  margin-top: 12px;
 }
 
 .form-footer a {
-  color: #6366f1;
+  color: #E11D48;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .form-footer a:hover {
-  color: #4f46e5;
+  color: #BE123C;
 }
 
 /* --- Responsive --- */

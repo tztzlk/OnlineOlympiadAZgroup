@@ -15,7 +15,16 @@ class SubjectController extends Controller
     {
         try {
             return response()->json(
-                Subject::orderBy('name')->get()
+                Subject::whereHas('quizzes', function ($query) {
+                    $query->where('is_published', true);
+                })
+                    ->withCount([
+                        'quizzes as published_quizzes_count' => function ($query) {
+                            $query->where('is_published', true);
+                        },
+                    ])
+                    ->orderBy('name')
+                    ->get()
             );
         } catch (\Exception $e) {
 

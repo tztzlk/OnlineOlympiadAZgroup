@@ -11,9 +11,17 @@ class Subject extends Model
 
     protected $fillable = ['name', 'image', 'description', 'start_date'];
 
+    protected $casts = [
+        'start_date' => 'date',
+    ];
+
     public function olympiadRequests()
     {
         return $this->hasMany(OlympiadRequest::class);
     }
 
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
+    }
 }

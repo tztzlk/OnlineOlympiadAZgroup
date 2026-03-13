@@ -21,11 +21,15 @@ const acceptOffer = () => {
 </script>
 
 <template>
-  <Header v-if="showHeader" />
+  <div class="app-root">
+    <Header v-if="showHeader" />
 
-  <router-view />
+    <main class="app-main">
+      <router-view />
+    </main>
 
-  <Footer v-if="showHeader" />
+    <Footer v-if="showHeader" />
+  </div>
 
   <!-- Модальное окно оферты -->
   <Transition name="offer-modal">
@@ -39,6 +43,14 @@ const acceptOffer = () => {
 </template>
 
 <style>
+.app-root {
+  min-height: 100vh;
+  background: var(--bg);
+}
+.app-main {
+  flex: 1;
+}
+
 .offer-modal {
   position: fixed;
   inset: 0;
@@ -53,7 +65,7 @@ const acceptOffer = () => {
 .offer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 20, 60, 0.55);
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }

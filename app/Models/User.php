@@ -17,15 +17,12 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
-        'quiz_completed',
-        'quiz_score',
         'is_admin',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'quiz_completed' => 'boolean',
         'is_admin' => 'boolean',
     ];
     protected $hidden = [
@@ -36,9 +33,13 @@ class User extends Authenticatable
     {
         return (bool) $this->is_admin;
     }
-public function olympiadRequests()
-{
-    return $this->hasMany(\App\Models\OlympiadRequest::class);
-}
-}
+    public function olympiadRequests()
+    {
+        return $this->hasMany(\App\Models\OlympiadRequest::class);
+    }
 
+    public function quizResults()
+    {
+        return $this->hasMany(QuizResult::class);
+    }
+}

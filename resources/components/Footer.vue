@@ -130,13 +130,10 @@
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
-
 * { box-sizing: border-box; }
 
 .footer {
-  background: #0f0e1a;
-  font-family: 'Manrope', sans-serif;
+  background: var(--bg);
   position: relative;
   overflow: hidden;
 }
@@ -147,14 +144,14 @@
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 50%);
+    radial-gradient(circle at 20% 20%, rgba(225, 29, 72, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(225, 29, 72, 0.04) 0%, transparent 50%);
   pointer-events: none;
 }
 
 .footer__accent-line {
   height: 3px;
-  background: linear-gradient(90deg, #818cf8, #6366f1, #4f46e5, #a78bfa, #818cf8);
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover), var(--accent));
   background-size: 200% 100%;
   animation: shimmer 5s linear infinite;
 }
@@ -186,22 +183,21 @@
 }
 .logo-icon {
   width: 34px; height: 34px;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: var(--accent);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  color: white;
+  color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4);
 }
 .footer__logo span {
-  font-family: 'Playfair Display', serif;
   font-size: 18px;
   font-weight: 700;
-  color: white;
+  color: var(--text);
 }
 
 .footer__desc {
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.7;
   margin: 0 0 24px;
@@ -218,19 +214,19 @@
   align-items: center;
   gap: 7px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 13px;
   font-weight: 600;
   transition: all 0.2s;
 }
 .social-btn:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.4);
-  color: #a5b4fc;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent);
   transform: translateY(-2px);
 }
 
@@ -243,12 +239,12 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: white;
+  color: var(--text);
 }
 .title-line {
   width: 28px;
   height: 2px;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  background: var(--accent);
   border-radius: 2px;
   margin-top: 8px;
 }
@@ -267,22 +263,22 @@
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   padding: 8px 10px;
   border-radius: 10px;
   transition: all 0.2s;
 }
-.footer__link svg { color: #475569; flex-shrink: 0; transition: color 0.2s; }
+.footer__link svg { color: var(--text-secondary); flex-shrink: 0; transition: color 0.2s; }
 .footer__link:hover {
-  color: #a5b4fc;
-  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   padding-left: 14px;
 }
-.footer__link:hover svg { color: #6366f1; }
+.footer__link:hover svg { color: var(--accent); }
 .footer__link.router-link-active {
-  color: #a5b4fc;
+  color: var(--accent);
 }
 
 /* Contacts */
@@ -297,24 +293,24 @@
   gap: 12px;
   text-decoration: none;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--text) 3%, transparent);
+  border: 1px solid var(--border);
   border-radius: 12px;
   transition: all 0.2s;
   cursor: default;
 }
 a.contact-item { cursor: pointer; }
 a.contact-item:hover {
-  background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
   transform: translateX(4px);
 }
 .contact-icon {
   width: 34px; height: 34px;
-  background: rgba(99, 102, 241, 0.12);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
   border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  color: #818cf8;
+  color: var(--accent);
   flex-shrink: 0;
 }
 .contact-label {
@@ -322,18 +318,18 @@ a.contact-item:hover {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #475569;
+  color: var(--text-secondary);
   margin-bottom: 2px;
 }
 .contact-value {
   font-size: 14px;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--text);
 }
 
 /* Bottom bar */
 .footer__bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border);
   position: relative;
   z-index: 1;
 }
@@ -349,7 +345,7 @@ a.contact-item:hover {
 }
 .footer__bottom span {
   font-size: 13px;
-  color: #475569;
+  color: var(--text-secondary);
 }
 .footer__bottom-links {
   display: flex;
@@ -358,12 +354,12 @@ a.contact-item:hover {
 }
 .footer__bottom-links a {
   font-size: 13px;
-  color: #475569;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.2s;
 }
-.footer__bottom-links a:hover { color: #a5b4fc; }
-.divider { color: #334155; }
+.footer__bottom-links a:hover { color: var(--accent); }
+.divider { color: var(--text-secondary); opacity: 0.7; }
 
 /* Responsive */
 @media (max-width: 900px) {

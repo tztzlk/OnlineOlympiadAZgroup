@@ -103,15 +103,13 @@ onMounted(fetchNews)
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
-
 * { box-sizing: border-box; }
 
 .news-section {
   max-width: 1200px;
   margin: 0 auto;
   padding: 90px 28px;
-  font-family: 'Manrope', sans-serif;
+  
 }
 
 /* Header */
@@ -128,27 +126,28 @@ onMounted(fetchNews)
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #E11D48;
+  background: rgba(225, 29, 72, 0.15);
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid #c7d2fe;
+  border: 1px solid rgba(225, 29, 72, 0.3);
   margin-bottom: 18px;
 }
 
 .news-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 40px;
-  font-weight: 700;
-  color: #1e1b4b;
+  font-size: 30px;
+  font-weight: 600;
+  color: #FFFFFF;
   margin: 0 0 12px;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .news-subtitle {
   font-size: 16px;
-  color: #94a3b8;
+  font-weight: 400;
+  color: #A1A1AA;
   margin: 0;
+  line-height: 1.6;
 }
 
 /* Grid */
@@ -166,18 +165,16 @@ onMounted(fetchNews)
   height: 240px;
 }
 .news-card.featured .news-card-title {
-  font-size: 22px;
-  
+  font-size: 20px;
 }
-
 
 /* Card */
 .news-card {
   border-radius: 24px;
   overflow: hidden;
-  background: white;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  background: #1A1A1A;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
@@ -188,15 +185,15 @@ onMounted(fetchNews)
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #818cf8, #6366f1, #a78bfa);
+  background: linear-gradient(90deg, #E11D48, #E11D48, #BE123C);
   opacity: 0;
   transition: opacity 0.3s;
   z-index: 1;
 }
 .news-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 50px rgba(79, 70, 229, 0.12);
-  border-color: #c7d2fe;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(225, 29, 72, 0.15);
+  border-color: rgba(225, 29, 72, 0.35);
 }
 .news-card:hover::before { opacity: 1; }
 
@@ -230,7 +227,7 @@ onMounted(fetchNews)
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: white;
-  background: rgba(99, 102, 241, 0.85);
+  background: rgba(225, 29, 72, 0.85);
   backdrop-filter: blur(6px);
   padding: 4px 10px;
   border-radius: 20px;
@@ -238,11 +235,11 @@ onMounted(fetchNews)
 
 /* Content */
 .news-content {
-  padding: 22px 24px 24px;
+  padding: 24px;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 10px;
 }
 
 .news-meta {
@@ -250,31 +247,30 @@ onMounted(fetchNews)
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #94a3b8;
-  font-weight: 600;
+  color: #A1A1AA;
+  font-weight: 500;
+  margin-bottom: 8px;
 }
 
 .news-card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: #1e1b4b;
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
   margin: 0;
   line-height: 1.35;
   display: -webkit-box;
-  
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .news-desc {
-  font-size: 14px;
-  color: #64748b;
-  line-height: 1.65;
-  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  color: #A1A1AA;
+  line-height: 1.5;
+  margin: 8px 0 0;
   flex: 1;
   display: -webkit-box;
-
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -283,22 +279,22 @@ onMounted(fetchNews)
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #6366f1;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #E11D48;
   text-decoration: none;
   padding: 8px 16px;
-  background: #eef2ff;
+  background: rgba(225, 29, 72, 0.15);
   border-radius: 10px;
-  border: 1px solid #c7d2fe;
+  border: 1px solid rgba(225, 29, 72, 0.4);
   align-self: flex-start;
   transition: all 0.2s;
 }
 .read-more:hover {
-  background: #6366f1;
+  background: #E11D48;
   color: white;
-  border-color: #6366f1;
+  border-color: #E11D48;
   transform: translateX(3px);
 }
 .read-more svg { transition: transform 0.2s; }
@@ -308,27 +304,27 @@ onMounted(fetchNews)
 .skeleton-card {
   border-radius: 24px;
   overflow: hidden;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: #1A1A1A;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .skeleton-img {
   height: 180px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
   background-size: 400% 100%;
   animation: shimmer 1.4s infinite;
 }
-.skeleton-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+.skeleton-body { padding: 24px; display: flex; flex-direction: column; gap: 10px; }
 .skeleton-line {
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
   background-size: 400% 100%;
   animation: shimmer 1.4s infinite;
 }
 .skeleton-line.wide { width: 85%; height: 16px; }
 .skeleton-line.medium { width: 65%; }
 .skeleton-line.short { width: 90%; }
-.skeleton-tag { width: 80px; height: 28px; border-radius: 10px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 400% 100%; animation: shimmer 1.4s infinite; margin-top: 4px; }
+.skeleton-tag { width: 80px; height: 28px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 400% 100%; animation: shimmer 1.4s infinite; margin-top: 4px; }
 
 @keyframes shimmer {
   0% { background-position: 100% 0; }
@@ -339,11 +335,11 @@ onMounted(fetchNews)
 .empty-state {
   text-align: center;
   padding: 64px 20px;
-  color: #94a3b8;
+  color: #A1A1AA;
 }
 .empty-icon {
   width: 80px; height: 80px;
-  background: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 24px;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 20px;

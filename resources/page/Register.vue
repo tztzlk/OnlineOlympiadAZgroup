@@ -281,17 +281,14 @@ function formatPhone(e) {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .register-page {
-  font-family: 'Sora', sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1f4f9;
+  background: #0F0F0F;
   padding: 24px;
   position: relative;
   overflow: hidden;
@@ -304,12 +301,12 @@ function formatPhone(e) {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.45;
+  opacity: 0.25;
   animation: drift 12s ease-in-out infinite alternate;
 }
-.orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, #c7d2fe, transparent 70%); top: -120px; left: -100px; animation-duration: 14s; }
-.orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #bfdbfe, transparent 70%); bottom: -80px; right: -60px; animation-duration: 10s; animation-delay: -4s; }
-.orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #ddd6fe, transparent 70%); top: 40%; left: 50%; opacity: 0.35; animation-duration: 16s; animation-delay: -7s; }
+.orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(225,29,72,0.12), transparent 70%); top: -120px; left: -100px; animation-duration: 14s; }
+.orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(225,29,72,0.08), transparent 70%); bottom: -80px; right: -60px; animation-duration: 10s; animation-delay: -4s; }
+.orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(225,29,72,0.06), transparent 70%); top: 40%; left: 50%; opacity: 0.35; animation-duration: 16s; animation-delay: -7s; }
 
 @keyframes drift {
   from { transform: translate(0, 0) scale(1); }
@@ -323,7 +320,8 @@ function formatPhone(e) {
   max-width: 960px;
   border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1), 0 0 0 1px rgba(0,0,0,0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   z-index: 1;
   animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -337,7 +335,8 @@ function formatPhone(e) {
 /* --- Art panel --- */
 .card-art {
   width: 38%;
-  background: linear-gradient(145deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  background: linear-gradient(145deg, #1A1A1A 0%, #0F0F0F 50%, #1A1A1A 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 48px 36px;
   display: flex;
   flex-direction: column;
@@ -397,12 +396,12 @@ function formatPhone(e) {
   flex-shrink: 0;
 }
 
-.art-footer { font-size: 11px; color: rgba(255,255,255,0.35); font-family: 'JetBrains Mono', monospace; }
+.art-footer { font-size: 11px; color: rgba(255,255,255,0.35); }
 
 /* --- Form panel --- */
 .card-form {
   flex: 1;
-  background: #ffffff;
+  background: #1A1A1A;
   padding: 44px 44px;
   display: flex;
   flex-direction: column;
@@ -411,8 +410,8 @@ function formatPhone(e) {
 }
 
 .form-header { margin-bottom: 28px; }
-.form-header h1 { font-size: 30px; font-weight: 700; color: #111827; margin-bottom: 6px; letter-spacing: -0.5px; }
-.form-header p { font-size: 14px; color: #9ca3af; }
+.form-header h1 { font-size: 30px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; letter-spacing: -0.5px; }
+.form-header p { font-size: 14px; color: #A1A1AA; }
 
 /* --- Fields grid --- */
 .fields-grid {
@@ -426,7 +425,7 @@ function formatPhone(e) {
 .field.full { grid-column: 1 / -1; }
 
 label { font-size: 12.5px; font-weight: 500; color: #6b7280; transition: color 0.2s; }
-.field.focused label { color: #6366f1; }
+.field.focused label { color: #E11D48; }
 .field.match label { color: #10b981; }
 
 .input-wrap { position: relative; display: flex; align-items: center; }
@@ -441,18 +440,18 @@ label { font-size: 12.5px; font-weight: 500; color: #6b7280; transition: color 0
   pointer-events: none;
 }
 
-.field.focused .field-icon { color: #6366f1; }
+.field.focused .field-icon { color: #E11D48; }
 .field.match .field-icon { color: #10b981; }
 
 input {
   width: 100%;
-  background: #f9fafb;
-  border: 1.5px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: 11px;
   padding: 11px 38px 11px 36px;
   font-size: 14px;
-  font-family: 'Sora', sans-serif;
-  color: #111827;
+  color: #FFFFFF;
+  caret-color: #E11D48;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   outline: none;
 }
@@ -460,9 +459,23 @@ input {
 input::placeholder { color: #c4c9d4; }
 
 input:focus {
-  border-color: #6366f1;
+  border-color: #E11D48;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  color: #111827;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+}
+
+.field.focused .eye-btn,
+.field.focused .field-icon {
+  color: #6b7280;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111827;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .field.match input {
@@ -548,21 +561,20 @@ input:focus {
   padding: 14px 24px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: #E11D48;
   color: white;
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Sora', sans-serif;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 20px rgba(225, 29, 72, 0.35);
 }
 
-.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(99, 102, 241, 0.4); }
+.submit-btn:hover:not(:disabled) { background: #BE123C; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(225, 29, 72, 0.45); }
 .submit-btn:active:not(:disabled) { transform: translateY(0); }
 .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -582,9 +594,9 @@ input:focus {
 
 /* --- Footer --- */
 .form-footer { margin-top: 20px; text-align: center; }
-.form-footer p { font-size: 14px; color: #9ca3af; }
-.form-footer a { color: #6366f1; text-decoration: none; font-weight: 500; transition: color 0.2s; }
-.form-footer a:hover { color: #4f46e5; }
+.form-footer p { font-size: 14px; color: #A1A1AA; }
+.form-footer a { color: #E11D48; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+.form-footer a:hover { color: #BE123C; }
 
 /* --- Responsive --- */
 @media (max-width: 820px) {

@@ -21,21 +21,21 @@ class OlympiadRequest extends Model
         'parent_phone',
         'parent_email',
         'status',
-        'completed'
+        'completed',
     ];
 
+    protected $casts = [
+        'completed' => 'boolean',
+        'birth_date' => 'date',
+    ];
 
-
-   public function user()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Связь с предметом
-   
-public function subject()
-{
-    return $this->belongsTo(\App\Models\Subject::class);
-}
-
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
 }
