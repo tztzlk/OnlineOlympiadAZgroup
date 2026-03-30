@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Quiz;
+use App\Models\QuizCategory;
 use App\Models\Subject;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminQuizController extends Controller
 {
     public function index()
     {
         return response()->json(
-            Quiz::with('subject')
+            Quiz::with(['subject', 'categories'])
                 ->withCount('questions')
                 ->latest()
                 ->get()
+                ->map(fn (Quiz $quiz) => $this->mapQuizSummary($quiz))
         );
     }
 
@@ -24,27 +27,26 @@ class AdminQuizController extends Controller
         $data = $this->validatePayload($request);
         $subject = $this->resolveSubject($data);
 
-        $quiz = Quiz::create([
-            'subject_id' => $subject->id,
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'time_limit' => $data['time_limit'],
-            'is_published' => (bool) ($data['is_published'] ?? false),
-        ]);
+        $quiz = DB::transaction(function () use ($data, $subject) {
+            $quiz = Quiz::create([
+                'subject_id' => $subject->id,
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'time_limit' => $data['time_limit'],
+                'is_published' => (bool) ($data['is_published'] ?? false),
+            ]);
 
-        $this->syncQuestions($quiz, $data['questions']);
+            $this->syncCategories($quiz, $data['categories']);
 
-        return response()->json(
-            $quiz->load('subject')->loadCount('questions'),
-            201
-        );
+            return $quiz;
+        });
+
+        return response()->json($this->loadQuizDetails($quiz), 201);
     }
 
     public function show(Quiz $quiz)
     {
-        $quiz->load(['subject', 'questions.answers'])->loadCount('questions');
-
-        return response()->json($quiz);
+        return response()->json($this->loadQuizDetails($quiz));
     }
 
     public function update(Request $request, Quiz $quiz)
@@ -52,19 +54,19 @@ class AdminQuizController extends Controller
         $data = $this->validatePayload($request);
         $subject = $this->resolveSubject($data);
 
-        $quiz->update([
-            'subject_id' => $subject->id,
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'time_limit' => $data['time_limit'],
-            'is_published' => (bool) ($data['is_published'] ?? false),
-        ]);
+        DB::transaction(function () use ($data, $subject, $quiz) {
+            $quiz->update([
+                'subject_id' => $subject->id,
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'time_limit' => $data['time_limit'],
+                'is_published' => (bool) ($data['is_published'] ?? false),
+            ]);
 
-        $this->syncQuestions($quiz, $data['questions']);
+            $this->syncCategories($quiz, $data['categories']);
+        });
 
-        return response()->json(
-            $quiz->fresh()->load('subject')->loadCount('questions')
-        );
+        return response()->json($this->loadQuizDetails($quiz->fresh()));
     }
 
     public function destroy(Quiz $quiz)
@@ -82,7 +84,7 @@ class AdminQuizController extends Controller
 
         return response()->json([
             'message' => 'Quiz published',
-            'quiz' => $quiz->fresh()->load('subject')->loadCount('questions'),
+            'quiz' => $this->mapQuizSummary($quiz->fresh()->load(['subject', 'categories'])->loadCount('questions')),
         ]);
     }
 
@@ -92,7 +94,21 @@ class AdminQuizController extends Controller
 
         return response()->json([
             'message' => 'Quiz unpublished',
-            'quiz' => $quiz->fresh()->load('subject')->loadCount('questions'),
+            'quiz' => $this->mapQuizSummary($quiz->fresh()->load(['subject', 'categories'])->loadCount('questions')),
+        ]);
+    }
+
+    public function uploadQuestionImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:4096',
+        ]);
+
+        $path = $request->file('image')->store('question-images', 'public');
+
+        return response()->json([
+            'path' => $path,
+            'url' => asset('storage/' . $path),
         ]);
     }
 
@@ -108,14 +124,22 @@ class AdminQuizController extends Controller
             'description' => 'nullable|string',
             'time_limit' => 'required|integer|min:1|max:180',
             'is_published' => 'sometimes|boolean',
-            'questions' => 'required|array|min:1|max:100',
-            'questions.*.question' => 'required|string',
-            'questions.*.position' => 'nullable|integer|min:1|max:100',
-            'questions.*.answers' => 'required|array|size:5',
-            'questions.*.correct_answer' => 'required|string|in:A,B,C,D,E',
-            'questions.*.answers.*.label' => 'required|string|in:A,B,C,D,E',
-            'questions.*.answers.*.answer' => 'required|string',
-            'questions.*.answers.*.position' => 'nullable|integer|min:1|max:5',
+            'categories' => 'required|array|min:1|max:10',
+            'categories.*.label' => 'required|string|max:50',
+            'categories.*.grade_from' => 'nullable|integer|min:1|max:11',
+            'categories.*.grade_to' => 'nullable|integer|min:1|max:11',
+            'categories.*.sort_order' => 'nullable|integer|min:1|max:20',
+            'categories.*.questions' => 'required|array|min:1|max:100',
+            'categories.*.questions.*.question' => 'required|string',
+            'categories.*.questions.*.image_source' => 'nullable|string|in:url,upload',
+            'categories.*.questions.*.image_url' => 'nullable|string',
+            'categories.*.questions.*.image_path' => 'nullable|string',
+            'categories.*.questions.*.position' => 'nullable|integer|min:1|max:100',
+            'categories.*.questions.*.answers' => 'required|array|size:5',
+            'categories.*.questions.*.correct_answer' => 'required|string|in:A,B,C,D,E',
+            'categories.*.questions.*.answers.*.label' => 'required|string|in:A,B,C,D,E',
+            'categories.*.questions.*.answers.*.answer' => 'required|string',
+            'categories.*.questions.*.answers.*.position' => 'nullable|integer|min:1|max:5',
         ]);
     }
 
@@ -133,24 +157,107 @@ class AdminQuizController extends Controller
         ]);
     }
 
-    protected function syncQuestions(Quiz $quiz, array $questions): void
+    protected function syncCategories(Quiz $quiz, array $categories): void
     {
+        $quiz->categories()->delete();
         $quiz->questions()->delete();
 
-        foreach ($questions as $questionIndex => $questionData) {
-            $question = $quiz->questions()->create([
-                'question' => $questionData['question'],
-                'position' => $questionData['position'] ?? ($questionIndex + 1),
+        foreach ($categories as $categoryIndex => $categoryData) {
+            $category = $quiz->categories()->create([
+                'label' => $categoryData['label'],
+                'grade_from' => $categoryData['grade_from'] ?? null,
+                'grade_to' => $categoryData['grade_to'] ?? null,
+                'sort_order' => $categoryData['sort_order'] ?? ($categoryIndex + 1),
             ]);
 
-            foreach ($questionData['answers'] as $answerIndex => $answerData) {
-                $question->answers()->create([
-                    'label' => $answerData['label'],
-                    'position' => $answerData['position'] ?? ($answerIndex + 1),
-                    'answer' => $answerData['answer'],
-                    'is_correct' => $answerData['label'] === $questionData['correct_answer'],
+            foreach ($categoryData['questions'] as $questionIndex => $questionData) {
+                $imageSource = $questionData['image_source'] ?? null;
+
+                $question = $quiz->questions()->create([
+                    'quiz_category_id' => $category->id,
+                    'question' => $questionData['question'],
+                    'image_source' => $imageSource,
+                    'image_url' => $imageSource === 'url' ? ($questionData['image_url'] ?? null) : null,
+                    'image_path' => $imageSource === 'upload' ? ($questionData['image_path'] ?? null) : null,
+                    'position' => $questionData['position'] ?? ($questionIndex + 1),
                 ]);
+
+                foreach ($questionData['answers'] as $answerIndex => $answerData) {
+                    $question->answers()->create([
+                        'label' => $answerData['label'],
+                        'position' => $answerData['position'] ?? ($answerIndex + 1),
+                        'answer' => $answerData['answer'],
+                        'is_correct' => $answerData['label'] === $questionData['correct_answer'],
+                    ]);
+                }
             }
         }
+    }
+
+    protected function loadQuizDetails(Quiz $quiz): array
+    {
+        $quiz->load([
+            'subject',
+            'categories.questions.answers',
+        ])->loadCount('questions');
+
+        return [
+            'id' => $quiz->id,
+            'title' => $quiz->title,
+            'description' => $quiz->description,
+            'time_limit' => $quiz->time_limit,
+            'is_published' => $quiz->is_published,
+            'questions_count' => $quiz->questions_count,
+            'subject' => $quiz->subject,
+            'categories' => $quiz->categories->map(function (QuizCategory $category) {
+                return [
+                    'id' => $category->id,
+                    'label' => $category->label,
+                    'grade_from' => $category->grade_from,
+                    'grade_to' => $category->grade_to,
+                    'sort_order' => $category->sort_order,
+                    'questions' => $category->questions->map(function ($question) {
+                        return [
+                            'id' => $question->id,
+                            'question' => $question->question,
+                            'image_source' => $question->image_source,
+                            'image_url' => $question->image_url,
+                            'image_path' => $question->image_path,
+                            'image' => $question->image,
+                            'position' => $question->position,
+                            'correct_answer' => $question->answers->firstWhere('is_correct', true)?->label ?? 'A',
+                            'answers' => $question->answers->map(function ($answer, $index) {
+                                return [
+                                    'id' => $answer->id,
+                                    'label' => $answer->label ?: chr(65 + $index),
+                                    'position' => $answer->position ?? ($index + 1),
+                                    'answer' => $answer->answer,
+                                    'is_correct' => (bool) $answer->is_correct,
+                                ];
+                            })->values(),
+                        ];
+                    })->values(),
+                ];
+            })->values(),
+        ];
+    }
+
+    protected function mapQuizSummary(Quiz $quiz): array
+    {
+        return [
+            'id' => $quiz->id,
+            'title' => $quiz->title,
+            'description' => $quiz->description,
+            'time_limit' => $quiz->time_limit,
+            'is_published' => $quiz->is_published,
+            'questions_count' => $quiz->questions_count,
+            'subject' => $quiz->subject,
+            'categories' => $quiz->categories->map(fn (QuizCategory $category) => [
+                'id' => $category->id,
+                'label' => $category->label,
+                'grade_from' => $category->grade_from,
+                'grade_to' => $category->grade_to,
+            ])->values(),
+        ];
     }
 }

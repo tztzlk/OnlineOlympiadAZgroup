@@ -114,7 +114,7 @@ const icons = [
 
 .rules-page {
   min-height: 100vh;
-  background: #0F0F0F;
+  background: var(--bg);
   padding: 80px 28px 100px;
   position: relative;
   overflow: hidden;
@@ -153,11 +153,11 @@ const icons = [
 .page-title {
   font-size: 30px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-primary);
   margin: 0 0 14px;
   line-height: 1.25;
 }
-.page-subtitle { font-size: 16px; font-weight: 400; color: #A1A1AA; margin: 0; line-height: 1.6; }
+.page-subtitle { font-size: 16px; font-weight: 400; color: var(--text-secondary); margin: 0; line-height: 1.6; }
 
 /* Notice */
 .notice {
@@ -197,10 +197,10 @@ const icons = [
 /* Rule card */
 .rule-card {
   position: relative;
-  background: #1A1A1A;
+  background: var(--surface);
   padding: 24px;
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--surface-border);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   transition: all 0.3s ease;
@@ -238,7 +238,7 @@ const icons = [
 .rule-number {
   font-size: 28px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.2);
+  color: color-mix(in srgb, var(--text-on-surface) 20%, transparent);
   line-height: 1;
   letter-spacing: -1px;
 }
@@ -260,14 +260,14 @@ const icons = [
 .rule-title {
   font-size: 18px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   margin: 0 0 10px;
   line-height: 1.35;
 }
 
 .rule-desc {
   font-size: 14px;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   line-height: 1.7;
   margin: 0;
 }
@@ -279,8 +279,8 @@ const icons = [
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
-  background: #1A1A1A;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
   border-radius: 20px;
   padding: 22px 32px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
@@ -296,7 +296,7 @@ const icons = [
 .rules-cta span {
   font-size: 15px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   flex: 1;
   min-width: 200px;
 }

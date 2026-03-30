@@ -3,23 +3,29 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdminQuizController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\OlympiadRequestController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\SubjectController;
+use App\Http\Controllers\Api\SupportController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
 Route::post('/auth/admin/login', [AuthController::class, 'adminLogin']);
 
 Route::get('/news', [NewsController::class, 'index']);
+Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 Route::get('/subjects', [SubjectController::class, 'index']);
+Route::post('/support/feedback', [SupportController::class, 'feedback']);
 
 Route::middleware(['auth:sanctum', 'admin'])
     ->prefix('admin')
@@ -27,15 +33,18 @@ Route::middleware(['auth:sanctum', 'admin'])
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
         Route::get('/users', [AdminController::class, 'getUsers']);
         Route::get('/users-results', [AdminController::class, 'usersResults']);
+        Route::get('/users-results/export', [AdminController::class, 'exportUsersResults']);
 
         Route::get('/requests', [OlympiadRequestController::class, 'index']);
         Route::get('/requests/stats', [OlympiadRequestController::class, 'stats']);
         Route::get('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'show']);
         Route::patch('/requests/{olympiadRequest}/status', [OlympiadRequestController::class, 'updateStatus']);
+        Route::patch('/requests/{olympiadRequest}/payment', [OlympiadRequestController::class, 'updatePaymentStatus']);
         Route::delete('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'destroy']);
 
         Route::get('/quizzes', [AdminQuizController::class, 'index']);
         Route::post('/quizzes', [AdminQuizController::class, 'store']);
+        Route::post('/quizzes/upload-image', [AdminQuizController::class, 'uploadQuestionImage']);
         Route::get('/quizzes/{quiz}', [AdminQuizController::class, 'show']);
         Route::match(['put', 'patch'], '/quizzes/{quiz}', [AdminQuizController::class, 'update']);
         Route::delete('/quizzes/{quiz}', [AdminQuizController::class, 'destroy']);
@@ -46,9 +55,11 @@ Route::middleware(['auth:sanctum', 'admin'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'me']);
+        Route::put('/', [ProfileController::class, 'update']);
         Route::get('/recent-olympiads', [ProfileController::class, 'recentOlympiads']);
         Route::get('/olympiads', [ProfileController::class, 'olympiads']);
         Route::get('/results', [ProfileController::class, 'myResults']);
+        Route::get('/results/{result}/certificate', [ProfileController::class, 'certificate']);
     });
 
     Route::prefix('olympiad')->group(function () {
@@ -62,5 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/subjects', [QuizController::class, 'getSubjects']);
         Route::get('/{subjectId}', [QuizController::class, 'getQuiz']);
         Route::post('/{quizId}/submit', [QuizController::class, 'submitQuiz']);
+        Route::post('/{quizId}/violate', [QuizController::class, 'violateAttempt']);
     });
 });

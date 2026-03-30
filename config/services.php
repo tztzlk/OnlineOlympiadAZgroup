@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'support' => [
+        'email' => env('SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS')),
+        'phone' => env('SUPPORT_PHONE', '+7 (777) 000-00-00'),
+    ],
+
+    'kaspi' => [
+        'payment_url' => env('KASPI_PAYMENT_URL'),
+    ],
+
 ];

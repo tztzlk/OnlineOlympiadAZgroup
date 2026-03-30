@@ -4,7 +4,9 @@
       <div>
         <p class="eyebrow">Admissions</p>
         <h1>Заявки</h1>
-        <p class="subtext">Проверяйте участников, подтверждайте доступ и держите поток заявок под контролем.</p>
+        <p class="subtext">
+          Проверяйте участников, подтверждайте доступ и контролируйте оплату перед прохождением теста.
+        </p>
       </div>
 
       <div class="toolbar">
@@ -82,6 +84,11 @@
             <span>Дата заявки</span>
             <strong>{{ formatDate(request.created_at) }}</strong>
           </div>
+          <div class="detail payment-detail">
+            <span>Оплата</span>
+            <strong>{{ paymentLabel(request.payment_status) }}</strong>
+            <small v-if="request.paid_at">Подтверждено: {{ formatDate(request.paid_at) }}</small>
+          </div>
         </div>
 
         <div class="actions">
@@ -102,6 +109,30 @@
           >
             Отклонить
           </button>
+          <button
+            v-if="request.payment_status !== 'paid'"
+            type="button"
+            class="success-btn"
+            @click="updatePaymentStatus(request, 'paid')"
+          >
+            Оплата подтверждена
+          </button>
+          <button
+            v-if="request.payment_status !== 'failed'"
+            type="button"
+            class="warning-btn"
+            @click="updatePaymentStatus(request, 'failed')"
+          >
+            Оплата не прошла
+          </button>
+          <button
+            v-if="request.payment_status !== 'pending'"
+            type="button"
+            class="ghost-btn"
+            @click="updatePaymentStatus(request, 'pending')"
+          >
+            Вернуть в ожидание
+          </button>
         </div>
       </article>
     </div>
@@ -114,13 +145,17 @@
             <h2>{{ selectedRequest.name }}</h2>
             <p class="subtext">{{ selectedRequest.subjectName }}</p>
           </div>
-          <button type="button" class="close-btn" @click="selectedRequest = null">x</button>
+          <button type="button" class="close-btn" @click="selectedRequest = null">×</button>
         </div>
 
         <div class="modal-grid">
           <div class="modal-field">
             <span>Статус</span>
             <strong>{{ statusLabel(selectedRequest.status) }}</strong>
+          </div>
+          <div class="modal-field">
+            <span>Статус оплаты</span>
+            <strong>{{ paymentLabel(selectedRequest.payment_status) }}</strong>
           </div>
           <div class="modal-field">
             <span>Почта родителя</span>
@@ -142,6 +177,15 @@
             <span>Язык</span>
             <strong>{{ selectedRequest.language || 'Не указан' }}</strong>
           </div>
+          <div class="modal-field">
+            <span>Оплата подтверждена</span>
+            <strong>{{ selectedRequest.paid_at ? formatDate(selectedRequest.paid_at) : 'Еще нет' }}</strong>
+          </div>
+        </div>
+
+        <div v-if="selectedRequest.payment_url" class="payment-link-card">
+          <span>Kaspi ссылка</span>
+          <a :href="selectedRequest.payment_url" target="_blank" rel="noopener">Открыть оплату</a>
         </div>
       </div>
     </div>
@@ -171,6 +215,12 @@ const statusLabel = (status) => ({
   approved: 'Одобрена',
   rejected: 'Отклонена',
 }[status] ?? status)
+
+const paymentLabel = (status) => ({
+  pending: 'Ожидает оплаты',
+  paid: 'Оплачено',
+  failed: 'Не оплачено',
+}[status] ?? 'Ожидает оплаты')
 
 const formatDate = (date) => {
   if (!date) return 'Не указана'
@@ -209,6 +259,7 @@ const mapRequest = (item) => ({
   name: `${item.first_name || ''} ${item.last_name || ''}`.trim() || 'Без имени',
   email: item.parent_email || item.user?.email || 'Не указан',
   subjectName: item.subject?.name || 'Без предмета',
+  payment_status: item.payment_status || 'pending',
 })
 
 const loadRequests = async () => {
@@ -236,6 +287,28 @@ const updateStatus = async (request, status) => {
   } catch (error) {
     console.error(error)
     errorMessage.value = error.response?.data?.message || 'Не удалось обновить статус.'
+  }
+}
+
+const updatePaymentStatus = async (request, paymentStatus) => {
+  try {
+    const { data } = await api.patch(`/admin/requests/${request.id}/payment`, {
+      payment_status: paymentStatus,
+    })
+
+    request.payment_status = data.payment_status
+    request.paid_at = data.paid_at
+
+    if (selectedRequest.value?.id === request.id) {
+      selectedRequest.value = {
+        ...selectedRequest.value,
+        payment_status: data.payment_status,
+        paid_at: data.paid_at,
+      }
+    }
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = error.response?.data?.message || 'Не удалось обновить статус оплаты.'
   }
 }
 
@@ -447,23 +520,34 @@ h1 {
   gap: 12px;
 }
 
-.detail {
+.detail,
+.modal-field,
+.payment-link-card {
   background: #f8fbff;
   border: 1px solid #e2eaf6;
   border-radius: 16px;
   padding: 14px;
 }
 
-.detail span {
+.detail span,
+.modal-field span,
+.payment-link-card span {
   display: block;
   color: #64748b;
   font-size: 12px;
   margin-bottom: 6px;
 }
 
-.detail strong {
+.detail strong,
+.modal-field strong {
   color: #102347;
   word-break: break-word;
+}
+
+.detail small {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
 }
 
 .actions {
@@ -476,6 +560,7 @@ h1 {
 .ghost-btn,
 .success-btn,
 .danger-btn,
+.warning-btn,
 .close-btn {
   border: 0;
   border-radius: 14px;
@@ -497,6 +582,11 @@ h1 {
 .danger-btn {
   background: #ffe4e6;
   color: #be123c;
+}
+
+.warning-btn {
+  background: #fff7db;
+  color: #9c6b05;
 }
 
 .modal-backdrop {
@@ -536,22 +626,14 @@ h1 {
   gap: 12px;
 }
 
-.modal-field {
-  background: #f8fbff;
-  border: 1px solid #e2eaf6;
-  border-radius: 16px;
-  padding: 14px;
+.payment-link-card {
+  margin-top: 14px;
 }
 
-.modal-field span {
-  display: block;
-  color: #64748b;
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.modal-field strong {
-  color: #102347;
+.payment-link-card a {
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 @media (max-width: 980px) {

@@ -175,7 +175,7 @@ const confirmOffer = async () => {
   align-items: flex-start;
   justify-content: center;
   padding: 48px 16px 64px;
-  background: #0F0F0F;
+  background: var(--bg);
   position: relative;
   overflow: hidden;
 }
@@ -205,10 +205,10 @@ const confirmOffer = async () => {
   position: relative;
   width: 100%;
   max-width: 740px;
-  background: #1A1A1A;
+  background: var(--surface);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--surface-border);
   border-radius: 24px;
   padding: 44px 48px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
@@ -242,14 +242,14 @@ const confirmOffer = async () => {
 .offer-title {
   font-size: 32px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   letter-spacing: -0.5px;
   margin-bottom: 8px;
 }
 
 .offer-subtitle {
   font-size: 13.5px;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   font-weight: 300;
 }
 
@@ -261,17 +261,17 @@ const confirmOffer = async () => {
   padding-right: 12px;
   margin-bottom: 6px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(225,29,72,0.3) rgba(255,255,255,0.06);
+  scrollbar-color: rgba(225,29,72,0.3) var(--surface-soft);
 }
 
 .offer-content::-webkit-scrollbar { width: 4px; }
-.offer-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 4px; }
+.offer-content::-webkit-scrollbar-track { background: var(--surface-soft); border-radius: 4px; }
 .offer-content::-webkit-scrollbar-thumb { background: rgba(225,29,72,0.3); border-radius: 4px; }
 
 .offer-intro {
   font-size: 14px;
   line-height: 1.75;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   margin-bottom: 24px;
   padding: 16px 18px;
   background: rgba(225, 29, 72, 0.08);
@@ -284,7 +284,7 @@ const confirmOffer = async () => {
   display: flex;
   gap: 18px;
   padding: 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .offer-section:last-of-type { border-bottom: none; }
@@ -302,7 +302,7 @@ const confirmOffer = async () => {
 .offer-section__title {
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   margin-bottom: 8px;
   letter-spacing: -0.1px;
 }
@@ -310,7 +310,7 @@ const confirmOffer = async () => {
 .offer-section p {
   font-size: 13.5px;
   line-height: 1.7;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   font-weight: 300;
 }
 
@@ -320,7 +320,7 @@ const confirmOffer = async () => {
   bottom: 0;
   left: 0; right: 0;
   height: 48px;
-  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9));
+  background: linear-gradient(to bottom, transparent, var(--surface));
   pointer-events: none;
   transition: opacity 0.3s;
 }
@@ -333,7 +333,7 @@ const confirmOffer = async () => {
   justify-content: center;
   gap: 6px;
   font-size: 11.5px;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   margin-bottom: 20px;
   transition: opacity 0.3s;
   animation: bounce 2s ease-in-out infinite;
@@ -347,7 +347,7 @@ const confirmOffer = async () => {
 
 /* Agreement */
 .offer-agreement {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--surface-border);
   padding-top: 24px;
   display: flex;
   flex-direction: column;
@@ -362,8 +362,8 @@ const confirmOffer = async () => {
   cursor: pointer;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid var(--surface-border);
+  background: var(--surface-soft);
   transition: border-color 0.2s, background 0.2s;
 }
 
@@ -391,7 +391,7 @@ const confirmOffer = async () => {
 
 .checkbox-label {
   font-size: 13.5px;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   line-height: 1.4;
   font-weight: 400;
 }
@@ -409,8 +409,8 @@ const confirmOffer = async () => {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.06);
-  color: #A1A1AA;
+  background: var(--surface-soft);
+  color: var(--text-muted-on-surface);
   transition: all 0.25s;
   min-height: 50px;
 }

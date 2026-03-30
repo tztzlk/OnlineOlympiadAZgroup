@@ -169,14 +169,14 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .reviews__title {
   font-size: 38px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-primary);
   margin: 0 0 12px;
   line-height: 1.2;
 }
 
 .reviews__subtitle {
   font-size: 16px;
-  color: #A1A1AA;
+  color: var(--text-secondary);
   margin: 0 0 32px;
 }
 
@@ -185,8 +185,8 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   display: inline-flex;
   align-items: center;
   gap: 28px;
-  background: #1A1A1A;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
   border-radius: 20px;
   padding: 16px 32px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -195,12 +195,12 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .stat__num {
   font-size: 22px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   line-height: 1;
 }
 .stat__stars { display: flex; gap: 2px; }
-.stat__label { font-size: 12px; color: #A1A1AA; font-weight: 600; }
-.stat-divider { width: 1px; height: 36px; background: rgba(255, 255, 255, 0.08); }
+.stat__label { font-size: 12px; color: var(--text-muted-on-surface); font-weight: 600; }
+.stat-divider { width: 1px; height: 36px; background: var(--surface-border); }
 
 /* Scroll wrapper */
 .reviews__wrapper {
@@ -222,10 +222,10 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 /* Review card */
 .review {
   flex: 0 0 340px;
-  background: #1A1A1A;
+  background: var(--surface);
   border-radius: 24px;
   padding: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--surface-border);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
   scroll-snap-align: start;
   transition: all 0.3s ease;
@@ -258,7 +258,7 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 
 .review__text {
   font-size: 15px;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   line-height: 1.7;
   margin: 0;
   flex: 1;
@@ -271,14 +271,14 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   align-items: center;
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--surface-border);
 }
 
 .review__avatar {
   width: 40px; height: 40px;
   border-radius: 50%;
   background: #E11D48;
-  color: white;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 700;
   display: flex; align-items: center; justify-content: center;
@@ -289,7 +289,7 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .review__name {
   font-size: 14px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   margin-bottom: 3px;
 }
 
@@ -312,8 +312,8 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   transform: translateY(-50%);
   width: 44px; height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #1A1A1A;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
   color: #E11D48;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
@@ -340,7 +340,7 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .dot {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--text) 14%, transparent);
   cursor: pointer;
   transition: all 0.3s;
 }

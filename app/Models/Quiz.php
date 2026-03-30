@@ -23,6 +23,11 @@ class Quiz extends Model
         return $this->hasMany(Question::class)->orderBy('position');
     }
 
+    public function categories()
+    {
+        return $this->hasMany(QuizCategory::class)->orderBy('sort_order');
+    }
+
     public function subject()
     {
         return $this->belongsTo(Subject::class);

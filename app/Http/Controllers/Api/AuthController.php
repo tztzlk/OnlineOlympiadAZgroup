@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class AuthController extends Controller
 {
-    // Регистрация
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-          'phone' => 'required|string|max:20|unique:users',
-
+            'phone' => 'required|string|max:20|unique:users',
+            'school' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -29,7 +30,9 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-              'phone' => $request->phone,
+            'phone' => $request->phone,
+            'school' => $request->school,
+            'city' => $request->city,
             'password' => Hash::make($request->password),
         ]);
 
@@ -42,67 +45,118 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Логин
-   public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Неверный email или пароль'], 401);
-    }
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Неверный email или пароль'], 401);
+        }
 
-    // 🚨 Если пользователь — админ → нельзя входить через обычный login
-    if ($user->is_admin == 1) {
+        if ($user->is_admin) {
+            return response()->json([
+                'message' => 'Администратор должен входить через admin login',
+            ], 403);
+        }
+
+        $user->tokens()->delete();
+
         return response()->json([
-            'message' => 'Администратор должен входить через admin login'
-        ], 403);
+            'user' => $user,
+            'token' => $user->createToken('auth_token')->plainTextToken,
+        ]);
     }
 
-    $user->tokens()->delete();
+    public function adminLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    $token = $user->createToken('auth_token')->plainTextToken;
+        $user = User::where('email', $request->email)->first();
 
-    return response()->json([
-        'user' => $user,
-        'token' => $token
-    ]);
-}
-public function adminLogin(Request $request)
-{
-    $credentials = $request->only('email', 'password');
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Неверный email или пароль'], 401);
+        }
 
-    if (!$user = User::where('email', $request->email)->first()) {
-        return response()->json(['message' => 'Неверный email или пароль'], 401);
+        if (!$user->is_admin) {
+            return response()->json(['message' => 'Доступ только для администратора'], 403);
+        }
+
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('admin-token')->plainTextToken,
+        ]);
     }
 
-    if (!Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Неверный email или пароль'], 401);
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            $status = Password::sendResetLink($request->only('email'));
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => 'Не удалось отправить письмо. Проверьте настройки почты.',
+            ], 500);
+        }
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => __($status),
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Ссылка для восстановления пароля отправлена на email.',
+        ]);
     }
 
-    // ✅ ВОТ ТАК
-    if ((int)$user->is_admin !== 1) {
-        return response()->json(['message' => 'Доступ только для администратора'], 403);
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+
+                $user->tokens()->delete();
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => __($status),
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Пароль успешно обновлён. Теперь можно войти.',
+        ]);
     }
 
-    $token = $user->createToken('admin-token')->plainTextToken;
-
-    return response()->json([
-        'user' => $user,
-        'token' => $token
-    ]);
-}
-    // Профиль
     public function profile(Request $request)
     {
         return response()->json($request->user());
     }
 
-    // Логаут
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();

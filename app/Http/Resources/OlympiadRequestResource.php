@@ -12,6 +12,8 @@ class OlympiadRequestResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
+            'payment_status' => $this->payment_status,
+            'paid_at' => optional($this->paid_at)->toISOString(),
             'completed' => (bool) $this->completed,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,

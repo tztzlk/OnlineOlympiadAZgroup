@@ -503,8 +503,8 @@ onUnmounted(() => {
   left: 0;
   width: 300px;
   height: 100vh;
-  background: #1A1A1A;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border-right: 1px solid var(--surface-border);
   box-shadow: 8px 0 40px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -517,22 +517,22 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 20px 20px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--surface-border);
 }
 .mobile-menu__title {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   flex: 1;
 }
 .mobile-close {
   width: 32px; height: 32px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-soft);
+  border: 1px solid var(--surface-border);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  color: #A1A1AA;
+  color: var(--text-muted-on-surface);
   transition: all 0.2s;
 }
 .mobile-close:hover { background: rgba(225, 29, 72, 0.15); color: #E11D48; border-color: rgba(225, 29, 72, 0.3); }
@@ -542,8 +542,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 18px 20px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--surface-border);
 }
 .mobile-avatar {
   width: 44px; height: 44px;
@@ -556,7 +556,7 @@ onUnmounted(() => {
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
 }
-.mobile-name { font-size: 15px; font-weight: 700; color: #FFFFFF; }
+.mobile-name { font-size: 15px; font-weight: 700; color: var(--text-on-surface); }
 .mobile-role {
   font-size: 11px;
   font-weight: 600;
@@ -580,14 +580,14 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  color: #FFFFFF;
+  color: var(--text-on-surface);
   font-size: 15px;
   font-weight: 600;
   padding: 12px 14px;
   border-radius: 14px;
   transition: all 0.2s;
 }
-.mobile-link svg { color: #A1A1AA; flex-shrink: 0; }
+.mobile-link svg { color: var(--text-muted-on-surface); flex-shrink: 0; }
 .mobile-link:hover,
 .mobile-link.router-link-active {
   background: rgba(225, 29, 72, 0.12);

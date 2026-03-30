@@ -20,6 +20,14 @@
     --accent-hover: #BE123C;
     --border: rgba(0, 0, 0, 0.08);
     --text-secondary: #666666;
+    /* Surfaces (cards, panels) */
+    --surface: #e8e8e8;
+    --surface-border: rgba(0, 0, 0, 0.08);
+    --text-on-surface: #111111;
+    --text-muted-on-surface: #525252;
+    --surface-soft: rgba(17, 17, 17, 0.04);
+    --surface-strong: #f3f4f6;
+    --overlay: rgba(255, 255, 255, 0.78);
     /* Aliases for components */
     --bg-primary: var(--bg);
     --bg-surface: var(--card);
@@ -34,6 +42,14 @@
     --accent-hover: #BE123C;
     --border: rgba(255, 255, 255, 0.08);
     --text-secondary: #A1A1AA;
+    /* Surfaces (cards, panels) */
+    --surface: #1A1A1A;
+    --surface-border: rgba(255, 255, 255, 0.08);
+    --text-on-surface: #ffffff;
+    --text-muted-on-surface: #A1A1AA;
+    --surface-soft: rgba(255, 255, 255, 0.04);
+    --surface-strong: #111111;
+    --overlay: rgba(15, 15, 15, 0.78);
     --bg-primary: var(--bg);
     --bg-surface: var(--card);
     --text-primary: var(--text);

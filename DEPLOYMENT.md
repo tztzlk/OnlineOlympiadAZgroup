@@ -1,40 +1,65 @@
-# Deployment Guide — Online Olympiad
+# Deployment Guide - Online Olympiad
 
-## Server Requirements
+This project is designed to be deployed as a single Laravel application that serves both the SPA frontend and the API from the same domain.
 
-- Linux VPS (Ubuntu 22.04+ recommended)
-- Nginx
-- PHP 8.2+ with extensions: `mbstring`, `xml`, `bcmath`, `curl`, `mysql`, `zip`, `gd`
-- Composer 2.x
-- Node.js 18+ and npm
-- MySQL 8.0+
-- Supervisor (for queue workers)
+## Recommended Production Stack
 
----
+- `Laravel Forge` for provisioning and deploy automation
+- `1 Linux VPS` (Ubuntu 22.04/24.04)
+- `Nginx + PHP-FPM`
+- `PHP 8.2+`
+- `MySQL 8`
+- `Redis` for sessions, cache, and queues
+- `Supervisor` for queue workers
+- `Let's Encrypt` for SSL
 
-## 1. Clone and Install Dependencies
+## Recommended Server Size
+
+For the first public launch and roughly `500+` online users:
+
+- `4 vCPU`
+- `8 GB RAM`
+- `80+ GB NVMe SSD`
+
+If the audience is mostly in Kazakhstan or Central Asia, choose the closest region available from your VPS provider.
+
+## 1. Domain and DNS
+
+1. Buy a domain such as `example.kz`, `example.com`, or `example.org`.
+2. Create an `A` record pointing the root domain to your server IP.
+3. Wait for DNS propagation before enabling SSL in Forge.
+
+Recommended setup:
+
+- App URL: `https://your-domain.com`
+- Frontend: same origin as backend
+- API base: `https://your-domain.com/api`
+
+Using the same domain for the SPA and API keeps authentication, cookies, and deployment much simpler.
+
+## 2. Provision the Server in Forge
+
+1. Create a new server in Forge.
+2. Choose Ubuntu 22.04 or 24.04.
+3. Install:
+   - PHP 8.2+
+   - Nginx
+   - MySQL
+   - Redis
+4. Create a new site with the web root set to:
 
 ```bash
-cd /var/www
-git clone <repository-url> online-olympiad
-cd online-olympiad
-
-composer install --no-dev --optimize-autoloader
-npm ci
+/home/forge/your-domain.com/public
 ```
 
----
+5. Connect the Git repository to the Forge site.
+6. Enable SSL through Forge after DNS is pointed correctly.
 
-## 2. Environment Configuration
+## 3. Production Environment
 
-Copy the example env and configure it for production:
+Copy `.env.example` to `.env` and configure production values.
 
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-Edit `.env` with production values:
+Minimum recommended production config:
 
 ```dotenv
 APP_NAME="Online Olympiad"
@@ -49,198 +74,161 @@ DB_DATABASE=online_olympiad
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_db_password
 
-SESSION_DRIVER=database
-SESSION_DOMAIN=.your-domain.com
+SESSION_DRIVER=redis
+SESSION_DOMAIN=your-domain.com
 SESSION_SECURE_COOKIE=true
-SANCTUM_STATEFUL_DOMAINS=your-domain.com
 
-QUEUE_CONNECTION=database
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+SANCTUM_STATEFUL_DOMAINS=your-domain.com
 
 VITE_APP_NAME="Online Olympiad"
 VITE_API_URL=https://your-domain.com/api
 ```
 
-### Key Environment Variables
+Important notes:
 
-| Variable | Description |
-|---|---|
-| `APP_URL` | Full public URL of the application |
-| `APP_ENV` | Must be `production` |
-| `APP_DEBUG` | Must be `false` in production |
-| `DB_*` | MySQL connection credentials |
-| `SESSION_DOMAIN` | Domain for session cookies (use `.your-domain.com` for subdomain support) |
-| `SESSION_SECURE_COOKIE` | Set to `true` for HTTPS |
-| `SANCTUM_STATEFUL_DOMAINS` | The SPA host only, no scheme (e.g. `your-domain.com`). Do not use full APP_URL. |
-| `QUEUE_CONNECTION` | `database` (default) |
-| `VITE_API_URL` | Full URL to the API base (e.g. `https://your-domain.com/api`) — **must be set explicitly** before `npm run build`; used at build time |
-| `VITE_APP_NAME` | Application name for the frontend |
+- `APP_DEBUG` must be `false`.
+- `SANCTUM_STATEFUL_DOMAINS` must contain hostnames only, no scheme or path.
+- `VITE_API_URL` must be set explicitly before `npm run build`.
+- `SESSION_DOMAIN=your-domain.com` is enough for same-origin deployment.
+- Use `.your-domain.com` only if you need cookies across subdomains.
 
----
+## 4. First Deploy
 
-## 3. Build Frontend Assets
+Forge can use the deploy script from `deploy/forge-deploy.sh` as the baseline.
 
-The frontend **must be built before deployment** since `VITE_*` variables are embedded at build time:
+If you want to run the commands manually, use:
 
 ```bash
+cd /home/forge/your-domain.com
+
+composer install --no-dev --optimize-autoloader
+npm ci
 npm run build
-```
 
-This outputs compiled assets to `public/build/`. Laravel loads them via the `@vite` Blade directive in `welcome.blade.php`.
-
----
-
-## 4. Database Setup
-
-```bash
+php artisan key:generate --force
 php artisan migrate --force
-```
+php artisan storage:link || true
 
----
-
-## 5. Laravel Production Optimization
-
-```bash
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-Set correct permissions:
+## 5. Queue Workers
+
+Use Redis-backed workers in Forge or Supervisor.
+
+Recommended worker command:
 
 ```bash
-chown -R www-data:www-data /var/www/online-olympiad
-chmod -R 755 /var/www/online-olympiad/storage
-chmod -R 755 /var/www/online-olympiad/bootstrap/cache
+php artisan queue:work redis --sleep=1 --tries=3 --max-time=3600
 ```
 
----
+Recommended process count:
 
-## 6. Nginx Configuration
+- Start with `2` workers
+- Increase to `4` if queue latency grows under load
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com;
-    root /var/www/online-olympiad/public;
-
-    ssl_certificate     /etc/ssl/certs/your-domain.crt;
-    ssl_certificate_key /etc/ssl/private/your-domain.key;
-
-    index index.php;
-
-    charset utf-8;
-
-    # Handle API and Laravel routes
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location = /robots.txt  { access_log off; log_not_found off; }
-
-    error_page 404 /index.php;
-
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location ~ /\.(?!well-known).* {
-        deny all;
-    }
-}
-```
-
-Test and reload:
-
-```bash
-nginx -t
-systemctl reload nginx
-```
-
----
-
-## 7. Queue Worker (Supervisor)
-
-Create a Supervisor config at `/etc/supervisor/conf.d/online-olympiad-worker.conf`:
+Example Supervisor config:
 
 ```ini
 [program:online-olympiad-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/online-olympiad/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+command=php /home/forge/your-domain.com/artisan queue:work redis --sleep=1 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
 killasgroup=true
-user=www-data
+user=forge
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/var/www/online-olympiad/storage/logs/worker.log
+stdout_logfile=/home/forge/your-domain.com/storage/logs/worker.log
 stopwaitsecs=3600
 ```
 
-Enable and start:
+## 6. Scheduler
 
-```bash
-supervisorctl reread
-supervisorctl update
-supervisorctl start online-olympiad-worker:*
-```
-
----
-
-## 8. Cron (Task Scheduler)
-
-Add to the `www-data` crontab:
-
-```bash
-crontab -u www-data -e
-```
+Forge can manage the scheduler automatically. If you configure it manually, add:
 
 ```cron
-* * * * * cd /var/www/online-olympiad && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /home/forge/your-domain.com && php artisan schedule:run >> /dev/null 2>&1
 ```
 
----
+## 7. Backups
 
-## 9. Post-Deployment Checklist
+Minimum backup policy:
 
-- [ ] `.env` is configured with production values
-- [ ] `APP_DEBUG=false`
-- [ ] `APP_KEY` is generated
-- [ ] Database migrated
-- [ ] `npm run build` completed (assets in `public/build/`)
-- [ ] Config/route/view caches generated
-- [ ] Nginx configured and reloaded
-- [ ] SSL certificate installed
-- [ ] Supervisor running queue workers
-- [ ] Cron job registered
-- [ ] File permissions set correctly
-- [ ] `.env` is NOT accessible from the web
+- Daily MySQL backup
+- Keep at least `7` daily backups
+- Keep VPS snapshots before large releases or schema changes
 
----
+If your VPS provider supports automatic snapshots, enable them.
 
-## Updating the Application
+## 8. Performance Notes for Launch
+
+Production defaults in this repository now assume:
+
+- `Redis` for sessions
+- `Redis` for cache
+- `Redis` for queues
+- `MySQL` for business data
+
+Additional launch guidance:
+
+- Keep frontend and API on the same origin
+- Run `npm run build` on every frontend or `VITE_*` change
+- Restart queue workers after deploy
+- Monitor MySQL, Redis, PHP-FPM memory, and queue latency
+
+## 9. Pre-Launch Smoke Test
+
+Before opening the site publicly, verify:
+
+- Home page loads over HTTPS
+- SPA routes work after refresh
+- Student registration works
+- Student login works
+- Admin login works
+- Olympiad request flow works
+- Approved user can open quiz subjects
+- Quiz start and submit work
+- Result appears in profile
+- Certificate download works
+- Admin can create and publish quizzes
+- Queue workers are running
+- Re-deploy completes without manual fixes
+
+## 10. Updating the Application
+
+Recommended update sequence:
 
 ```bash
-cd /var/www/online-olympiad
-
+cd /home/forge/your-domain.com
 git pull origin main
-
 composer install --no-dev --optimize-autoloader
-npm ci && npm run build
-
+npm ci
+npm run build
 php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-
-supervisorctl restart online-olympiad-worker:*
+php artisan queue:restart
 ```
+
+## 11. Notes About the Current Codebase
+
+These database migrations already exist in the project:
+
+- `jobs`
+- `cache`
+- `failed_jobs` support through Laravel defaults
+
+The project is ready for a standard Forge deployment with Redis enabled. No separate frontend host or container platform is required for the first production launch.

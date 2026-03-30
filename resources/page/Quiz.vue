@@ -3,77 +3,134 @@
     <div v-if="loading" class="state-card">Загружаем олимпиаду...</div>
     <div v-else-if="loadError" class="state-card error">{{ loadErrorMessage }}</div>
 
-    <template v-else-if="quiz && !result">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">{{ quiz.subject?.name || 'Олимпиада' }}</p>
-          <h1>{{ quiz.title }}</h1>
-          <p class="description">{{ quiz.description || 'Ответьте на все вопросы и отправьте работу на проверку.' }}</p>
+    <template v-else-if="result">
+      <div class="result-card">
+        <p class="eyebrow">Результат</p>
+        <h1>{{ result.score }} / {{ result.total }}</h1>
+        <p class="description">Правильных ответов: {{ result.percent }}%</p>
+        <span class="status-chip" :class="result.status">{{ result.status === 'passed' ? 'Пройдено' : 'Не пройдено' }}</span>
+        <div class="result-actions">
+          <button class="action-btn secondary" @click="downloadCertificate">Скачать сертификат</button>
+          <button class="action-btn" @click="router.push('/results')">Перейти к результатам</button>
         </div>
-
-        <div class="hero-stats">
-          <div class="stat-box">
-            <span>Ответов</span>
-            <strong>{{ answeredCount }}/{{ quiz.questions.length }}</strong>
-          </div>
-          <div class="stat-box" :class="{ warn: timeLeft < 300 }">
-            <span>Время</span>
-            <strong>{{ formatTime(timeLeft) }}</strong>
-          </div>
-        </div>
-      </header>
-
-      <div class="progress-track">
-        <div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div>
       </div>
+    </template>
 
-      <section class="question-list">
-        <article v-for="(question, index) in quiz.questions" :key="question.id" class="question-card">
-          <div class="question-header">
-            <span class="question-index">{{ index + 1 }}</span>
-            <h2>{{ question.question }}</h2>
+    <template v-else-if="violationMessage">
+      <div class="state-card error">
+        <p class="eyebrow">Попытка сброшена</p>
+        <h1>Тест остановлен</h1>
+        <p class="description">{{ violationMessage }}</p>
+        <button class="action-btn" @click="router.push('/profile')">Вернуться в профиль</button>
+      </div>
+    </template>
+
+    <template v-else-if="quiz">
+      <section v-if="!examStarted" class="intro-card">
+        <p class="eyebrow">{{ quiz.subject?.name || 'Олимпиада' }}</p>
+        <h1>{{ quiz.title }}</h1>
+        <p class="description">{{ quiz.description || 'Перед началом ознакомьтесь с правилами тестирования.' }}</p>
+
+        <div class="intro-grid">
+          <div class="intro-item"><span>Категория</span><strong>{{ quiz.category?.label }}</strong></div>
+          <div class="intro-item"><span>Классы</span><strong>{{ quiz.category?.display_range }}</strong></div>
+          <div class="intro-item"><span>Вопросов</span><strong>{{ quiz.questions.length }}</strong></div>
+          <div class="intro-item"><span>Время</span><strong>{{ quiz.time_limit }} минут</strong></div>
+        </div>
+
+        <div class="warning-card">
+          <strong>Важно:</strong>
+          <span>{{ quiz.warning }}</span>
+        </div>
+
+        <ul class="rules-list">
+          <li v-for="rule in quiz.warning_rules || defaultRules" :key="rule">{{ rule }}</li>
+        </ul>
+
+        <label class="confirm-row">
+          <input v-model="rulesAccepted" type="checkbox" />
+          <span>Я ознакомился с правилами и понимаю, что нарушение приведёт к аннулированию попытки.</span>
+        </label>
+
+        <p v-if="fullscreenError" class="error-inline">{{ fullscreenError }}</p>
+
+        <div class="intro-actions">
+          <button class="action-btn" :disabled="!rulesAccepted" @click="startExam">Начать тест в fullscreen</button>
+        </div>
+      </section>
+
+      <section v-else class="exam-shell">
+        <header class="exam-header">
+          <div>
+            <p class="eyebrow">{{ quiz.subject?.name || 'Олимпиада' }}</p>
+            <h1>{{ quiz.title }}</h1>
+            <p class="description">Категория {{ quiz.category?.label }} · вопрос {{ currentQuestionIndex + 1 }} из {{ quiz.questions.length }}</p>
           </div>
+
+          <div class="hero-stats">
+            <div class="stat-box"><span>Отвечено</span><strong>{{ answeredCount }}/{{ quiz.questions.length }}</strong></div>
+            <div class="stat-box"><span>Пропущено</span><strong>{{ skippedCount }}</strong></div>
+            <div class="stat-box" :class="{ warn: timeLeft < 300 }"><span>Время</span><strong>{{ formatTime(timeLeft) }}</strong></div>
+            <button class="stat-box fullscreen-btn" @click="requestFullscreen"><span>Режим</span><strong>{{ isFullscreen ? 'Fullscreen' : 'Развернуть' }}</strong></button>
+          </div>
+        </header>
+
+        <div class="progress-card">
+          <div class="progress-top"><span>Прогресс</span><strong>{{ progressPercent }}%</strong></div>
+          <div class="progress-track"><div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div></div>
+          <div class="question-map">
+            <button
+              v-for="(question, index) in quiz.questions"
+              :key="question.id"
+              type="button"
+              class="question-dot"
+              :class="questionState(index)"
+              @click="goToQuestion(index)"
+            >
+              {{ index + 1 }}
+            </button>
+          </div>
+        </div>
+
+        <article class="question-card">
+          <div class="question-header">
+            <span class="question-index">{{ currentQuestionIndex + 1 }}</span>
+            <div>
+              <p class="question-hint">Выберите один вариант ответа</p>
+              <h2>{{ currentQuestion.question }}</h2>
+            </div>
+          </div>
+
+          <img v-if="currentQuestion.image" :src="currentQuestion.image" alt="question" class="question-image" />
 
           <div class="answer-list">
             <label
-              v-for="answer in question.answers"
+              v-for="answer in currentQuestion.answers"
               :key="answer.id"
               class="answer-option"
-              :class="{ selected: userAnswers[question.id] === answer.id }"
+              :class="{ selected: userAnswers[currentQuestion.id] === answer.id }"
             >
               <input
-                v-model="userAnswers[question.id]"
+                v-model="userAnswers[currentQuestion.id]"
                 type="radio"
-                :name="`question-${question.id}`"
+                :name="`question-${currentQuestion.id}`"
                 :value="answer.id"
+                @change="markVisited(currentQuestionIndex)"
               />
               <span class="answer-label">{{ answer.label }}</span>
               <span class="answer-text">{{ answer.answer }}</span>
             </label>
           </div>
         </article>
+
+        <footer class="sticky-footer">
+          <button class="action-btn secondary" :disabled="currentQuestionIndex === 0" @click="goPrev">Назад</button>
+          <button class="action-btn secondary" @click="skipQuestion">Пропустить</button>
+          <button class="action-btn secondary" :disabled="currentQuestionIndex === quiz.questions.length - 1" @click="goNext">Далее</button>
+          <button class="action-btn" :disabled="submitting" @click="submitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
+        </footer>
       </section>
-
-      <footer class="sticky-footer">
-        <div class="footer-copy">
-          <strong>{{ unansweredCount }}</strong>
-          <span>{{ unansweredCount === 1 ? 'вопрос без ответа' : 'вопросов без ответа' }}</span>
-        </div>
-        <button class="submit-btn" :disabled="submitting" @click="submitQuiz">
-          {{ submitting ? 'Отправляем...' : 'Сдать олимпиаду' }}
-        </button>
-      </footer>
     </template>
-
-    <div v-else-if="result" class="result-card">
-      <p class="eyebrow">Результат</p>
-      <h1>{{ result.score }} / {{ result.total }}</h1>
-      <p class="description">Процент правильных ответов: {{ result.percent }}%</p>
-      <span class="status-chip" :class="result.status">
-        {{ result.status === 'passed' ? 'Пройдено' : 'Не пройдено' }}
-      </span>
-      <button class="submit-btn" @click="router.push('/results')">Перейти к результатам</button>
-    </div>
   </div>
 </template>
 
@@ -90,13 +147,29 @@ const loadError = ref(false)
 const loadErrorMessage = ref('')
 const quiz = ref(null)
 const result = ref(null)
+const violationMessage = ref('')
 const submitting = ref(false)
 const userAnswers = ref({})
 const timeLeft = ref(0)
-let timerId = null
+const currentQuestionIndex = ref(0)
+const visitedQuestions = ref(new Set())
+const skippedQuestions = ref(new Set())
+const examStarted = ref(false)
+const fullscreenError = ref('')
+const isFullscreen = ref(false)
+const rulesAccepted = ref(false)
+const defaultRules = [
+  'Запрещено переключать вкладку, окно, выходить из fullscreen или сворачивать браузер.',
+  'Нельзя использовать подсказки, списывать и обращаться к сторонней помощи.',
+  'При нарушении правил попытка аннулируется автоматически.',
+]
 
+let timerId = null
+let violated = false
+
+const currentQuestion = computed(() => quiz.value?.questions[currentQuestionIndex.value] || null)
 const answeredCount = computed(() => Object.keys(userAnswers.value).length)
-const unansweredCount = computed(() => Math.max((quiz.value?.questions.length || 0) - answeredCount.value, 0))
+const skippedCount = computed(() => skippedQuestions.value.size)
 const progressPercent = computed(() => {
   if (!quiz.value?.questions.length) return 0
   return Math.round((answeredCount.value / quiz.value.questions.length) * 100)
@@ -109,61 +182,167 @@ const formatTime = (seconds) => {
   return `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`
 }
 
-const startTimer = (minutes) => {
-  startTimerFromSeconds(minutes * 60)
+const clearTimer = () => {
+  if (timerId) {
+    clearInterval(timerId)
+    timerId = null
+  }
 }
 
 const startTimerFromSeconds = (seconds) => {
-  if (timerId) clearInterval(timerId)
+  clearTimer()
   timeLeft.value = seconds
   timerId = window.setInterval(() => {
     if (timeLeft.value <= 0) {
-      clearInterval(timerId)
+      clearTimer()
       submitQuiz()
       return
     }
-
     timeLeft.value -= 1
   }, 1000)
+}
+
+const markVisited = (index) => {
+  visitedQuestions.value.add(index)
+  const questionId = quiz.value?.questions[index]?.id
+  if (questionId && userAnswers.value[questionId]) {
+    skippedQuestions.value.delete(index)
+  }
+}
+
+const questionState = (index) => {
+  if (index === currentQuestionIndex.value) return 'current'
+  const question = quiz.value?.questions[index]
+  if (!question) return 'unvisited'
+  if (userAnswers.value[question.id]) return 'answered'
+  if (skippedQuestions.value.has(index)) return 'skipped'
+  if (visitedQuestions.value.has(index)) return 'visited'
+  return 'unvisited'
+}
+
+const goToQuestion = (index) => {
+  currentQuestionIndex.value = index
+  markVisited(index)
+}
+
+const goPrev = () => {
+  if (currentQuestionIndex.value > 0) {
+    currentQuestionIndex.value -= 1
+    markVisited(currentQuestionIndex.value)
+  }
+}
+
+const goNext = () => {
+  if (currentQuestionIndex.value < quiz.value.questions.length - 1) {
+    currentQuestionIndex.value += 1
+    markVisited(currentQuestionIndex.value)
+  }
+}
+
+const skipQuestion = () => {
+  skippedQuestions.value.add(currentQuestionIndex.value)
+  visitedQuestions.value.add(currentQuestionIndex.value)
+  if (currentQuestionIndex.value < quiz.value.questions.length - 1) {
+    currentQuestionIndex.value += 1
+    markVisited(currentQuestionIndex.value)
+  }
+}
+
+const requestFullscreen = async () => {
+  fullscreenError.value = ''
+  const element = document.documentElement
+
+  if (!element.requestFullscreen) {
+    fullscreenError.value = 'Браузер не поддерживает полноэкранный режим.'
+    return false
+  }
+
+  try {
+    if (!document.fullscreenElement) {
+      await element.requestFullscreen()
+    }
+    isFullscreen.value = !!document.fullscreenElement
+    return isFullscreen.value
+  } catch {
+    fullscreenError.value = 'Не удалось включить fullscreen. Разрешите полноэкранный режим и попробуйте снова.'
+    return false
+  }
+}
+
+const registerViolation = async (reason = 'window_focus_lost') => {
+  if (violated || !quiz.value || result.value || !examStarted.value) return
+
+  violated = true
+  clearTimer()
+  userAnswers.value = {}
+  violationMessage.value = 'Вы переключились на другое окно, вкладку или вышли из fullscreen. По правилам олимпиады попытка аннулирована.'
+
+  try {
+    await api.post(`/quiz/${quiz.value.id}/violate`, { reason })
+  } catch (error) {
+    console.error('Violation save error:', error)
+  }
+}
+
+const handleVisibilityLoss = () => {
+  if (document.hidden) registerViolation('tab_hidden')
+}
+
+const handleWindowBlur = () => {
+  registerViolation('window_blur')
+}
+
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+  if (examStarted.value && !isFullscreen.value) {
+    registerViolation('fullscreen_exit')
+  }
 }
 
 const loadQuiz = async () => {
   loading.value = true
   loadError.value = false
   loadErrorMessage.value = ''
+
   try {
     const { data } = await api.get(`/quiz/${route.params.subjectId}`)
     quiz.value = data
+
     if (data.already_submitted) {
       router.push('/results')
       return
     }
 
-    startTimer(data.time_limit || 60)
+    visitedQuestions.value = new Set([0])
   } catch (error) {
     loadError.value = true
-    loadErrorMessage.value = error.response?.status === 404
-      ? 'По этому предмету олимпиада пока не опубликована.'
-      : (error.response?.data?.message || 'Не удалось загрузить олимпиаду.')
-    console.error(error)
+    loadErrorMessage.value = error.response?.data?.message || 'Не удалось загрузить олимпиаду.'
   } finally {
     loading.value = false
   }
 }
 
-const submitQuiz = async () => {
-  if (!quiz.value || submitting.value) return
+const startExam = async () => {
+  if (!rulesAccepted.value) return
+  const fullscreenOk = await requestFullscreen()
+  if (!fullscreenOk) return
+  examStarted.value = true
+  markVisited(0)
+  startTimerFromSeconds((quiz.value.time_limit || 60) * 60)
+}
 
+const submitQuiz = async () => {
+  if (!quiz.value || submitting.value || violated) return
   submitting.value = true
-  clearInterval(timerId)
+  clearTimer()
 
   try {
-    const { data } = await api.post(`/quiz/${quiz.value.id}/submit`, {
-      answers: userAnswers.value,
-    })
+    const { data } = await api.post(`/quiz/${quiz.value.id}/submit`, { answers: userAnswers.value })
     result.value = data
+    if (document.fullscreenElement) {
+      await document.exitFullscreen().catch(() => {})
+    }
   } catch (error) {
-    console.error(error)
     alert(error.response?.data?.message || 'Не удалось отправить ответы.')
     startTimerFromSeconds(timeLeft.value || 60)
   } finally {
@@ -171,267 +350,97 @@ const submitQuiz = async () => {
   }
 }
 
-onMounted(loadQuiz)
+const downloadCertificate = async () => {
+  if (!result.value?.certificate_url) return
 
-onUnmounted(() => {
-  if (timerId) clearInterval(timerId)
+  const { data, headers } = await api.get(result.value.certificate_url.replace('/api', ''), {
+    responseType: 'blob',
+  })
+
+  const blob = new Blob([data], { type: headers['content-type'] || 'image/svg+xml' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `certificate-result-${result.value.id || 'latest'}.svg`
+  link.click()
+  window.URL.revokeObjectURL(url)
+}
+
+onMounted(async () => {
+  await loadQuiz()
+  document.addEventListener('visibilitychange', handleVisibilityLoss)
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+  window.addEventListener('blur', handleWindowBlur)
+})
+
+onUnmounted(async () => {
+  clearTimer()
+  document.removeEventListener('visibilitychange', handleVisibilityLoss)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  window.removeEventListener('blur', handleWindowBlur)
+
+  if (document.fullscreenElement) {
+    try {
+      await document.exitFullscreen()
+    } catch {}
+  }
 })
 </script>
 
 <style scoped>
 * { box-sizing: border-box; }
-
-.quiz-page {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #10131d 0%, #181c28 100%);
-  color: #fff;
-  padding: 20px 20px 110px;
-}
-
-.state-card,
-.hero,
-.question-card,
-.result-card {
-  max-width: 960px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  backdrop-filter: blur(10px);
-}
-
-.state-card,
-.result-card {
-  padding: 28px;
-  margin-top: 40px;
-}
-
-.error {
-  color: #fecaca;
-}
-
-.hero {
-  padding: 24px;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #f43f5e;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(28px, 4vw, 42px);
-}
-
-.description {
-  margin: 12px 0 0;
-  color: #c4cad8;
-  line-height: 1.6;
-}
-
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 12px;
-}
-
-.stat-box {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  padding: 14px 16px;
-}
-
-.stat-box span {
-  display: block;
-  font-size: 12px;
-  color: #c4cad8;
-  margin-bottom: 6px;
-}
-
-.stat-box strong {
-  font-size: 22px;
-}
-
-.warn {
-  outline: 2px solid rgba(244, 63, 94, 0.5);
-}
-
-.progress-track {
-  max-width: 960px;
-  margin: 16px auto;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #f43f5e, #fb7185);
-}
-
-.question-list {
-  max-width: 960px;
-  margin: 0 auto;
-  display: grid;
-  gap: 16px;
-}
-
-.question-card {
-  padding: 20px;
-}
-
-.question-header {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.question-header h2 {
-  margin: 0;
-  font-size: 20px;
-  line-height: 1.5;
-}
-
-.question-index {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  background: rgba(244, 63, 94, 0.2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.answer-list {
-  display: grid;
-  gap: 10px;
-}
-
-.answer-option {
-  display: grid;
-  grid-template-columns: 28px 24px 1fr;
-  gap: 12px;
-  align-items: center;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-}
-
-.answer-option input {
-  margin: 0;
-}
-
-.answer-option.selected {
-  border-color: rgba(244, 63, 94, 0.7);
-  background: rgba(244, 63, 94, 0.12);
-}
-
-.answer-label {
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.sticky-footer {
-  position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  max-width: 960px;
-  margin: 0 auto;
-  background: rgba(16, 19, 29, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  backdrop-filter: blur(10px);
-}
-
-.footer-copy {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  flex-wrap: wrap;
-}
-
-.submit-btn {
-  border: 0;
-  border-radius: 14px;
-  padding: 12px 18px;
-  background: linear-gradient(90deg, #f43f5e, #be123c);
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.result-card {
-  text-align: center;
-}
-
-.status-chip {
-  display: inline-flex;
-  padding: 6px 10px;
-  border-radius: 999px;
-  margin: 16px 0;
-  font-weight: 700;
-}
-
-.status-chip.passed { background: #e8f8ed; color: #1f7a34; }
-.status-chip.failed { background: #ffe7e7; color: #9f1d1d; }
-
-@media (max-width: 768px) {
-  .hero,
-  .sticky-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .hero-stats {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .quiz-page {
-    padding: 14px 14px 120px;
-  }
-
-  .answer-option {
-    grid-template-columns: 24px 24px 1fr;
-    padding: 12px;
-  }
-
-  .question-header h2 {
-    font-size: 18px;
-  }
-}
+.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(244,63,94,0.12), transparent 22%), linear-gradient(180deg, #080b12 0%, #111827 100%); color: #fff; padding: 24px 20px 110px; }
+.state-card, .intro-card, .exam-header, .progress-card, .question-card, .result-card { max-width: 1100px; margin: 0 auto; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); }
+.state-card, .result-card, .intro-card { margin-top: 36px; padding: 30px; }
+.error { color: #fecaca; }
+.eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: #fb7185; font-size: 12px; font-weight: 700; }
+h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); }
+h2 { margin: 0; font-size: 24px; line-height: 1.45; }
+.description { margin-top: 12px; color: #cbd5e1; line-height: 1.6; }
+.intro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 22px; }
+.intro-item { padding: 16px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+.intro-item span { display: block; color: #cbd5e1; font-size: 12px; margin-bottom: 8px; }
+.warning-card { margin-top: 18px; padding: 16px 18px; display: flex; gap: 10px; align-items: flex-start; color: #fde68a; background: rgba(120,53,15,0.35); border-radius: 18px; }
+.rules-list { margin: 18px 0 0; padding-left: 20px; color: #dbe3ef; line-height: 1.7; }
+.confirm-row { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; color: #fff; }
+.error-inline { margin-top: 18px; color: #fecaca; font-weight: 700; }
+.intro-actions { margin-top: 24px; display: flex; justify-content: flex-end; }
+.exam-shell { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
+.exam-header { padding: 24px; display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.hero-stats { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 12px; }
+.stat-box { padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); text-align: left; color: #fff; }
+.stat-box span { display: block; font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
+.stat-box.warn { outline: 2px solid rgba(251,113,133,0.44); }
+.fullscreen-btn { cursor: pointer; }
+.progress-card { padding: 20px 24px; }
+.progress-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #dbe3ef; margin-bottom: 12px; }
+.progress-track { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #f43f5e, #fb7185); }
+.question-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 10px; margin-top: 18px; }
+.question-dot { height: 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #fff; font-weight: 700; cursor: pointer; }
+.question-dot.current { background: #f43f5e; border-color: #f43f5e; }
+.question-dot.answered { background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.45); color: #bbf7d0; }
+.question-dot.skipped { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.45); color: #fde68a; }
+.question-dot.visited { background: rgba(255,255,255,0.08); }
+.question-card { padding: 28px; }
+.question-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+.question-index { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: rgba(244,63,94,0.2); }
+.question-hint { margin: 0 0 8px; color: #cbd5e1; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+.question-image { width: 100%; max-height: 320px; object-fit: contain; border-radius: 18px; margin-bottom: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+.answer-list { display: grid; gap: 12px; }
+.answer-option { display: grid; grid-template-columns: 28px 24px 1fr; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); cursor: pointer; }
+.answer-option.selected { border-color: rgba(251,113,133,0.7); background: rgba(244,63,94,0.12); }
+.answer-option input { margin: 0; }
+.answer-label { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); font-size: 12px; font-weight: 700; }
+.answer-text { line-height: 1.55; }
+.sticky-footer { position: sticky; bottom: 16px; z-index: 3; display: flex; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 20px; background: rgba(8,11,18,0.92); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(14px); }
+.result-actions { margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.action-btn { border: 0; border-radius: 14px; padding: 12px 18px; background: linear-gradient(90deg, #f43f5e, #be123c); color: #fff; font-weight: 700; cursor: pointer; text-decoration: none; }
+.action-btn.secondary { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); }
+.action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.status-chip { display: inline-flex; margin-top: 16px; padding: 6px 10px; border-radius: 999px; font-weight: 700; }
+.status-chip.passed { background: #e8f8ed; color: #166534; }
+.status-chip.failed { background: #fee2e2; color: #991b1b; }
+@media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .sticky-footer { position: static; } .intro-actions .action-btn { width: 100%; } }
 </style>

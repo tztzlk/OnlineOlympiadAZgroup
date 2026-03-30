@@ -1,45 +1,79 @@
 # Online Olympiad Deployment Checklist
 
-## Recommended stack
-- VPS/Linux
-- PHP 8.2+
-- Composer 2
-- Node.js 20+
-- Nginx or Apache
-- MySQL or MariaDB for production
+## Infrastructure
 
-## Environment
+- `1 VPS` with Ubuntu 22.04/24.04
+- `4 vCPU / 8 GB RAM / NVMe SSD` for first launch
+- Domain `A` record points to the server IP
+- SSL enabled with Let's Encrypt
+- Laravel Forge site created with document root in `public/`
+
+## Required Services
+
+- PHP 8.2+
+- Nginx
+- MySQL 8
+- Redis
+- Supervisor or Forge queue workers
+- Scheduler enabled in Forge or cron
+
+## Production Environment
+
 - `APP_ENV=production`
 - `APP_DEBUG=false`
 - `APP_URL=https://your-domain.example`
-- `VITE_API_URL=https://your-domain.example/api`
+- `DB_CONNECTION=mysql`
+- `SESSION_DRIVER=redis`
+- `CACHE_STORE=redis`
+- `QUEUE_CONNECTION=redis`
+- `REDIS_HOST=127.0.0.1`
+- `SESSION_SECURE_COOKIE=true`
 - `SESSION_DOMAIN=your-domain.example`
 - `SANCTUM_STATEFUL_DOMAINS=your-domain.example`
+- `VITE_API_URL=https://your-domain.example/api`
 
-## Backend steps
-1. Install PHP dependencies with `composer install --no-dev --optimize-autoloader`
-2. Create and configure `.env`
-3. Run `php artisan key:generate`
+## Deploy Steps
+
+1. Run `composer install --no-dev --optimize-autoloader`
+2. Run `npm ci`
+3. Run `npm run build`
 4. Run `php artisan migrate --force`
-5. Run `php artisan storage:link`
-6. Cache config and routes:
-   - `php artisan config:cache`
-   - `php artisan route:cache`
-   - `php artisan view:cache`
+5. Run `php artisan storage:link || true`
+6. Run `php artisan config:cache`
+7. Run `php artisan route:cache`
+8. Run `php artisan view:cache`
+9. Run `php artisan queue:restart`
 
-## Frontend steps
-1. Install dependencies with `npm install`
-2. Build assets with `npm run build`
-3. Confirm `public/build/manifest.json` exists
+Preferred deploy script:
 
-## Operational checks
-- Verify admin login works on the production domain
-- Verify student registration and olympiad request flow
-- Verify approved student can open and submit an olympiad
-- Verify dashboard metrics reflect production traffic
-- Set up database backups
-- Set up queue worker or cron only if async jobs are added later
+- `deploy/forge-deploy.sh`
 
-## Database note
-- SQLite is acceptable for local development
-- MySQL/MariaDB is recommended for production because admin analytics and concurrent writes will be more reliable
+## Worker and Scheduler
+
+- At least `2` Redis queue workers are running
+- Increase to `4` workers if queue latency rises
+- `php artisan schedule:run` executes every minute
+
+## Functional Smoke Test
+
+- Home page loads on HTTPS
+- SPA routes still work after browser refresh
+- Student registration works
+- Student login works
+- Admin login works
+- Olympiad request flow works
+- Approved student can open the quiz
+- Quiz submit creates a result
+- Result appears in profile
+- Certificate download works
+- Admin can create and publish quizzes
+
+## Operational Checks
+
+- Redis is reachable from Laravel
+- MySQL migrations are applied
+- Queue worker does not crash after deploy
+- Re-deploy completes without manual intervention
+- Daily DB backups are enabled
+- At least `7` daily backups are retained
+- `.env` is not publicly accessible

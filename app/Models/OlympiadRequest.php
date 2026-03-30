@@ -21,12 +21,18 @@ class OlympiadRequest extends Model
         'parent_phone',
         'parent_email',
         'status',
+        'payment_status',
+        'paid_at',
         'completed',
+        'disqualified_at',
+        'disqualification_reason',
     ];
 
     protected $casts = [
         'completed' => 'boolean',
         'birth_date' => 'date',
+        'paid_at' => 'datetime',
+        'disqualified_at' => 'datetime',
     ];
 
     public function user()
