@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicId;
 use Illuminate\Database\Eloquent\Model;
 
 class Quiz extends Model
 {
+    use HasPublicId;
+
     protected $fillable = [
         'subject_id',
+        'public_id',
         'title',
         'description',
         'time_limit',
@@ -17,6 +21,8 @@ class Quiz extends Model
     protected $casts = [
         'is_published' => 'boolean',
     ];
+
+    protected $hidden = ['id'];
 
     public function questions()
     {

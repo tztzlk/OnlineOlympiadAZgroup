@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OlympiadRequestResource;
+use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
+use App\Models\PaymentRecord;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 
 class OlympiadRequestController extends Controller
@@ -14,53 +17,83 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Требуется авторизация.'], 401);
         }
 
         $data = $request->validate([
-            'subject_id' => 'required|exists:subjects,id',
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'birth_date' => 'required|date',
-            'grade' => 'required|integer|between:3,11',
+            'subject_id' => 'required|string',
+            'child_profile_id' => 'nullable|string',
+            'first_name' => 'required_without:child_profile_id|string|max:255',
+            'last_name' => 'required_without:child_profile_id|string|max:255',
+            'birth_date' => 'nullable|date',
+            'grade' => 'required_without:child_profile_id|integer|between:3,11',
             'language' => 'required|string|max:10',
             'parent_name' => 'required|string|max:255',
             'parent_phone' => 'required|string|max:20',
             'parent_email' => 'required|email|max:255',
         ]);
 
-        $data['user_id'] = $user->id;
-        $data['status'] = 'approved';
-        $data['payment_status'] = 'pending';
+        $child = $this->resolveChildProfile($request, $user->id, $data);
+        $subjectId = $this->resolveSubjectId($data['subject_id']);
+        $birthDate = $data['birth_date'] ?? optional($child->birth_date)->toDateString() ?? now()->toDateString();
 
-        $existing = OlympiadRequest::where('user_id', $user->id)
-            ->where('subject_id', $data['subject_id'])
+        $payload = [
+            'user_id' => $user->id,
+            'child_profile_id' => $child->id,
+            'subject_id' => $subjectId,
+            'first_name' => $child->first_name,
+            'last_name' => $child->last_name,
+            'birth_date' => $birthDate,
+            'grade' => $child->grade,
+            'language' => $data['language'],
+            'parent_name' => $data['parent_name'],
+            'parent_phone' => $data['parent_phone'],
+            'parent_email' => $data['parent_email'],
+        ];
+
+        $existing = OlympiadRequest::query()
+            ->where('user_id', $user->id)
+            ->where('child_profile_id', $child->id)
+            ->where('subject_id', $subjectId)
             ->latest()
             ->first();
 
         if ($existing) {
-            $existing->update(array_merge($data, [
-                'status' => 'approved',
-                'payment_status' => $existing->payment_status ?? 'pending',
-            ]));
-
-            $existing->load('subject');
-
-            return response()->json([
-                'message' => 'Заявка обновлена',
-                'request' => new OlympiadRequestResource($existing),
-                'redirect_to_quiz' => $existing->payment_status === 'paid',
-                'payment_url' => config('services.kaspi.payment_url'),
+            $existing->update([
+                ...$payload,
+                'status' => $existing->status ?: 'pending',
+                'payment_status' => $existing->payment_status ?: 'pending',
+                'paid_at' => $existing->payment_status === 'paid' ? $existing->paid_at : null,
             ]);
+
+            $requestModel = $existing->fresh(['subject', 'user', 'childProfile']);
+        } else {
+            $requestModel = OlympiadRequest::create([
+                ...$payload,
+                'status' => 'pending',
+                'payment_status' => 'pending',
+            ]);
+            $requestModel->load(['subject', 'user', 'childProfile']);
         }
 
-        $requestModel = OlympiadRequest::create($data);
-        $requestModel->load('subject');
+        $payment = PaymentRecord::updateOrCreate(
+            ['olympiad_request_id' => $requestModel->id],
+            [
+                'parent_id' => $user->id,
+                'child_profile_id' => $child->id,
+                'subject_id' => $requestModel->subject_id,
+                'status' => $requestModel->payment_status,
+                'paid_at' => $requestModel->payment_status === 'paid' ? $requestModel->paid_at : null,
+            ]
+        );
 
         return response()->json([
-            'message' => 'Регистрация на олимпиаду завершена',
+            'message' => $existing
+                ? 'Заявка обновлена. Данные сохранены без создания дубликата.'
+                : 'Заявка отправлена. Дождитесь проверки администратором и подтверждения оплаты.',
             'request' => new OlympiadRequestResource($requestModel),
-            'redirect_to_quiz' => false,
+            'payment' => $this->mapPayment($payment),
+            'redirect_to_quiz' => $requestModel->status === 'approved' && $requestModel->payment_status === 'paid',
             'payment_url' => config('services.kaspi.payment_url'),
         ]);
     }
@@ -73,7 +106,15 @@ class OlympiadRequestController extends Controller
             return response()->json(['status' => null]);
         }
 
-        $requestModel = OlympiadRequest::where('user_id', $user->id)
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
+        $subjectId = $request->filled('subject_id')
+            ? $this->resolveSubjectId((string) $request->input('subject_id'))
+            : null;
+
+        $requestModel = OlympiadRequest::query()
+            ->where('user_id', $user->id)
+            ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))
+            ->when($subjectId, fn ($query) => $query->where('subject_id', $subjectId))
             ->latest()
             ->first();
 
@@ -81,12 +122,16 @@ class OlympiadRequestController extends Controller
             'status' => $requestModel?->status,
             'payment_status' => $requestModel?->payment_status,
             'payment_url' => config('services.kaspi.payment_url'),
+            'child_profile_id' => $requestModel?->childProfile?->public_id,
+            'paid_at' => optional($requestModel?->paid_at)->toISOString(),
         ]);
     }
 
     public function index()
     {
-        $requests = OlympiadRequest::with(['subject', 'user'])
+        $requests = OlympiadRequest::query()
+            ->whereIn('id', $this->latestRequestIdsQuery())
+            ->with(['subject', 'user', 'childProfile'])
             ->latest()
             ->paginate(50);
 
@@ -95,10 +140,10 @@ class OlympiadRequestController extends Controller
 
     public function show(OlympiadRequest $olympiadRequest)
     {
-        $olympiadRequest->load(['subject', 'user']);
+        $olympiadRequest->load(['subject', 'user', 'childProfile']);
 
         return response()->json([
-            'id' => $olympiadRequest->id,
+            'id' => $olympiadRequest->public_id,
             'status' => $olympiadRequest->status,
             'payment_status' => $olympiadRequest->payment_status,
             'paid_at' => optional($olympiadRequest->paid_at)->toISOString(),
@@ -112,26 +157,36 @@ class OlympiadRequestController extends Controller
             'parent_phone' => $olympiadRequest->parent_phone,
             'parent_email' => $olympiadRequest->parent_email,
             'subject' => [
-                'id' => $olympiadRequest->subject?->id,
+                'id' => $olympiadRequest->subject?->public_id,
                 'name' => $olympiadRequest->subject?->name,
             ],
+            'child' => $olympiadRequest->childProfile ? [
+                'id' => $olympiadRequest->childProfile->public_id,
+                'full_name' => $olympiadRequest->childProfile->full_name,
+                'grade' => $olympiadRequest->childProfile->grade,
+            ] : null,
             'user' => [
-                'id' => $olympiadRequest->user?->id,
+                'id' => $olympiadRequest->user?->public_id,
                 'name' => $olympiadRequest->user?->name,
                 'email' => $olympiadRequest->user?->email,
             ],
             'created_at' => optional($olympiadRequest->created_at)->toISOString(),
+            'payment_url' => config('services.kaspi.payment_url'),
         ]);
     }
 
     public function stats()
     {
+        $latestIds = $this->latestRequestIdsQuery();
+
         return response()->json([
-            'total' => OlympiadRequest::count(),
-            'pending' => OlympiadRequest::where('status', 'pending')->count(),
-            'approved' => OlympiadRequest::where('status', 'approved')->count(),
-            'rejected' => OlympiadRequest::where('status', 'rejected')->count(),
-            'completed' => OlympiadRequest::where('completed', true)->count(),
+            'total' => OlympiadRequest::whereIn('id', $latestIds)->count(),
+            'pending' => OlympiadRequest::whereIn('id', $latestIds)->where('status', 'pending')->count(),
+            'approved' => OlympiadRequest::whereIn('id', $latestIds)->where('status', 'approved')->count(),
+            'rejected' => OlympiadRequest::whereIn('id', $latestIds)->where('status', 'rejected')->count(),
+            'completed' => OlympiadRequest::whereIn('id', $latestIds)->where('completed', true)->count(),
+            'children' => ChildProfile::count(),
+            'payments_paid' => PaymentRecord::whereIn('olympiad_request_id', $latestIds)->where('status', 'paid')->count(),
         ]);
     }
 
@@ -145,21 +200,20 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user || !$user->is_admin) {
-            return response()->json([
-                'message' => 'Forbidden',
-            ], 403);
+            return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
         $request->validate([
-            'status' => 'required|in:approved,rejected',
+            'status' => 'required|in:pending,approved,rejected',
         ]);
 
-        $olympiadRequest->status = $request->status;
-        $olympiadRequest->save();
-        $olympiadRequest->load('subject');
+        $olympiadRequest->update([
+            'status' => $request->string('status')->value(),
+        ]);
+        $olympiadRequest->load(['subject', 'user', 'childProfile']);
 
         return response()->json([
-            'message' => "Заявка {$request->status}",
+            'message' => 'Статус заявки обновлён.',
             'request' => new OlympiadRequestResource($olympiadRequest),
         ]);
     }
@@ -169,27 +223,46 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user || !$user->is_admin) {
-            return response()->json([
-                'message' => 'Forbidden',
-            ], 403);
+            return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
         $request->validate([
             'payment_status' => 'required|in:pending,paid,failed',
+            'amount' => 'nullable|numeric|min:0',
+            'external_reference' => 'nullable|string|max:255',
+            'comment' => 'nullable|string|max:1000',
         ]);
 
-        $status = $request->input('payment_status');
+        $status = $request->string('payment_status')->value();
+        $paidAt = $status === 'paid' ? now() : null;
 
         $olympiadRequest->update([
             'payment_status' => $status,
-            'paid_at' => $status === 'paid' ? now() : null,
+            'paid_at' => $paidAt,
         ]);
 
-        $olympiadRequest->load(['subject', 'user']);
+        $payment = PaymentRecord::updateOrCreate(
+            ['olympiad_request_id' => $olympiadRequest->id],
+            [
+                'parent_id' => $olympiadRequest->user_id,
+                'child_profile_id' => $olympiadRequest->child_profile_id,
+                'subject_id' => $olympiadRequest->subject_id,
+                'status' => $status,
+                'amount' => $request->input('amount'),
+                'external_reference' => $request->input('external_reference'),
+                'comment' => $request->input('comment'),
+                'paid_at' => $paidAt,
+            ]
+        );
+
+        $olympiadRequest->load(['subject', 'user', 'childProfile']);
 
         return response()->json([
-            'message' => 'Статус оплаты обновлён',
+            'message' => 'Статус оплаты обновлён.',
             'request' => new OlympiadRequestResource($olympiadRequest),
+            'payment' => $this->mapPayment($payment),
+            'payment_status' => $olympiadRequest->payment_status,
+            'paid_at' => optional($olympiadRequest->paid_at)->toISOString(),
         ]);
     }
 
@@ -198,7 +271,81 @@ class OlympiadRequestController extends Controller
         $olympiadRequest->delete();
 
         return response()->json([
-            'message' => 'Заявка удалена',
+            'message' => 'Заявка удалена.',
         ]);
+    }
+
+    protected function resolveChildProfile(Request $request, int $parentId, array $data): ChildProfile
+    {
+        if (!empty($data['child_profile_id'])) {
+            $child = ChildProfile::query()
+                ->where('parent_id', $parentId)
+                ->where('public_id', $data['child_profile_id'])
+                ->firstOrFail();
+
+            $child->update([
+                'birth_date' => $data['birth_date'] ?? $child->birth_date,
+                'grade' => $data['grade'] ?? $child->grade,
+                'language_preference' => $data['language'] ?? $child->language_preference,
+                'school' => $request->user()->school,
+                'city' => $request->user()->city,
+            ]);
+
+            return $child;
+        }
+
+        return ChildProfile::updateOrCreate(
+            [
+                'parent_id' => $parentId,
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+            ],
+            [
+                'birth_date' => $data['birth_date'] ?? null,
+                'grade' => $data['grade'] ?? null,
+                'language_preference' => $data['language'] ?? 'ru',
+                'school' => $request->user()->school,
+                'city' => $request->user()->city,
+            ]
+        );
+    }
+
+    protected function mapPayment(PaymentRecord $payment): array
+    {
+        return [
+            'id' => $payment->public_id,
+            'status' => $payment->status,
+            'amount' => $payment->amount,
+            'currency' => $payment->currency,
+            'paid_at' => optional($payment->paid_at)->toISOString(),
+            'external_reference' => $payment->external_reference,
+            'comment' => $payment->comment,
+        ];
+    }
+
+    protected function latestRequestIdsQuery()
+    {
+        return OlympiadRequest::query()
+            ->selectRaw('MAX(id)')
+            ->groupBy('user_id', 'child_profile_id', 'subject_id');
+    }
+
+    protected function resolveChildId(int $userId, mixed $childPublicId): ?int
+    {
+        if (!$childPublicId) {
+            return null;
+        }
+
+        return ChildProfile::query()
+            ->where('parent_id', $userId)
+            ->where('public_id', (string) $childPublicId)
+            ->value('id');
+    }
+
+    protected function resolveSubjectId(string $subjectKey): int
+    {
+        return Subject::query()
+            ->where('public_id', $subjectKey)
+            ->valueOrFail('id');
     }
 }

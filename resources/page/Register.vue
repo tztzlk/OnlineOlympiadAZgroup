@@ -124,6 +124,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../js/api'
+import { solveProofOfWork } from '../js/pow'
 import { useUserStore } from '../stores/user'
 
 const router = useRouter()
@@ -185,6 +186,7 @@ async function handleRegister() {
 
   try {
     loading.value = true
+    const pow = await solveProofOfWork('register')
     const response = await api.post('/auth/register', {
       name: name.value.trim(),
       email: email.value.trim(),
@@ -193,6 +195,7 @@ async function handleRegister() {
       phone: phone.value,
       password: password.value,
       password_confirmation: confirmPassword.value,
+      ...pow,
     })
 
     userStore.setAuth(response.data.user, response.data.token)

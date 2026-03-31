@@ -2,9 +2,9 @@
   <div class="admin-page">
     <header class="header">
       <div>
-        <p class="eyebrow">Admin Overview</p>
+        <p class="eyebrow">Обзор панели</p>
         <h1>Панель управления олимпиадами</h1>
-        <p class="subtext">Реальная статистика по пользователям, заявкам, олимпиадам и результатам.</p>
+        <p class="subtext">Актуальная статистика по родителям, детям, заявкам, оплатам и обратным звонкам.</p>
       </div>
     </header>
 
@@ -17,6 +17,10 @@
           <strong class="stat-value">{{ stats.users }}</strong>
         </article>
         <article class="stat-card">
+          <span class="stat-label">Дети</span>
+          <strong class="stat-value">{{ stats.children }}</strong>
+        </article>
+        <article class="stat-card">
           <span class="stat-label">Олимпиады</span>
           <strong class="stat-value">{{ stats.quizzes }}</strong>
         </article>
@@ -27,6 +31,14 @@
         <article class="stat-card">
           <span class="stat-label">Заявки</span>
           <strong class="stat-value">{{ stats.requests.total }}</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Оплаты</span>
+          <strong class="stat-value">{{ stats.payments }}</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Обратные звонки</span>
+          <strong class="stat-value">{{ stats.callbacks }}</strong>
         </article>
       </section>
 
@@ -59,6 +71,8 @@
             <RouterLink to="/admin/quizzes" class="quick-link">Создать олимпиаду</RouterLink>
             <RouterLink to="/admin/requests" class="quick-link">Проверить заявки</RouterLink>
             <RouterLink to="/admin/results" class="quick-link">Посмотреть результаты</RouterLink>
+            <RouterLink to="/admin/payments" class="quick-link">Оплаты и импорт</RouterLink>
+            <RouterLink to="/admin/callbacks" class="quick-link">Обратные звонки</RouterLink>
           </div>
         </article>
       </section>
@@ -73,8 +87,11 @@ import api from '../../js/api'
 const loading = ref(true)
 const stats = reactive({
   users: 0,
+  children: 0,
   quizzes: 0,
   results: 0,
+  payments: 0,
+  callbacks: 0,
   requests: {
     total: 0,
     pending: 0,
@@ -85,11 +102,15 @@ const stats = reactive({
 
 const loadDashboard = async () => {
   loading.value = true
+
   try {
     const { data } = await api.get('/admin/dashboard')
     stats.users = data.users ?? 0
+    stats.children = data.children ?? 0
     stats.quizzes = data.quizzes ?? 0
     stats.results = data.results ?? 0
+    stats.payments = data.payments ?? 0
+    stats.callbacks = data.callbacks ?? 0
     stats.requests = {
       total: data.requests?.total ?? 0,
       pending: data.requests?.pending ?? 0,
@@ -156,7 +177,7 @@ h1 {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
 }
 
@@ -238,7 +259,6 @@ h1 {
 }
 
 @media (max-width: 900px) {
-  .stats-grid,
   .request-grid,
   .panels {
     grid-template-columns: 1fr 1fr;
@@ -250,7 +270,6 @@ h1 {
     padding: 16px;
   }
 
-  .stats-grid,
   .request-grid,
   .panels {
     grid-template-columns: 1fr;

@@ -116,6 +116,7 @@ async function handleLogin() {
     })
 
     userStore.setAuth(response.data.user, response.data.token)
+    localStorage.setItem('session_type', 'user')
     router.push('/')
   } catch (err) {
     if (err.response?.status === 401) {

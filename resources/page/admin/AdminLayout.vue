@@ -10,16 +10,18 @@
       </div>
 
       <nav class="nav">
-        <router-link to="/admin" class="nav-link" exact-active-class="nav-link-exact-active">Dashboard</router-link>
-        <router-link to="/admin/requests" class="nav-link" exact-active-class="nav-link-exact-active">Requests</router-link>
-        <router-link to="/admin/quizzes" class="nav-link" exact-active-class="nav-link-exact-active">Quizzes</router-link>
-        <router-link to="/admin/results" class="nav-link" exact-active-class="nav-link-exact-active">Results</router-link>
+        <router-link to="/admin" class="nav-link" exact-active-class="nav-link-exact-active">Панель</router-link>
+        <router-link to="/admin/requests" class="nav-link" exact-active-class="nav-link-exact-active">Заявки</router-link>
+        <router-link to="/admin/quizzes" class="nav-link" exact-active-class="nav-link-exact-active">Олимпиады</router-link>
+        <router-link to="/admin/results" class="nav-link" exact-active-class="nav-link-exact-active">Результаты</router-link>
+        <router-link to="/admin/payments" class="nav-link" exact-active-class="nav-link-exact-active">Оплаты</router-link>
+        <router-link to="/admin/callbacks" class="nav-link" exact-active-class="nav-link-exact-active">Звонки</router-link>
       </nav>
 
       <div class="sidebar-footer">
         <div class="support-card">
           <span class="support-label">Для сотрудников</span>
-          <strong>Высокий контраст и чистые формы</strong>
+          <strong>Импорт, выгрузки и управление участниками в одном месте</strong>
         </div>
         <router-link to="/" class="back-link">Вернуться на сайт</router-link>
       </div>

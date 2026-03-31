@@ -43,7 +43,14 @@
           <div class="rule-card__top">
             <div class="rule-number">{{ String(index + 1).padStart(2, '0') }}</div>
             <div class="rule-icon">
-              <component :is="'svg'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="icons[index]"></component>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <template v-for="(segment, segmentIndex) in icons[index]" :key="`${index}-${segmentIndex}`">
+                  <path v-if="segment.type === 'path'" :d="segment.d" />
+                  <circle v-else-if="segment.type === 'circle'" :cx="segment.cx" :cy="segment.cy" :r="segment.r" />
+                  <polyline v-else-if="segment.type === 'polyline'" :points="segment.points" />
+                  <line v-else-if="segment.type === 'line'" :x1="segment.x1" :y1="segment.y1" :x2="segment.x2" :y2="segment.y2" />
+                </template>
+              </svg>
             </div>
           </div>
           <h2 class="rule-title">{{ rule.title }}</h2>
@@ -100,12 +107,30 @@ const rules = [
 ]
 
 const icons = [
-  '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-  '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-  '<polyline points="20 6 9 17 4 12"/>',
-  '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 15"/><path d="M16 2v4"/><path d="M3 7h18"/>',
-  '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-  '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  [
+    { type: 'path', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' },
+    { type: 'circle', cx: '12', cy: '7', r: '4' },
+  ],
+  [
+    { type: 'circle', cx: '12', cy: '12', r: '10' },
+    { type: 'polyline', points: '12 6 12 12 16 14' },
+  ],
+  [
+    { type: 'polyline', points: '20 6 9 17 4 12' },
+  ],
+  [
+    { type: 'path', d: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 15' },
+    { type: 'path', d: 'M16 2v4' },
+    { type: 'path', d: 'M3 7h18' },
+  ],
+  [
+    { type: 'path', d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+  ],
+  [
+    { type: 'circle', cx: '12', cy: '12', r: '10' },
+    { type: 'line', x1: '15', y1: '9', x2: '9', y2: '15' },
+    { type: 'line', x1: '9', y1: '9', x2: '15', y2: '15' },
+  ],
 ]
 </script>
 

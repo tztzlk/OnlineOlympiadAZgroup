@@ -45,3 +45,26 @@ function something()
 {
     // ..
 }
+
+function powPayload(Tests\TestCase $test, string $context, string $ip = '127.0.0.1'): array
+{
+    $challenge = $test
+        ->withServerVariables(['REMOTE_ADDR' => $ip])
+        ->getJson('/api/security/pow-challenge?context=' . $context)
+        ->assertOk()
+        ->json();
+
+    $token = $challenge['token'];
+    $difficulty = (int) $challenge['difficulty'];
+    $prefix = str_repeat('0', $difficulty);
+    $nonce = 0;
+
+    while (!str_starts_with(hash('sha256', $token . '|' . $nonce), $prefix)) {
+        $nonce++;
+    }
+
+    return [
+        'pow_token' => $token,
+        'pow_nonce' => (string) $nonce,
+    ];
+}

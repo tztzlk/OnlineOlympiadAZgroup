@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CallbackRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -54,5 +55,25 @@ class SupportController extends Controller
         return response()->json([
             'message' => 'Обращение отправлено. Мы скоро свяжемся с вами.',
         ]);
+    }
+
+    public function callback(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:30',
+            'email' => 'nullable|email|max:255',
+            'message' => 'nullable|string|max:3000',
+        ]);
+
+        $callback = CallbackRequest::create($data);
+
+        return response()->json([
+            'message' => 'Заявка на обратный звонок отправлена.',
+            'request' => [
+                'id' => $callback->public_id,
+                'status' => $callback->status,
+            ],
+        ], 201);
     }
 }

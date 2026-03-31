@@ -3,37 +3,54 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdminQuizController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChildProfileController;
 use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\OlympiadRequestController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizController;
+use App\Http\Controllers\Api\SecurityController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SupportController;
+use App\Http\Controllers\Api\TrainingController;
+use App\Http\Controllers\Api\AiController;
+use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware(['throttle:register', 'pow:register']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset-request');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset-confirm');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
-Route::post('/auth/admin/login', [AuthController::class, 'adminLogin']);
+Route::post('/auth/admin/login', [AuthController::class, 'adminLogin'])->middleware('throttle:login');
 
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 Route::get('/subjects', [SubjectController::class, 'index']);
-Route::post('/support/feedback', [SupportController::class, 'feedback']);
+Route::get('/security/pow-challenge', [SecurityController::class, 'powChallenge']);
+Route::post('/support/feedback', [SupportController::class, 'feedback'])->middleware('pow:feedback');
+Route::post('/support/callback', [SupportController::class, 'callback'])->middleware('pow:callback');
+Route::post('/webhooks/yookassa', [WebhookController::class, 'yookassa'])->middleware('verify.webhook:yookassa');
+Route::post('/webhooks/stripe', [WebhookController::class, 'stripe'])->middleware('verify.webhook:stripe');
+Route::post('/webhooks/telegram', [WebhookController::class, 'telegram'])->middleware('verify.webhook:telegram');
 
-Route::middleware(['auth:sanctum', 'admin'])
+Route::middleware(['auth:sanctum', 'throttle:api-user', 'admin'])
     ->prefix('admin')
     ->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
         Route::get('/users', [AdminController::class, 'getUsers']);
+        Route::get('/participants', [AdminController::class, 'participants']);
+        Route::get('/participants/export', [AdminController::class, 'exportParticipants']);
+        Route::post('/participants/import', [AdminController::class, 'importParticipants']);
         Route::get('/users-results', [AdminController::class, 'usersResults']);
         Route::get('/users-results/export', [AdminController::class, 'exportUsersResults']);
+        Route::get('/payments', [AdminController::class, 'payments']);
+        Route::get('/payments/export', [AdminController::class, 'exportPayments']);
+        Route::get('/callbacks', [AdminController::class, 'callbacks']);
+        Route::get('/callbacks/export', [AdminController::class, 'exportCallbacks']);
 
         Route::get('/requests', [OlympiadRequestController::class, 'index']);
         Route::get('/requests/stats', [OlympiadRequestController::class, 'stats']);
@@ -44,7 +61,7 @@ Route::middleware(['auth:sanctum', 'admin'])
 
         Route::get('/quizzes', [AdminQuizController::class, 'index']);
         Route::post('/quizzes', [AdminQuizController::class, 'store']);
-        Route::post('/quizzes/upload-image', [AdminQuizController::class, 'uploadQuestionImage']);
+        Route::post('/quizzes/upload-image', [AdminQuizController::class, 'uploadQuestionImage'])->middleware('body.limit:10240');
         Route::get('/quizzes/{quiz}', [AdminQuizController::class, 'show']);
         Route::match(['put', 'patch'], '/quizzes/{quiz}', [AdminQuizController::class, 'update']);
         Route::delete('/quizzes/{quiz}', [AdminQuizController::class, 'destroy']);
@@ -52,14 +69,21 @@ Route::middleware(['auth:sanctum', 'admin'])
         Route::post('/quizzes/{quiz}/unpublish', [AdminQuizController::class, 'unpublish']);
     });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api-user'])->group(function () {
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'me']);
         Route::put('/', [ProfileController::class, 'update']);
+        Route::get('/children', [ChildProfileController::class, 'index']);
+        Route::post('/children', [ChildProfileController::class, 'store']);
+        Route::get('/children/{childProfile}', [ChildProfileController::class, 'show']);
+        Route::match(['put', 'patch'], '/children/{childProfile}', [ChildProfileController::class, 'update']);
+        Route::delete('/children/{childProfile}', [ChildProfileController::class, 'destroy']);
         Route::get('/recent-olympiads', [ProfileController::class, 'recentOlympiads']);
         Route::get('/olympiads', [ProfileController::class, 'olympiads']);
         Route::get('/results', [ProfileController::class, 'myResults']);
         Route::get('/results/{result}/certificate', [ProfileController::class, 'certificate']);
+        Route::get('/payments', [ProfileController::class, 'payments']);
+        Route::get('/trainings', [ProfileController::class, 'trainings']);
     });
 
     Route::prefix('olympiad')->group(function () {
@@ -75,4 +99,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{quizId}/submit', [QuizController::class, 'submitQuiz']);
         Route::post('/{quizId}/violate', [QuizController::class, 'violateAttempt']);
     });
+
+    Route::prefix('training')->group(function () {
+        Route::get('/{subjectId}', [TrainingController::class, 'getQuiz']);
+        Route::post('/{quizId}/submit', [TrainingController::class, 'submit']);
+    });
+
+    Route::post('/ai/generate', [AiController::class, 'generate'])->middleware('ai.quota');
 });

@@ -1,6 +1,5 @@
 <template>
   <div class="admin-login">
-    <!-- Background decoration -->
     <div class="bg-orb bg-orb--1"></div>
     <div class="bg-orb bg-orb--2"></div>
     <div class="bg-orb bg-orb--3"></div>
@@ -94,50 +93,48 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
-import api from "../../js/api"
-import { useRouter } from "vue-router"
-import { useUserStore } from "../../stores/user"
+import { ref } from 'vue'
+import api from '../../js/api'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../../stores/user'
 
-const email = ref("")
-const password = ref("")
-const error = ref("")
+const email = ref('')
+const password = ref('')
+const error = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
-const focusedField = ref("")
+const focusedField = ref('')
 const router = useRouter()
 const userStore = useUserStore()
 
 const login = async () => {
   loading.value = true
-  error.value = ""
+  error.value = ''
 
   try {
-
     const res = await api.post('/auth/admin/login', {
       email: email.value,
-      password: password.value
+      password: password.value,
     })
 
     const user = res.data.user
 
-    // Backend returns is_admin as boolean; accept 1 or true
     if (!user.is_admin) {
-      throw new Error("Доступ только для администратора")
+      throw new Error('Доступ только для администратора')
     }
 
     const token = res.data.token
-    localStorage.setItem("token", token)
-    localStorage.setItem("user", JSON.stringify(user))
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('session_type', 'admin')
     userStore.setAuth(user, token)
 
-    router.push("/admin")
-
+    await router.replace({ name: 'AdminDashboard' })
   } catch (err) {
     error.value =
       err.response?.data?.message ||
       err.message ||
-      "Ошибка входа"
+      'Ошибка входа'
   } finally {
     loading.value = false
   }
@@ -156,40 +153,47 @@ const login = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #EEF4FF;
+  background: #eef4ff;
   position: relative;
   overflow: hidden;
   padding: 24px;
 }
 
-/* Soft background orbs */
 .bg-orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
 }
+
 .bg-orb--1 {
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, #BFDBFE 0%, transparent 70%);
-  top: -100px; right: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #bfdbfe 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
   opacity: 0.7;
 }
+
 .bg-orb--2 {
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, #C7D2FE 0%, transparent 70%);
-  bottom: -80px; left: -80px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #c7d2fe 0%, transparent 70%);
+  bottom: -80px;
+  left: -80px;
   opacity: 0.6;
 }
+
 .bg-orb--3 {
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, #BAE6FD 0%, transparent 70%);
-  top: 50%; left: 30%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #bae6fd 0%, transparent 70%);
+  top: 50%;
+  left: 30%;
   transform: translate(-50%, -50%);
   opacity: 0.4;
 }
 
-/* Card */
 .card {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(24px);
@@ -200,18 +204,17 @@ const login = async () => {
   width: 100%;
   max-width: 420px;
   box-shadow:
-    0 4px 6px rgba(0,0,0,0.03),
-    0 20px 60px rgba(0,0,0,0.07),
-    inset 0 1px 0 rgba(255,255,255,0.8);
+    0 4px 6px rgba(0, 0, 0, 0.03),
+    0 20px 60px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes cardIn {
   from { opacity: 0; transform: translateY(24px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Header */
 .card__header {
   text-align: center;
   margin-bottom: 36px;
@@ -221,7 +224,8 @@ const login = async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px; height: 52px;
+  width: 52px;
+  height: 52px;
   background: linear-gradient(135deg, #1531a1 0%, #5d76f3 100%);
   border-radius: 14px;
   margin-bottom: 20px;
@@ -232,7 +236,7 @@ const login = async () => {
 .card__title {
   font-size: 28px;
   font-weight: 600;
-  color: #2C2417;
+  color: #2c2417;
   letter-spacing: -0.3px;
   line-height: 1.2;
   margin-bottom: 6px;
@@ -245,7 +249,6 @@ const login = async () => {
   letter-spacing: 0.1px;
 }
 
-/* Form */
 .form {
   display: flex;
   flex-direction: column;
@@ -261,7 +264,7 @@ const login = async () => {
 .field__label {
   font-size: 12px;
   font-weight: 500;
-  color: #7A6E63;
+  color: #7a6e63;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   transition: color 0.2s;
@@ -280,7 +283,7 @@ const login = async () => {
 .field__icon {
   position: absolute;
   left: 14px;
-  color: #B8A898;
+  color: #b8a898;
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -288,28 +291,28 @@ const login = async () => {
 }
 
 .field--focused .field__icon {
-  color: #C8A96E;
+  color: #c8a96e;
 }
 
 .field__wrapper input {
   width: 100%;
   padding: 13px 14px 13px 42px;
   background: rgba(247, 244, 239, 0.8);
-  border: 1.5px solid #E8E0D5;
+  border: 1.5px solid #e8e0d5;
   border-radius: 12px;
   font-size: 14px;
-  color: #2C2417;
+  color: #2c2417;
   outline: none;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .field__wrapper input::placeholder {
-  color: #C4B8AC;
+  color: #c4b8ac;
 }
 
 .field__wrapper input:focus {
-  border-color: #C8A96E;
-  background: #FFFFFF;
+  border-color: #c8a96e;
+  background: #ffffff;
   box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.1);
 }
 
@@ -319,7 +322,7 @@ const login = async () => {
   background: none;
   border: none;
   cursor: pointer;
-  color: #B8A898;
+  color: #b8a898;
   display: flex;
   align-items: center;
   padding: 4px;
@@ -328,37 +331,38 @@ const login = async () => {
 }
 
 .field__toggle:hover {
-  color: #8A7A6A;
-  background: rgba(0,0,0,0.04);
+  color: #8a7a6a;
+  background: rgba(0, 0, 0, 0.04);
 }
 
-/* Error */
 .error-banner {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 11px 14px;
-  background: #FEF1EF;
-  border: 1px solid #F5C9C1;
+  background: #fef1ef;
+  border: 1px solid #f5c9c1;
   border-radius: 10px;
   font-size: 13px;
-  color: #C0442A;
+  color: #c0442a;
 }
 
-.error-enter-active, .error-leave-active {
+.error-enter-active,
+.error-leave-active {
   transition: all 0.25s ease;
 }
-.error-enter-from, .error-leave-to {
+
+.error-enter-from,
+.error-leave-to {
   opacity: 0;
   transform: translateY(-6px);
 }
 
-/* Submit */
 .submit-btn {
   margin-top: 6px;
   padding: 14px;
   background: linear-gradient(135deg, #7d5ad4 0%, #4b4fcd 100%);
-  color: #FFFFFF;
+  color: #ffffff;
   border: none;
   border-radius: 12px;
   font-size: 14.5px;
@@ -390,9 +394,10 @@ const login = async () => {
 }
 
 .loader {
-  width: 18px; height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #FFFFFF;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -401,7 +406,6 @@ const login = async () => {
   to { transform: rotate(360deg); }
 }
 
-/* Footer */
 .card__footer {
   text-align: center;
   margin-top: 28px;

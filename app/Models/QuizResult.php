@@ -2,17 +2,24 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicId;
 use Illuminate\Database\Eloquent\Model;
 
 class QuizResult extends Model
 {
+    use HasPublicId;
+
     protected $fillable = [
+        'public_id',
         'user_id',
+        'child_profile_id',
         'quiz_id',
         'quiz_category_id',
         'score',
         'total'
     ];
+
+    protected $hidden = ['id', 'user_id', 'child_profile_id', 'quiz_id', 'quiz_category_id'];
 
     /*
     |--------------------------------------------------
@@ -33,6 +40,11 @@ class QuizResult extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function childProfile()
+    {
+        return $this->belongsTo(ChildProfile::class);
     }
  
 }

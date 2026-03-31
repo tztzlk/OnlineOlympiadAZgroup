@@ -22,15 +22,21 @@
 - `APP_ENV=production`
 - `APP_DEBUG=false`
 - `APP_URL=https://your-domain.example`
+- `FRONTEND_URL=https://your-domain.example`
 - `DB_CONNECTION=mysql`
 - `SESSION_DRIVER=redis`
 - `CACHE_STORE=redis`
 - `QUEUE_CONNECTION=redis`
 - `REDIS_HOST=127.0.0.1`
 - `SESSION_SECURE_COOKIE=true`
+- `SECURITY_ENFORCE_HTTPS=true`
+- `CORS_ALLOWED_ORIGINS=https://your-domain.example`
 - `SESSION_DOMAIN=your-domain.example`
 - `SANCTUM_STATEFUL_DOMAINS=your-domain.example`
 - `VITE_API_URL=https://your-domain.example/api`
+- secrets are stored in deployment environment variables, not in committed files
+- preview environment uses separate database credentials from production
+- webhook secrets are configured for YooKassa / Stripe / Telegram
 
 ## Deploy Steps
 
@@ -77,3 +83,8 @@ Preferred deploy script:
 - Daily DB backups are enabled
 - At least `7` daily backups are retained
 - `.env` is not publicly accessible
+- production database is not reachable from the public internet
+- preview deployments cannot boot against the production DB
+- `security.log` and `anomaly.log` are collected by your platform
+- security headers are present on responses
+- CORS does not use wildcard `*`

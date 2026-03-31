@@ -10,7 +10,7 @@ class OlympiadRequestResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->public_id,
             'status' => $this->status,
             'payment_status' => $this->payment_status,
             'paid_at' => optional($this->paid_at)->toISOString(),
@@ -23,20 +23,28 @@ class OlympiadRequestResource extends JsonResource
             'parent_phone' => $this->parent_phone,
             'parent_email' => $this->parent_email,
             'created_at' => $this->created_at,
+            'child_profile_id' => $this->childProfile?->public_id,
             'subject' => $this->whenLoaded('subject', function () {
                 return [
-                    'id' => $this->subject?->id,
+                    'id' => $this->subject?->public_id,
                     'name' => $this->subject?->name,
+                ];
+            }),
+            'child' => $this->whenLoaded('childProfile', function () {
+                return [
+                    'id' => $this->childProfile?->public_id,
+                    'full_name' => $this->childProfile?->full_name,
+                    'grade' => $this->childProfile?->grade,
                 ];
             }),
             'user' => $this->whenLoaded('user', function () {
                 return [
-                    'id' => $this->user?->id,
+                    'id' => $this->user?->public_id,
                     'name' => $this->user?->name,
                     'email' => $this->user?->email,
                 ];
             }, [
-                'id' => $this->user_id,
+                'id' => $this->user?->public_id,
             ]),
         ];
     }

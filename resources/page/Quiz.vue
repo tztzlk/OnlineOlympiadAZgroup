@@ -29,7 +29,8 @@
       <section v-if="!examStarted" class="intro-card">
         <p class="eyebrow">{{ quiz.subject?.name || 'Олимпиада' }}</p>
         <h1>{{ quiz.title }}</h1>
-        <p class="description">{{ quiz.description || 'Перед началом ознакомьтесь с правилами тестирования.' }}</p>
+        <p class="description">{{ quiz.description || 'Перед началом внимательно ознакомьтесь с правилами прохождения олимпиады.' }}</p>
+        <p v-if="quiz.child" class="child-chip">Участник: {{ quiz.child.full_name }} · {{ quiz.child.grade || 'без класса' }}</p>
 
         <div class="intro-grid">
           <div class="intro-item"><span>Категория</span><strong>{{ quiz.category?.label }}</strong></div>
@@ -55,7 +56,7 @@
         <p v-if="fullscreenError" class="error-inline">{{ fullscreenError }}</p>
 
         <div class="intro-actions">
-          <button class="action-btn" :disabled="!rulesAccepted" @click="startExam">Начать тест в fullscreen</button>
+          <button class="action-btn" :disabled="!rulesAccepted" @click="startExam">Начать тест в полноэкранном режиме</button>
         </div>
       </section>
 
@@ -64,14 +65,14 @@
           <div>
             <p class="eyebrow">{{ quiz.subject?.name || 'Олимпиада' }}</p>
             <h1>{{ quiz.title }}</h1>
-            <p class="description">Категория {{ quiz.category?.label }} · вопрос {{ currentQuestionIndex + 1 }} из {{ quiz.questions.length }}</p>
+            <p class="description">Вопрос {{ currentQuestionIndex + 1 }} из {{ quiz.questions.length }}</p>
           </div>
 
           <div class="hero-stats">
             <div class="stat-box"><span>Отвечено</span><strong>{{ answeredCount }}/{{ quiz.questions.length }}</strong></div>
             <div class="stat-box"><span>Пропущено</span><strong>{{ skippedCount }}</strong></div>
             <div class="stat-box" :class="{ warn: timeLeft < 300 }"><span>Время</span><strong>{{ formatTime(timeLeft) }}</strong></div>
-            <button class="stat-box fullscreen-btn" @click="requestFullscreen"><span>Режим</span><strong>{{ isFullscreen ? 'Fullscreen' : 'Развернуть' }}</strong></button>
+            <button class="stat-box fullscreen-btn" @click="requestFullscreen"><span>Режим</span><strong>{{ isFullscreen ? 'Полный экран' : 'Развернуть' }}</strong></button>
           </div>
         </header>
 
@@ -138,9 +139,11 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../js/api'
+import { useUserStore } from '../stores/user'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 
 const loading = ref(true)
 const loadError = ref(false)
@@ -159,7 +162,7 @@ const fullscreenError = ref('')
 const isFullscreen = ref(false)
 const rulesAccepted = ref(false)
 const defaultRules = [
-  'Запрещено переключать вкладку, окно, выходить из fullscreen или сворачивать браузер.',
+  'Запрещено переключать вкладку, окно, выходить из полноэкранного режима или сворачивать браузер.',
   'Нельзя использовать подсказки, списывать и обращаться к сторонней помощи.',
   'При нарушении правил попытка аннулируется автоматически.',
 ]
@@ -174,6 +177,8 @@ const progressPercent = computed(() => {
   if (!quiz.value?.questions.length) return 0
   return Math.round((answeredCount.value / quiz.value.questions.length) * 100)
 })
+
+const activeChildId = computed(() => String(route.query.childId || userStore.selectedChildId || '') || null)
 
 const formatTime = (seconds) => {
   const safeSeconds = Math.max(seconds, 0)
@@ -264,7 +269,7 @@ const requestFullscreen = async () => {
     isFullscreen.value = !!document.fullscreenElement
     return isFullscreen.value
   } catch {
-    fullscreenError.value = 'Не удалось включить fullscreen. Разрешите полноэкранный режим и попробуйте снова.'
+    fullscreenError.value = 'Не удалось включить полноэкранный режим. Разрешите его в браузере и попробуйте снова.'
     return false
   }
 }
@@ -275,10 +280,13 @@ const registerViolation = async (reason = 'window_focus_lost') => {
   violated = true
   clearTimer()
   userAnswers.value = {}
-  violationMessage.value = 'Вы переключились на другое окно, вкладку или вышли из fullscreen. По правилам олимпиады попытка аннулирована.'
+  violationMessage.value = 'Вы переключились на другое окно, вкладку или вышли из полноэкранного режима. По правилам олимпиады попытка аннулирована.'
 
   try {
-    await api.post(`/quiz/${quiz.value.id}/violate`, { reason })
+    await api.post(`/quiz/${quiz.value.id}/violate`, {
+      reason,
+      child_profile_id: activeChildId.value,
+    })
   } catch (error) {
     console.error('Violation save error:', error)
   }
@@ -305,8 +313,15 @@ const loadQuiz = async () => {
   loadErrorMessage.value = ''
 
   try {
-    const { data } = await api.get(`/quiz/${route.params.subjectId}`)
+    await userStore.fetchUser()
+    const { data } = await api.get(`/quiz/${route.params.subjectId}`, {
+      params: activeChildId.value ? { child_profile_id: activeChildId.value } : {},
+    })
     quiz.value = data
+
+    if (data.child_profile_id) {
+      userStore.setSelectedChild(data.child_profile_id)
+    }
 
     if (data.already_submitted) {
       router.push('/results')
@@ -337,7 +352,10 @@ const submitQuiz = async () => {
   clearTimer()
 
   try {
-    const { data } = await api.post(`/quiz/${quiz.value.id}/submit`, { answers: userAnswers.value })
+    const { data } = await api.post(`/quiz/${quiz.value.id}/submit`, {
+      child_profile_id: activeChildId.value,
+      answers: userAnswers.value,
+    })
     result.value = data
     if (document.fullscreenElement) {
       await document.exitFullscreen().catch(() => {})
@@ -389,14 +407,14 @@ onUnmounted(async () => {
 
 <style scoped>
 * { box-sizing: border-box; }
-.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(244,63,94,0.12), transparent 22%), linear-gradient(180deg, #080b12 0%, #111827 100%); color: #fff; padding: 24px 20px 110px; }
+.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(244,63,94,0.12), transparent 22%), linear-gradient(180deg, #080b12 0%, #111827 100%); color: #fff; padding: 90px 20px 110px; }
 .state-card, .intro-card, .exam-header, .progress-card, .question-card, .result-card { max-width: 1100px; margin: 0 auto; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); }
-.state-card, .result-card, .intro-card { margin-top: 36px; padding: 30px; }
+.state-card, .result-card, .intro-card { margin-top: 20px; padding: 30px; }
 .error { color: #fecaca; }
 .eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: #fb7185; font-size: 12px; font-weight: 700; }
 h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); }
 h2 { margin: 0; font-size: 24px; line-height: 1.45; }
-.description { margin-top: 12px; color: #cbd5e1; line-height: 1.6; }
+.description, .child-chip { margin-top: 12px; color: #cbd5e1; line-height: 1.6; }
 .intro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 22px; }
 .intro-item { padding: 16px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
 .intro-item span { display: block; color: #cbd5e1; font-size: 12px; margin-bottom: 8px; }

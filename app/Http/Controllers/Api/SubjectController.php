@@ -8,78 +8,75 @@ use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
-    /**
-     * Список предметов
-     */
     public function index()
     {
         try {
             return response()->json(
-                Subject::whereHas('quizzes', function ($query) {
-                    $query->where('is_published', true);
-                })
+                Subject::whereHas('quizzes', fn ($query) => $query->where('is_published', true))
                     ->withCount([
-                        'quizzes as published_quizzes_count' => function ($query) {
-                            $query->where('is_published', true);
-                        },
+                        'quizzes as published_quizzes_count' => fn ($query) => $query->where('is_published', true),
                     ])
                     ->orderBy('name')
                     ->get()
+                    ->map(fn (Subject $subject) => $this->mapSubject($subject))
             );
-        } catch (\Exception $e) {
-
+        } catch (\Exception) {
             return response()->json([
-                'message' => 'Ошибка загрузки предметов'
+                'message' => 'Ошибка загрузки предметов.',
             ], 500);
         }
     }
 
-    /**
-     * Получить один предмет
-     */
-    public function show($id)
+    public function show(string $id)
     {
         try {
-            $subject = Subject::find($id);
+            $subject = Subject::query()
+                ->where('public_id', $id)
+                ->first();
 
             if (!$subject) {
                 return response()->json([
-                    'message' => 'Предмет не найден'
+                    'message' => 'Предмет не найден.',
                 ], 404);
             }
 
-            return response()->json($subject);
-
-        } catch (\Exception $e) {
-
+            return response()->json($this->mapSubject($subject));
+        } catch (\Exception) {
             return response()->json([
-                'message' => 'Ошибка сервера'
+                'message' => 'Ошибка сервера.',
             ], 500);
         }
     }
 
-    /**
-     * Создание предмета (если нужно для админки)
-     */
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
-            'start_date' => 'required|date'
+            'start_date' => 'required|date',
         ]);
 
         try {
-            $subject = Subject::create($request->all());
+            $subject = Subject::create($request->only('name', 'description', 'image', 'start_date'));
 
-            return response()->json($subject, 201);
-
-        } catch (\Exception $e) {
-
+            return response()->json($this->mapSubject($subject), 201);
+        } catch (\Exception) {
             return response()->json([
-                'message' => 'Ошибка создания предмета'
+                'message' => 'Ошибка создания предмета.',
             ], 500);
         }
+    }
+
+    protected function mapSubject(Subject $subject): array
+    {
+        return [
+            'id' => $subject->public_id,
+            'name' => $subject->name,
+            'image' => $subject->image,
+            'description' => $subject->description,
+            'start_date' => optional($subject->start_date)->toDateString(),
+            'published_quizzes_count' => $subject->published_quizzes_count ?? 0,
+        ];
     }
 }

@@ -33,6 +33,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import api from '../js/api'
+import { solveProofOfWork } from '../js/pow'
 
 const form = reactive({
   name: '',
@@ -52,7 +53,11 @@ const submit = async () => {
   error.value = ''
 
   try {
-    const { data } = await api.post('/support/feedback', form)
+    const pow = await solveProofOfWork('feedback')
+    const { data } = await api.post('/support/feedback', {
+      ...form,
+      ...pow,
+    })
     message.value = data.message
     form.name = ''
     form.email = ''

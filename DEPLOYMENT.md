@@ -2,6 +2,18 @@
 
 This project is designed to be deployed as a single Laravel application that serves both the SPA frontend and the API from the same domain.
 
+## Production Security Baseline
+
+This repository now includes runtime hardening for production deployments:
+
+- forced HTTPS redirect with HSTS
+- strict CORS via `CORS_ALLOWED_ORIGINS`
+- security headers: `X-Frame-Options`, `X-Content-Type-Options`, CSP, Referrer-Policy
+- structured JSON logs for auth attempts, API errors, suspicious activity, and request spikes
+- preview environment guard that blocks boot if a Vercel preview deploy points to the production database
+
+These controls are configured through environment variables and should be enabled in production before go-live.
+
 ## Recommended Production Stack
 
 - `Laravel Forge` for provisioning and deploy automation
@@ -66,6 +78,11 @@ APP_NAME="Online Olympiad"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://your-domain.com
+FRONTEND_URL=https://your-domain.com
+
+SECURITY_ENFORCE_HTTPS=true
+CORS_ALLOWED_ORIGINS=https://your-domain.com
+SESSION_SECURE_COOKIE=true
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -90,15 +107,50 @@ SANCTUM_STATEFUL_DOMAINS=your-domain.com
 
 VITE_APP_NAME="Online Olympiad"
 VITE_API_URL=https://your-domain.com/api
+
+YOOKASSA_WEBHOOK_SECRET=change-me
+STRIPE_WEBHOOK_SECRET=change-me
+TELEGRAM_WEBHOOK_SECRET_TOKEN=change-me
 ```
 
 Important notes:
 
 - `APP_DEBUG` must be `false`.
+- Secrets must be stored only in deployment environment variables, not committed to the repository.
 - `SANCTUM_STATEFUL_DOMAINS` must contain hostnames only, no scheme or path.
 - `VITE_API_URL` must be set explicitly before `npm run build`.
 - `SESSION_DOMAIN=your-domain.com` is enough for same-origin deployment.
 - Use `.your-domain.com` only if you need cookies across subdomains.
+
+For Vercel + managed database deployments:
+
+- store secrets in `Vercel Environment Variables`
+- for Supabase, keep database credentials in `Supabase Vault` / project secrets
+- never place webhook secrets, DB URLs, API keys, or app keys in source files
+
+## 3.1 Database Exposure Rules
+
+Production database access must not be publicly open:
+
+- allow inbound database traffic only from the application network / known IPs
+- do not expose MySQL/Postgres directly to the public internet
+- if you use Supabase, keep row-level access and network exposure limited to the platform defaults
+- if you use a VPS database, bind it to a private interface or firewall it to trusted sources only
+
+## 3.2 Vercel Preview Isolation
+
+Preview deployments must not share the production database.
+
+Set these variables on Vercel:
+
+```dotenv
+VERCEL_ENV=preview
+PRODUCTION_DATABASE_URL=postgres://prod-db-url
+PRODUCTION_DB_HOST=prod-db-host
+PRODUCTION_DB_DATABASE=prod-db-name
+```
+
+The application now refuses to boot if a preview deployment is wired to the same production database URL or the same production host/database pair.
 
 ## 4. First Deploy
 
@@ -172,6 +224,12 @@ Minimum backup policy:
 
 If your VPS provider supports automatic snapshots, enable them.
 
+If you use Supabase:
+
+- verify that daily automatic backups are enabled on the project
+- confirm retention policy matches your recovery requirements
+- test at least one restore procedure before launch
+
 ## 8. Performance Notes for Launch
 
 Production defaults in this repository now assume:
@@ -186,7 +244,14 @@ Additional launch guidance:
 - Keep frontend and API on the same origin
 - Run `npm run build` on every frontend or `VITE_*` change
 - Restart queue workers after deploy
-- Monitor MySQL, Redis, PHP-FPM memory, and queue latency
+- Monitor MySQL, Redis, PHP-FPM memory, queue latency, and `security.log` / `anomaly.log`
+
+Recommended monitoring sinks:
+
+- Vercel log drains / platform logs
+- Sentry or similar error tracking for exceptions
+- Supabase database monitoring and backup status
+- alerts on spikes in `401/403`, high request rates, and repeated auth failures
 
 ## 9. Pre-Launch Smoke Test
 

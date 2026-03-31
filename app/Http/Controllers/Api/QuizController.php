@@ -3,22 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
 use App\Models\Quiz;
 use App\Models\QuizCategory;
 use App\Models\QuizResult;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class QuizController extends Controller
 {
-    public function getSubjects()
+    public function getSubjects(Request $request)
     {
         $user = Auth::user();
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
 
-        $approvedSubjects = OlympiadRequest::where('user_id', $user->id)
+        $approvedSubjects = OlympiadRequest::query()
+            ->where('user_id', $user->id)
             ->where('status', 'approved')
             ->where('payment_status', 'paid')
+            ->when($childId > 0, fn ($query) => $query->where('child_profile_id', $childId))
             ->pluck('subject_id');
 
         return response()->json(
@@ -30,29 +35,40 @@ class QuizController extends Controller
         );
     }
 
-    public function getQuiz($subjectId)
+    public function getQuiz(Request $request, string $subjectId)
     {
         $user = Auth::user();
-        $requestRecord = $this->resolveApprovedRequest($user->id, $subjectId);
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
+        $resolvedSubjectId = $this->resolveSubjectId($subjectId);
+        $requestRecord = $this->resolveRequest($user->id, $resolvedSubjectId, $childId);
 
         if (!$requestRecord) {
-            return response()->json(['message' => 'Р’С‹ РЅРµ РґРѕРїСѓС‰РµРЅС‹ Рє РѕР»РёРјРїРёР°РґРµ'], 403);
+            return response()->json(['message' => 'Заявка на эту олимпиаду не найдена.'], 404);
+        }
+
+        if ($requestRecord->status === 'rejected') {
+            return response()->json(['message' => 'Заявка отклонена. Доступ к олимпиаде закрыт.'], 403);
+        }
+
+        if ($requestRecord->status !== 'approved') {
+            return response()->json(['message' => 'Заявка ещё не одобрена администратором.'], 403);
         }
 
         if ($requestRecord->disqualified_at) {
-            return response()->json(['message' => 'РџРѕРїС‹С‚РєР° Р°РЅРЅСѓР»РёСЂРѕРІР°РЅР° РёР·-Р·Р° РЅР°СЂСѓС€РµРЅРёСЏ РїСЂР°РІРёР» С‚РµСЃС‚РёСЂРѕРІР°РЅРёСЏ.'], 403);
+            return response()->json(['message' => 'Попытка аннулирована из-за нарушения правил тестирования.'], 403);
         }
 
         if ($requestRecord->payment_status !== 'paid') {
             return response()->json([
-                'message' => 'Р”Р»СЏ РЅР°С‡Р°Р»Р° С‚РµСЃС‚Р° РЅСѓР¶РЅРѕ РїРѕРґС‚РІРµСЂРґРёС‚СЊ РѕРїР»Р°С‚Сѓ.',
+                'message' => 'Оплата ещё не подтверждена. После проверки оплаты доступ к олимпиаде откроется.',
                 'payment_required' => true,
                 'payment_status' => $requestRecord->payment_status,
                 'payment_url' => config('services.kaspi.payment_url'),
             ], 402);
         }
 
-        $quiz = Quiz::where('subject_id', $subjectId)
+        $quiz = Quiz::query()
+            ->where('subject_id', $resolvedSubjectId)
             ->where('is_published', true)
             ->with([
                 'subject',
@@ -61,33 +77,41 @@ class QuizController extends Controller
             ->first();
 
         if (!$quiz) {
-            return response()->json(['message' => 'РўРµСЃС‚ РЅРµ РЅР°Р№РґРµРЅ'], 404);
+            return response()->json(['message' => 'Олимпиада по этому предмету пока не опубликована.'], 404);
         }
 
-        $alreadySubmitted = QuizResult::where('user_id', $user->id)
+        $alreadySubmitted = QuizResult::query()
+            ->where('user_id', $user->id)
             ->where('quiz_id', $quiz->id)
+            ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
             ->exists();
 
         $category = $this->pickCategoryForGrade($quiz, $requestRecord->grade);
 
         if (!$category) {
             return response()->json([
-                'message' => 'Р”Р»СЏ СѓРєР°Р·Р°РЅРЅРѕРіРѕ РєР»Р°СЃСЃР° РїРѕРєР° РЅРµ РЅР°СЃС‚СЂРѕРµРЅР° РєР°С‚РµРіРѕСЂРёСЏ СЌС‚РѕР№ РѕР»РёРјРїРёР°РґС‹.',
+                'message' => 'Для указанного класса пока не настроен комплект заданий.',
             ], 422);
         }
 
         return response()->json([
-            'id' => $quiz->id,
-            'subject_id' => $quiz->subject_id,
+            'id' => $quiz->public_id,
+            'subject_id' => $quiz->subject?->public_id,
             'title' => $quiz->title,
             'description' => $quiz->description,
             'time_limit' => $quiz->time_limit,
             'already_submitted' => $alreadySubmitted,
-            'warning' => 'Р’Рѕ РІСЂРµРјСЏ С‚РµСЃС‚Р° РЅРµР»СЊР·СЏ РїРµСЂРµРєР»СЋС‡Р°С‚СЊ РІРєР»Р°РґРєСѓ, РѕРєРЅРѕ, РІС‹С…РѕРґРёС‚СЊ РёР· fullscreen РёР»Рё СЃРІРѕСЂР°С‡РёРІР°С‚СЊ Р±СЂР°СѓР·РµСЂ.',
+            'child_profile_id' => $requestRecord->childProfile?->public_id,
+            'child' => $requestRecord->childProfile ? [
+                'id' => $requestRecord->childProfile->public_id,
+                'full_name' => $requestRecord->childProfile->full_name,
+                'grade' => $requestRecord->childProfile->grade,
+            ] : null,
+            'warning' => 'Во время олимпиады нельзя переключать вкладку, окно, выходить из полноэкранного режима или сворачивать браузер.',
             'warning_rules' => [
-                'Р—Р°РїСЂРµС‰РµРЅРѕ РїРµСЂРµРєР»СЋС‡Р°С‚СЊ РІРєР»Р°РґРєСѓ, РѕРєРЅРѕ, РІС‹С…РѕРґРёС‚СЊ РёР· fullscreen РёР»Рё СЃРІРѕСЂР°С‡РёРІР°С‚СЊ Р±СЂР°СѓР·РµСЂ.',
-                'РќРµР»СЊР·СЏ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РїРѕРґСЃРєР°Р·РєРё, СЃРїРёСЃС‹РІР°С‚СЊ Рё РѕР±СЂР°С‰Р°С‚СЊСЃСЏ Рє СЃС‚РѕСЂРѕРЅРЅРµР№ РїРѕРјРѕС‰Рё.',
-                'РџСЂРё РЅР°СЂСѓС€РµРЅРёРё РїСЂР°РІРёР» РїРѕРїС‹С‚РєР° Р°РЅРЅСѓР»РёСЂСѓРµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё.',
+                'Запрещено переключать вкладку, окно, выходить из полноэкранного режима или сворачивать браузер.',
+                'Нельзя использовать подсказки, списывать и обращаться к сторонней помощи.',
+                'При нарушении правил попытка аннулируется автоматически.',
             ],
             'subject' => $quiz->subject,
             'category' => [
@@ -118,12 +142,16 @@ class QuizController extends Controller
         ]);
     }
 
-    public function getStatus($subjectId)
+    public function getStatus(Request $request, string $subjectId)
     {
         $user = Auth::user();
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
+        $resolvedSubjectId = $this->resolveSubjectId($subjectId);
 
-        $requestRecord = OlympiadRequest::where('user_id', $user->id)
-            ->where('subject_id', $subjectId)
+        $requestRecord = OlympiadRequest::query()
+            ->where('user_id', $user->id)
+            ->where('subject_id', $resolvedSubjectId)
+            ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))
             ->latest()
             ->first();
 
@@ -132,49 +160,61 @@ class QuizController extends Controller
             'payment_status' => $requestRecord?->payment_status,
             'payment_url' => config('services.kaspi.payment_url'),
             'disqualified' => (bool) $requestRecord?->disqualified_at,
+            'child_profile_id' => $requestRecord?->childProfile?->public_id,
         ]);
     }
 
-    public function submitQuiz(Request $request, $quizId)
+    public function submitQuiz(Request $request, string $quizId)
     {
         $user = Auth::user();
 
         $request->validate([
             'answers' => 'required|array',
+            'child_profile_id' => 'nullable|string',
         ]);
 
-        $exists = QuizResult::where('user_id', $user->id)
-            ->where('quiz_id', $quizId)
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'РўРµСЃС‚ СѓР¶Рµ Р±С‹Р» РїСЂРѕР№РґРµРЅ'], 403);
-        }
-
-        $quiz = Quiz::with(['categories.questions.answers'])->findOrFail($quizId);
-
-        if (!$quiz->is_published) {
-            return response()->json(['message' => 'РўРµСЃС‚ РїРѕРєР° РЅРµ РѕРїСѓР±Р»РёРєРѕРІР°РЅ'], 403);
-        }
-
-        $requestRecord = $this->resolveApprovedRequest($user->id, $quiz->subject_id);
+        $quiz = $this->resolveQuiz($quizId, ['categories.questions.answers']);
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
+        $requestRecord = $this->resolveRequest($user->id, $quiz->subject_id, $childId);
 
         if (!$requestRecord) {
-            return response()->json(['message' => 'Р’С‹ РЅРµ РґРѕРїСѓС‰РµРЅС‹ Рє РѕР»РёРјРїРёР°РґРµ'], 403);
+            return response()->json(['message' => 'Заявка на эту олимпиаду не найдена.'], 404);
         }
 
-        if ($requestRecord->disqualified_at) {
-            return response()->json(['message' => 'РџРѕРїС‹С‚РєР° СѓР¶Рµ Р°РЅРЅСѓР»РёСЂРѕРІР°РЅР°.'], 403);
+        if ($requestRecord->status === 'rejected') {
+            return response()->json(['message' => 'Попытка аннулирована: заявка отклонена администратором.'], 403);
+        }
+
+        if ($requestRecord->status !== 'approved') {
+            return response()->json(['message' => 'Заявка ещё не одобрена.'], 403);
         }
 
         if ($requestRecord->payment_status !== 'paid') {
-            return response()->json(['message' => 'РћРїР»Р°С‚Р° РµС‰С‘ РЅРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅР°.'], 402);
+            return response()->json(['message' => 'Оплата ещё не подтверждена.'], 402);
+        }
+
+        if (!$quiz->is_published) {
+            return response()->json(['message' => 'Олимпиада пока не опубликована.'], 403);
+        }
+
+        if ($requestRecord->disqualified_at) {
+            return response()->json(['message' => 'Попытка уже аннулирована.'], 403);
+        }
+
+        $exists = QuizResult::query()
+            ->where('user_id', $user->id)
+            ->where('quiz_id', $quiz->id)
+            ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'Олимпиада уже была пройдена.'], 403);
         }
 
         $category = $this->pickCategoryForGrade($quiz, $requestRecord->grade);
 
         if (!$category) {
-            return response()->json(['message' => 'РљР°С‚РµРіРѕСЂРёСЏ РґР»СЏ СЌС‚РѕРіРѕ РєР»Р°СЃСЃР° РЅРµ РЅР°Р№РґРµРЅР°.'], 422);
+            return response()->json(['message' => 'Категория для этого класса не найдена.'], 422);
         }
 
         $answers = $request->input('answers', []);
@@ -187,6 +227,7 @@ class QuizController extends Controller
             }
 
             $correct = $question->answers->firstWhere('is_correct', true);
+
             if ($correct && (int) $correct->id === (int) $answers[$question->id]) {
                 $score++;
             }
@@ -194,21 +235,24 @@ class QuizController extends Controller
 
         $quizResult = QuizResult::create([
             'user_id' => $user->id,
-            'quiz_id' => $quizId,
+            'child_profile_id' => $requestRecord->child_profile_id,
+            'quiz_id' => $quiz->id,
             'quiz_category_id' => $category->id,
             'score' => $score,
             'total' => $total,
         ]);
 
-        OlympiadRequest::where('user_id', $user->id)
+        OlympiadRequest::query()
+            ->where('user_id', $user->id)
             ->where('subject_id', $quiz->subject_id)
+            ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
             ->update(['completed' => true]);
 
         $percent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
 
         return response()->json([
-            'message' => 'РўРµСЃС‚ Р·Р°РІРµСЂС€РµРЅ',
-            'id' => $quizResult->id,
+            'message' => 'Олимпиада завершена.',
+            'id' => $quizResult->public_id,
             'score' => $score,
             'total' => $total,
             'percent' => $percent,
@@ -218,18 +262,19 @@ class QuizController extends Controller
                 'label' => $category->label,
                 'display_range' => $this->formatCategoryRange($category),
             ],
-            'certificate_url' => '/api/profile/results/' . $quizResult->id . '/certificate',
+            'certificate_url' => '/api/profile/results/' . $quizResult->public_id . '/certificate',
         ]);
     }
 
-    public function violateAttempt(Request $request, $quizId)
+    public function violateAttempt(Request $request, string $quizId)
     {
         $user = Auth::user();
-        $quiz = Quiz::findOrFail($quizId);
-        $requestRecord = $this->resolveApprovedRequest($user->id, $quiz->subject_id);
+        $quiz = $this->resolveQuiz($quizId);
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
+        $requestRecord = $this->resolveRequest($user->id, $quiz->subject_id, $childId);
 
         if (!$requestRecord) {
-            return response()->json(['message' => 'РџРѕРїС‹С‚РєР° РЅРµ РЅР°Р№РґРµРЅР°.'], 404);
+            return response()->json(['message' => 'Попытка не найдена.'], 404);
         }
 
         if (!$requestRecord->disqualified_at) {
@@ -239,21 +284,17 @@ class QuizController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'РџРѕРїС‹С‚РєР° Р°РЅРЅСѓР»РёСЂРѕРІР°РЅР°.']);
+        return response()->json(['message' => 'Попытка аннулирована.']);
     }
 
-    protected function resolveApprovedRequest(int $userId, int $subjectId): ?OlympiadRequest
+    protected function resolveRequest(int $userId, int $subjectId, ?int $childId = null): ?OlympiadRequest
     {
-        $requestRecord = OlympiadRequest::where('user_id', $userId)
+        return OlympiadRequest::with('childProfile')
+            ->where('user_id', $userId)
             ->where('subject_id', $subjectId)
+            ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))
             ->latest()
             ->first();
-
-        if (!$requestRecord || $requestRecord->status !== 'approved') {
-            return null;
-        }
-
-        return $requestRecord;
     }
 
     protected function pickCategoryForGrade(Quiz $quiz, mixed $grade): ?QuizCategory
@@ -305,5 +346,33 @@ class QuizController extends Controller
         return $category->grade_from === $category->grade_to
             ? (string) $category->grade_from
             : "{$category->grade_from}-{$category->grade_to}";
+    }
+
+    protected function resolveChildId(int $userId, mixed $childPublicId): ?int
+    {
+        if (!$childPublicId) {
+            return null;
+        }
+
+        return ChildProfile::query()
+            ->where('parent_id', $userId)
+            ->where('public_id', (string) $childPublicId)
+            ->value('id');
+    }
+
+    protected function resolveSubjectId(string $subjectKey): int
+    {
+        return Subject::query()
+            ->where('public_id', $subjectKey)
+            ->valueOrFail('id');
+    }
+
+    protected function resolveQuiz(string $quizKey, array $with = []): Quiz
+    {
+        $query = Quiz::query()->with($with);
+
+        return $query
+            ->where('public_id', $quizKey)
+            ->firstOrFail();
     }
 }

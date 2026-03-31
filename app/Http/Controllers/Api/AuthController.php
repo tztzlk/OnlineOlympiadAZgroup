@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Throwable;
 
 class AuthController extends Controller
@@ -20,7 +22,7 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20|unique:users',
             'school' => 'required|string|max:255',
             'city' => 'required|string|max:255',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => ['required', 'string', 'confirmed', PasswordRule::min(12)->letters()->mixedCase()->numbers()->symbols()],
         ]);
 
         if ($validator->fails()) {
@@ -28,20 +30,26 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'school' => $request->school,
-            'city' => $request->city,
-            'password' => Hash::make($request->password),
+            'name' => $request->string('name')->trim()->value(),
+            'email' => $request->string('email')->trim()->lower()->value(),
+            'phone' => $request->string('phone')->value(),
+            'school' => $request->string('school')->trim()->value(),
+            'city' => $request->string('city')->trim()->value(),
+            'password' => Hash::make($request->string('password')->value()),
+            'plan' => 'free',
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Log::channel('security')->info('auth.register_success', [
+            'event' => 'auth.register_success',
+            'user_public_id' => $user->public_id,
+            'email' => $user->email,
+            'ip' => $request->ip(),
+        ]);
 
         return response()->json([
-            'message' => 'Пользователь успешно зарегистрирован',
+            'message' => 'Пользователь успешно зарегистрирован.',
             'user' => $user,
-            'token' => $token,
+            'token' => $user->createToken('auth_token')->plainTextToken,
         ], 201);
     }
 
@@ -52,19 +60,43 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = $request->string('email')->lower()->value();
+        $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Неверный email или пароль'], 401);
+        if (!$user || !Hash::check($request->string('password')->value(), $user->password)) {
+            Log::channel('security')->warning('auth.login_failed', [
+                'event' => 'auth.login_failed',
+                'email' => $email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'guard' => 'user',
+            ]);
+
+            return response()->json(['message' => 'Неверный email или пароль.'], 401);
         }
 
         if ($user->is_admin) {
+            Log::channel('security')->warning('auth.login_blocked_admin_endpoint_mismatch', [
+                'event' => 'auth.login_blocked_admin_endpoint_mismatch',
+                'user_public_id' => $user->public_id,
+                'email' => $user->email,
+                'ip' => $request->ip(),
+            ]);
+
             return response()->json([
-                'message' => 'Администратор должен входить через admin login',
+                'message' => 'Администратор должен входить через отдельную форму admin login.',
             ], 403);
         }
 
         $user->tokens()->delete();
+
+        Log::channel('security')->info('auth.login_success', [
+            'event' => 'auth.login_success',
+            'user_public_id' => $user->public_id,
+            'email' => $user->email,
+            'ip' => $request->ip(),
+            'guard' => 'user',
+        ]);
 
         return response()->json([
             'user' => $user,
@@ -79,15 +111,41 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = $request->string('email')->lower()->value();
+        $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Неверный email или пароль'], 401);
+        if (!$user || !Hash::check($request->string('password')->value(), $user->password)) {
+            Log::channel('security')->warning('auth.admin_login_failed', [
+                'event' => 'auth.admin_login_failed',
+                'email' => $email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'guard' => 'admin',
+            ]);
+
+            return response()->json(['message' => 'Неверный email или пароль.'], 401);
         }
 
         if (!$user->is_admin) {
-            return response()->json(['message' => 'Доступ только для администратора'], 403);
+            Log::channel('security')->warning('auth.admin_login_forbidden', [
+                'event' => 'auth.admin_login_forbidden',
+                'user_public_id' => $user->public_id,
+                'email' => $user->email,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['message' => 'Доступ открыт только для администратора.'], 403);
         }
+
+        $user->tokens()->delete();
+
+        Log::channel('security')->info('auth.admin_login_success', [
+            'event' => 'auth.admin_login_success',
+            'user_public_id' => $user->public_id,
+            'email' => $user->email,
+            'ip' => $request->ip(),
+            'guard' => 'admin',
+        ]);
 
         return response()->json([
             'user' => $user,
@@ -102,7 +160,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $status = Password::sendResetLink($request->only('email'));
+            Password::sendResetLink($request->only('email'));
         } catch (Throwable $e) {
             report($e);
 
@@ -111,14 +169,8 @@ class AuthController extends Controller
             ], 500);
         }
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            return response()->json([
-                'message' => __($status),
-            ], 422);
-        }
-
         return response()->json([
-            'message' => 'Ссылка для восстановления пароля отправлена на email.',
+            'message' => 'Если аккаунт с таким email существует, ссылка для восстановления уже отправлена.',
         ]);
     }
 
@@ -127,7 +179,7 @@ class AuthController extends Controller
         $request->validate([
             'token' => 'required|string',
             'email' => 'required|email',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => ['required', 'string', 'confirmed', PasswordRule::min(12)->letters()->mixedCase()->numbers()->symbols()],
         ]);
 
         $status = Password::reset(
@@ -159,8 +211,14 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        Log::channel('security')->info('auth.logout', [
+            'event' => 'auth.logout',
+            'user_public_id' => $request->user()?->public_id,
+            'ip' => $request->ip(),
+        ]);
+
         $request->user()->tokens()->delete();
 
-        return response()->json(['message' => 'Вы вышли из системы']);
+        return response()->json(['message' => 'Вы вышли из системы.']);
     }
 }

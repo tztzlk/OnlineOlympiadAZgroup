@@ -74,7 +74,7 @@ class AdminQuizController extends Controller
         $quiz->delete();
 
         return response()->json([
-            'message' => 'Quiz deleted',
+            'message' => 'Олимпиада удалена.',
         ]);
     }
 
@@ -83,7 +83,7 @@ class AdminQuizController extends Controller
         $quiz->update(['is_published' => true]);
 
         return response()->json([
-            'message' => 'Quiz published',
+            'message' => 'Олимпиада опубликована.',
             'quiz' => $this->mapQuizSummary($quiz->fresh()->load(['subject', 'categories'])->loadCount('questions')),
         ]);
     }
@@ -93,7 +93,7 @@ class AdminQuizController extends Controller
         $quiz->update(['is_published' => false]);
 
         return response()->json([
-            'message' => 'Quiz unpublished',
+            'message' => 'Публикация олимпиады снята.',
             'quiz' => $this->mapQuizSummary($quiz->fresh()->load(['subject', 'categories'])->loadCount('questions')),
         ]);
     }
@@ -115,7 +115,7 @@ class AdminQuizController extends Controller
     protected function validatePayload(Request $request): array
     {
         return $request->validate([
-            'subject_id' => 'nullable|exists:subjects,id',
+            'subject_id' => 'nullable|string',
             'subject.name' => 'required_without:subject_id|string|max:255',
             'subject.description' => 'nullable|string',
             'subject.image' => 'nullable|string',
@@ -146,7 +146,9 @@ class AdminQuizController extends Controller
     protected function resolveSubject(array $data): Subject
     {
         if (!empty($data['subject_id'])) {
-            return Subject::findOrFail($data['subject_id']);
+            return Subject::query()
+                ->where('public_id', $data['subject_id'])
+                ->firstOrFail();
         }
 
         return Subject::create([
@@ -202,7 +204,7 @@ class AdminQuizController extends Controller
         ])->loadCount('questions');
 
         return [
-            'id' => $quiz->id,
+            'id' => $quiz->public_id,
             'title' => $quiz->title,
             'description' => $quiz->description,
             'time_limit' => $quiz->time_limit,
@@ -245,7 +247,7 @@ class AdminQuizController extends Controller
     protected function mapQuizSummary(Quiz $quiz): array
     {
         return [
-            'id' => $quiz->id,
+            'id' => $quiz->public_id,
             'title' => $quiz->title,
             'description' => $quiz->description,
             'time_limit' => $quiz->time_limit,
