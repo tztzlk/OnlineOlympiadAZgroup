@@ -12,6 +12,8 @@ use App\Models\QuizResult;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
@@ -117,6 +119,8 @@ class AdminController extends Controller
         $rows = preg_split('/\r\n|\n|\r/', trim((string) $contents));
         $header = null;
         $imported = 0;
+        $createdParents = 0;
+        $createdParentEmails = [];
         $errors = [];
 
         foreach ($rows as $lineNumber => $line) {
@@ -143,16 +147,22 @@ class AdminController extends Controller
                 continue;
             }
 
-            $parent = User::firstOrCreate(
-                ['email' => $email],
-                [
+            $parent = User::query()->where('email', $email)->first();
+
+            if (!$parent) {
+                $parent = User::create([
                     'name' => trim((string) ($row['parent_name'] ?? $email)),
+                    'email' => $email,
                     'phone' => trim((string) ($row['parent_phone'] ?? ('import-' . uniqid()))),
                     'school' => trim((string) ($row['school'] ?? '')),
                     'city' => trim((string) ($row['city'] ?? '')),
-                    'password' => bcrypt('TempPass123!'),
-                ]
-            );
+                    // Imported accounts must not share a predictable bootstrap password.
+                    'password' => Hash::make((string) Str::password(32)),
+                ]);
+
+                $createdParents++;
+                $createdParentEmails[] = $email;
+            }
 
             ChildProfile::updateOrCreate(
                 [
@@ -175,6 +185,12 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Импорт завершен',
             'imported' => $imported,
+            'created_parent_accounts' => $createdParents,
+            'created_parent_emails' => $createdParentEmails,
+            'password_setup_required' => $createdParents > 0,
+            'password_setup_hint' => $createdParents > 0
+                ? 'New parent accounts were created with random passwords. Use the forgot password flow to set first access.'
+                : null,
             'errors' => $errors,
         ]);
     }

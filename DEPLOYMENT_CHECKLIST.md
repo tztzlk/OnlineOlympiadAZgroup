@@ -2,89 +2,81 @@
 
 ## Infrastructure
 
-- `1 VPS` with Ubuntu 22.04/24.04
-- `4 vCPU / 8 GB RAM / NVMe SSD` for first launch
-- Domain `A` record points to the server IP
-- SSL enabled with Let's Encrypt
-- Laravel Forge site created with document root in `public/`
-
-## Required Services
-
-- PHP 8.2+
-- Nginx
-- MySQL 8
-- Redis
-- Supervisor or Forge queue workers
-- Scheduler enabled in Forge or cron
+- Ubuntu 24.04 server provisioned
+- Nginx installed
+- PHP-FPM 8.4 installed
+- MySQL 8 installed
+- domain A record points to the server
+- SSL certificate installed and working
+- site root points to `public/`
 
 ## Production Environment
 
 - `APP_ENV=production`
 - `APP_DEBUG=false`
-- `APP_URL=https://your-domain.example`
-- `FRONTEND_URL=https://your-domain.example`
+- `APP_URL=https://your-domain.com`
+- `FRONTEND_URL=https://your-domain.com`
 - `DB_CONNECTION=mysql`
-- `SESSION_DRIVER=redis`
-- `CACHE_STORE=redis`
-- `QUEUE_CONNECTION=redis`
-- `REDIS_HOST=127.0.0.1`
+- `QUEUE_CONNECTION=database`
+- `CACHE_STORE=database` or `redis`
+- `SESSION_DRIVER=database` or `redis`
 - `SESSION_SECURE_COOKIE=true`
-- `SECURITY_ENFORCE_HTTPS=true`
-- `CORS_ALLOWED_ORIGINS=https://your-domain.example`
-- `SESSION_DOMAIN=your-domain.example`
-- `SANCTUM_STATEFUL_DOMAINS=your-domain.example`
-- `VITE_API_URL=https://your-domain.example/api`
-- secrets are stored in deployment environment variables, not in committed files
-- preview environment uses separate database credentials from production
-- webhook secrets are configured for YooKassa / Stripe / Telegram
+- `SESSION_DOMAIN=your-domain.com`
+- `CORS_ALLOWED_ORIGINS=https://your-domain.com`
+- `SANCTUM_STATEFUL_DOMAINS=your-domain.com`
+- `VITE_API_URL=https://your-domain.com/api`
+- `MAIL_MAILER` is real and not `log`
+- webhook secrets configured
+- no duplicate critical keys in `.env`
 
-## Deploy Steps
+## Deploy Commands
 
-1. Run `composer install --no-dev --optimize-autoloader`
-2. Run `npm ci`
-3. Run `npm run build`
-4. Run `php artisan migrate --force`
-5. Run `php artisan storage:link || true`
-6. Run `php artisan config:cache`
-7. Run `php artisan route:cache`
-8. Run `php artisan view:cache`
-9. Run `php artisan queue:restart`
+1. `composer install --no-dev --optimize-autoloader`
+2. `npm ci`
+3. `npm run build`
+4. `php artisan key:generate --force` on first deploy only
+5. `php artisan deploy:check-db --connection=mysql`
+6. `php artisan migrate --force`
+7. `php artisan storage:link || true`
+8. `php artisan config:cache`
+9. `php artisan route:cache`
+10. `php artisan view:cache`
+11. `php artisan queue:restart`
 
-Preferred deploy script:
+## Queue And Scheduler
 
-- `deploy/forge-deploy.sh`
+- Supervisor is running database queue workers
+- worker command matches `.env` queue driver
+- cron or Forge scheduler runs `php artisan schedule:run` every minute
 
-## Worker and Scheduler
+## Nginx And PHP
 
-- At least `2` Redis queue workers are running
-- Increase to `4` workers if queue latency rises
-- `php artisan schedule:run` executes every minute
+- using `deploy/nginx/online-olympiad.conf.example` or equivalent
+- `try_files $uri $uri/ /index.php?$query_string;`
+- hidden files denied
+- `client_max_body_size` is at least `16m`
+- PHP `upload_max_filesize` and `post_max_size` exceed Laravel upload requirements
 
-## Functional Smoke Test
+## Functional Checks
 
-- Home page loads on HTTPS
-- SPA routes still work after browser refresh
-- Student registration works
-- Student login works
-- Admin login works
-- Olympiad request flow works
-- Approved student can open the quiz
-- Quiz submit creates a result
-- Result appears in profile
-- Certificate download works
-- Admin can create and publish quizzes
+- home page loads on HTTPS
+- SPA routes survive hard refresh
+- register, login, logout work
+- forgot-password email works
+- help desk submission sends mail
+- parent can submit olympiad request
+- admin can approve request
+- admin can mark payment as paid
+- approved and paid participant can open quiz
+- quiz submission creates a result
+- certificate download works
+- admin image upload works
 
-## Operational Checks
+## Security And Operations
 
-- Redis is reachable from Laravel
-- MySQL migrations are applied
-- Queue worker does not crash after deploy
-- Re-deploy completes without manual intervention
-- Daily DB backups are enabled
-- At least `7` daily backups are retained
-- `.env` is not publicly accessible
-- production database is not reachable from the public internet
-- preview deployments cannot boot against the production DB
-- `security.log` and `anomaly.log` are collected by your platform
-- security headers are present on responses
-- CORS does not use wildcard `*`
+- imported users do not receive a shared default password
+- logs are writable in `storage/logs`
+- `security.log` and `anomaly.log` are being watched
+- daily database backups are enabled
+- at least one restore test has been completed
+- production database is not publicly open to the internet

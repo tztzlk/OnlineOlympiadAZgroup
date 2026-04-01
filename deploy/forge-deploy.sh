@@ -24,10 +24,16 @@ if ! grep -q '^APP_KEY=base64:' .env; then
   exit 1
 fi
 
+if grep -q '^MAIL_MAILER=log$' .env; then
+  echo "MAIL_MAILER=log is not acceptable for a real production launch"
+  exit 1
+fi
+
 composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
 
+php artisan deploy:check-db --connection=mysql
 php artisan migrate --force
 php artisan storage:link || true
 

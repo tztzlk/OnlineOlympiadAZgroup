@@ -79,7 +79,7 @@ const file = ref(null)
 const importing = ref(false)
 const importMessage = ref('')
 const copyMessage = ref('')
-const paymentUrl = 'https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=22909&region_id=19'
+const paymentUrl = import.meta.env.VITE_KASPI_PAYMENT_URL || 'https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=22909&region_id=19'
 
 const paymentStatusLabel = (status) => ({
   pending: 'Ожидает оплаты',

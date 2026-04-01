@@ -11,6 +11,7 @@
           <p class="description">{{ user.email }} · {{ user.phone }}</p>
         </div>
         <div class="hero-actions">
+          <RouterLink v-if="canReturnToAdminPanel" to="/admin" class="btn btn-ghost">Вернуться в админку</RouterLink>
           <RouterLink to="/edit-profile" class="btn btn-outline">Редактировать профиль</RouterLink>
           <RouterLink to="/results" class="btn btn-primary">Результаты</RouterLink>
         </div>
@@ -148,7 +149,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import api from '../js/api'
@@ -165,6 +166,10 @@ const payments = ref([])
 const trainings = ref([])
 const editingChildId = ref(null)
 const savingChild = ref(false)
+
+const canReturnToAdminPanel = computed(() => {
+  return Boolean(user.value?.is_admin && userStore.sessionType === 'admin')
+})
 
 const childForm = reactive({
   first_name: '',

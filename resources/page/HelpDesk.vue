@@ -23,8 +23,8 @@
       </form>
 
       <div class="contact-strip">
-        <a href="mailto:support@olympiad.kz">support@olympiad.kz</a>
-        <a href="tel:+77770000000">+7 (777) 000-00-00</a>
+        <a :href="`mailto:${supportEmail}`">{{ supportEmail }}</a>
+        <a :href="supportPhoneHref">{{ supportPhone }}</a>
       </div>
     </div>
   </div>
@@ -34,6 +34,10 @@
 import { reactive, ref } from 'vue'
 import api from '../js/api'
 import { solveProofOfWork } from '../js/pow'
+
+const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'support@olympiad.kz'
+const supportPhone = import.meta.env.VITE_SUPPORT_PHONE || '+7 (777) 000-00-00'
+const supportPhoneHref = `tel:${supportPhone.replace(/[^\d+]/g, '')}`
 
 const form = reactive({
   name: '',

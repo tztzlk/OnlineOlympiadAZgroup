@@ -1,77 +1,38 @@
-# Deployment Guide - Online Olympiad
+# Online Olympiad Deployment Guide
 
-This project is designed to be deployed as a single Laravel application that serves both the SPA frontend and the API from the same domain.
+This repository is intended to launch as one Laravel application serving both the Vue SPA and the API from the same domain.
 
-## Production Security Baseline
+## Production Architecture
 
-This repository now includes runtime hardening for production deployments:
+Recommended first-launch architecture:
 
-- forced HTTPS redirect with HSTS
-- strict CORS via `CORS_ALLOWED_ORIGINS`
-- security headers: `X-Frame-Options`, `X-Content-Type-Options`, CSP, Referrer-Policy
-- structured JSON logs for auth attempts, API errors, suspicious activity, and request spikes
-- preview environment guard that blocks boot if a Vercel preview deploy points to the production database
+- 1 Ubuntu 24.04 VPS
+- Nginx
+- PHP-FPM 8.4
+- MySQL 8
+- same-origin domain for SPA and API
+- database queue worker
+- database or Redis cache/session depending on what the server provides
 
-These controls are configured through environment variables and should be enabled in production before go-live.
+Do not split the SPA and API across separate hosts for the first launch. The current auth flow uses Sanctum personal access tokens stored in `localStorage`, not true cookie-first SPA auth.
 
-## Recommended Production Stack
+## Recommended Hosting Options
 
-- `Laravel Forge` for provisioning and deploy automation
-- `1 Linux VPS` (Ubuntu 22.04/24.04)
-- `Nginx + PHP-FPM`
-- `PHP 8.2+`
-- `MySQL 8`
-- `Redis` for sessions, cache, and queues
-- `Supervisor` for queue workers
-- `Let's Encrypt` for SSL
+Most practical:
 
-## Recommended Server Size
+1. Laravel Forge + a VPS provider
+2. Manual VPS provisioning if you are comfortable managing Nginx, PHP-FPM, and Supervisor yourself
 
-For the first public launch and roughly `500+` online users:
+Recommended provider shapes:
 
-- `4 vCPU`
-- `8 GB RAM`
-- `80+ GB NVMe SSD`
+- budget launch: 2 vCPU / 4 GB RAM
+- safer public launch: 4 vCPU / 8 GB RAM
 
-If the audience is mostly in Kazakhstan or Central Asia, choose the closest region available from your VPS provider.
+## Environment Strategy
 
-## 1. Domain and DNS
+Production must use one coherent `.env`. Duplicate keys should block deployment.
 
-1. Buy a domain such as `example.kz`, `example.com`, or `example.org`.
-2. Create an `A` record pointing the root domain to your server IP.
-3. Wait for DNS propagation before enabling SSL in Forge.
-
-Recommended setup:
-
-- App URL: `https://your-domain.com`
-- Frontend: same origin as backend
-- API base: `https://your-domain.com/api`
-
-Using the same domain for the SPA and API keeps authentication, cookies, and deployment much simpler.
-
-## 2. Provision the Server in Forge
-
-1. Create a new server in Forge.
-2. Choose Ubuntu 22.04 or 24.04.
-3. Install:
-   - PHP 8.2+
-   - Nginx
-   - MySQL
-   - Redis
-4. Create a new site with the web root set to:
-
-```bash
-/home/forge/your-domain.com/public
-```
-
-5. Connect the Git repository to the Forge site.
-6. Enable SSL through Forge after DNS is pointed correctly.
-
-## 3. Production Environment
-
-Copy `.env.example` to `.env` and configure production values.
-
-Minimum recommended production config:
+Minimum production values:
 
 ```dotenv
 APP_NAME="Online Olympiad"
@@ -80,10 +41,6 @@ APP_DEBUG=false
 APP_URL=https://your-domain.com
 FRONTEND_URL=https://your-domain.com
 
-SECURITY_ENFORCE_HTTPS=true
-CORS_ALLOWED_ORIGINS=https://your-domain.com
-SESSION_SECURE_COOKIE=true
-
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -91,72 +48,43 @@ DB_DATABASE=online_olympiad
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_db_password
 
-SESSION_DRIVER=redis
-SESSION_DOMAIN=your-domain.com
+SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+SESSION_DOMAIN=your-domain.com
 
-CACHE_STORE=redis
-QUEUE_CONNECTION=redis
+QUEUE_CONNECTION=database
+CACHE_STORE=database
 
-REDIS_CLIENT=phpredis
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-
+CORS_ALLOWED_ORIGINS=https://your-domain.com
 SANCTUM_STATEFUL_DOMAINS=your-domain.com
-
-VITE_APP_NAME="Online Olympiad"
 VITE_API_URL=https://your-domain.com/api
 
+MAIL_MAILER=smtp
+MAIL_HOST=your-mail-host
+MAIL_PORT=587
+MAIL_USERNAME=your-mail-user
+MAIL_PASSWORD=your-mail-password
+MAIL_FROM_ADDRESS=support@your-domain.com
+MAIL_FROM_NAME="Online Olympiad"
+SUPPORT_EMAIL=support@your-domain.com
+SUPPORT_PHONE=+7 (777) 000-00-00
+
+SECURITY_ENFORCE_HTTPS=true
 YOOKASSA_WEBHOOK_SECRET=change-me
 STRIPE_WEBHOOK_SECRET=change-me
 TELEGRAM_WEBHOOK_SECRET_TOKEN=change-me
 ```
 
-Important notes:
+Notes:
 
-- `APP_DEBUG` must be `false`.
-- Secrets must be stored only in deployment environment variables, not committed to the repository.
-- `SANCTUM_STATEFUL_DOMAINS` must contain hostnames only, no scheme or path.
-- `VITE_API_URL` must be set explicitly before `npm run build`.
-- `SESSION_DOMAIN=your-domain.com` is enough for same-origin deployment.
-- Use `.your-domain.com` only if you need cookies across subdomains.
+- `SANCTUM_STATEFUL_DOMAINS` must contain hostnames only.
+- `VITE_API_URL` must be set before `npm run build`.
+- `MAIL_MAILER=log` is acceptable locally but should block a real production launch.
+- If Redis is available, you may move `SESSION_DRIVER` and `CACHE_STORE` to `redis`, but keep the queue strategy explicit.
 
-For Vercel + managed database deployments:
-
-- store secrets in `Vercel Environment Variables`
-- for Supabase, keep database credentials in `Supabase Vault` / project secrets
-- never place webhook secrets, DB URLs, API keys, or app keys in source files
-
-## 3.1 Database Exposure Rules
-
-Production database access must not be publicly open:
-
-- allow inbound database traffic only from the application network / known IPs
-- do not expose MySQL/Postgres directly to the public internet
-- if you use Supabase, keep row-level access and network exposure limited to the platform defaults
-- if you use a VPS database, bind it to a private interface or firewall it to trusted sources only
-
-## 3.2 Vercel Preview Isolation
-
-Preview deployments must not share the production database.
-
-Set these variables on Vercel:
-
-```dotenv
-VERCEL_ENV=preview
-PRODUCTION_DATABASE_URL=postgres://prod-db-url
-PRODUCTION_DB_HOST=prod-db-host
-PRODUCTION_DB_DATABASE=prod-db-name
-```
-
-The application now refuses to boot if a preview deployment is wired to the same production database URL or the same production host/database pair.
-
-## 4. First Deploy
-
-Forge can use the deploy script from `deploy/forge-deploy.sh` as the baseline.
-
-If you want to run the commands manually, use:
+## First Deploy Sequence
 
 ```bash
 cd /home/forge/your-domain.com
@@ -166,35 +94,36 @@ npm ci
 npm run build
 
 php artisan key:generate --force
+php artisan deploy:check-db --connection=mysql
 php artisan migrate --force
 php artisan storage:link || true
+
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
 
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan queue:restart
 ```
 
-## 5. Queue Workers
+The repository also ships `deploy/forge-deploy.sh` for Forge-based deployments.
 
-Use Redis-backed workers in Forge or Supervisor.
+## Queue Worker
 
-Recommended worker command:
+Current recommended worker command:
 
 ```bash
-php artisan queue:work redis --sleep=1 --tries=3 --max-time=3600
+php artisan queue:work database --sleep=1 --tries=3 --max-time=3600
 ```
 
-Recommended process count:
-
-- Start with `2` workers
-- Increase to `4` if queue latency grows under load
-
-Example Supervisor config:
+Example Supervisor program:
 
 ```ini
 [program:online-olympiad-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /home/forge/your-domain.com/artisan queue:work redis --sleep=1 --tries=3 --max-time=3600
+command=php /home/forge/your-domain.com/artisan queue:work database --sleep=1 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -206,94 +135,112 @@ stdout_logfile=/home/forge/your-domain.com/storage/logs/worker.log
 stopwaitsecs=3600
 ```
 
-## 6. Scheduler
+If you intentionally switch production to Redis queues, change the command and `.env` together.
 
-Forge can manage the scheduler automatically. If you configure it manually, add:
+## Nginx
 
-```cron
-* * * * * cd /home/forge/your-domain.com && php artisan schedule:run >> /dev/null 2>&1
-```
+Use the committed example at:
 
-## 7. Backups
+- `deploy/nginx/online-olympiad.conf.example`
 
-Minimum backup policy:
+Production requirements:
 
-- Daily MySQL backup
-- Keep at least `7` daily backups
-- Keep VPS snapshots before large releases or schema changes
+- document root must point to `public/`
+- `try_files $uri $uri/ /index.php?$query_string;`
+- deny access to hidden files such as `.env`
+- `client_max_body_size 16m`
+- PHP `upload_max_filesize` and `post_max_size` must exceed the Laravel upload limit
 
-If your VPS provider supports automatic snapshots, enable them.
+## Mail
 
-If you use Supabase:
+Production mail must be real and tested before launch.
 
-- verify that daily automatic backups are enabled on the project
-- confirm retention policy matches your recovery requirements
-- test at least one restore procedure before launch
+Required end-to-end checks:
 
-## 8. Performance Notes for Launch
+- forgot-password email sends
+- reset link opens the SPA correctly
+- help desk submission sends to support inbox
 
-Production defaults in this repository now assume:
+Do not launch publicly with `MAIL_MAILER=log`.
 
-- `Redis` for sessions
-- `Redis` for cache
-- `Redis` for queues
-- `MySQL` for business data
+## Storage
 
-Additional launch guidance:
+The admin quiz image upload stores files on the public disk.
 
-- Keep frontend and API on the same origin
-- Run `npm run build` on every frontend or `VITE_*` change
-- Restart queue workers after deploy
-- Monitor MySQL, Redis, PHP-FPM memory, queue latency, and `security.log` / `anomaly.log`
+Required:
 
-Recommended monitoring sinks:
+- `php artisan storage:link`
+- writable `storage/` and `bootstrap/cache/`
+- Nginx and PHP upload limits aligned with application rules
 
-- Vercel log drains / platform logs
-- Sentry or similar error tracking for exceptions
-- Supabase database monitoring and backup status
-- alerts on spikes in `401/403`, high request rates, and repeated auth failures
+## Security
 
-## 9. Pre-Launch Smoke Test
+This repository already includes:
 
-Before opening the site publicly, verify:
+- HTTPS redirect middleware
+- strict security headers
+- strict CORS allowlist
+- proof-of-work protection for public forms
+- webhook signature validation
+- rate limiting and anomaly logging
 
-- Home page loads over HTTPS
-- SPA routes work after refresh
-- Student registration works
-- Student login works
-- Admin login works
-- Olympiad request flow works
-- Approved user can open quiz subjects
-- Quiz start and submit work
-- Result appears in profile
-- Certificate download works
-- Admin can create and publish quizzes
-- Queue workers are running
-- Re-deploy completes without manual fixes
+Still required before public launch:
 
-## 10. Updating the Application
+- final domain and HTTPS in `.env`
+- real production mail
+- no duplicate env keys
+- no predictable imported-user password
 
-Recommended update sequence:
+## Backups And Recovery
 
-```bash
-cd /home/forge/your-domain.com
-git pull origin main
-composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
-php artisan migrate --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan queue:restart
-```
+Minimum launch policy:
 
-## 11. Notes About the Current Codebase
+- daily MySQL backup
+- at least 7 daily retained backups
+- one tested restore before public launch
+- VPS snapshot before schema-changing releases
 
-These database migrations already exist in the project:
+## Monitoring
 
-- `jobs`
-- `cache`
-- `failed_jobs` support through Laravel defaults
+Minimum recommended monitoring:
 
-The project is ready for a standard Forge deployment with Redis enabled. No separate frontend host or container platform is required for the first production launch.
+- web server uptime
+- queue worker process health
+- `storage/logs/laravel.log`
+- `storage/logs/security.log`
+- `storage/logs/anomaly.log`
+- alerts for repeated 401/403 spikes or worker crashes
+
+Recommended next step:
+
+- add Sentry, Flare, or another external exception tracker
+
+## Smoke Test Before Go-Live
+
+- home page loads over HTTPS
+- hard refresh on SPA routes does not 404
+- register, login, logout work
+- password reset email works
+- help desk email works
+- parent can submit olympiad request
+- admin can approve request
+- admin can mark payment as paid
+- approved and paid student can open quiz and submit
+- certificate download works
+- admin image upload works
+- queue worker stays healthy after deploy
+
+## Official References
+
+- Laravel configuration: https://laravel.com/docs/12.x/configuration
+- Laravel Sanctum: https://laravel.com/docs/12.x/sanctum
+- Laravel queues: https://laravel.com/docs/12.x/queues
+- Laravel file storage: https://laravel.com/docs/filesystem
+- Laravel mail: https://laravel.com/docs/12.x/mail
+- Laravel logging and errors: https://laravel.com/docs/12.x/logging and https://laravel.com/docs/12.x/errors
+- Vite env and build: https://vite.dev/guide/env-and-mode and https://vite.dev/guide/build
+- Laravel Forge deployments: https://forge.laravel.com/docs/sites/deployments
+- Laravel Forge domains and SSL: https://forge.laravel.com/docs/sites/domains
+- Nginx docs: https://nginx.org/en/docs/
+- Certbot: https://certbot.eff.org/instructions
+- MySQL backup and recovery: https://dev.mysql.com/doc/refman/5.7/en/backup-and-recovery.html

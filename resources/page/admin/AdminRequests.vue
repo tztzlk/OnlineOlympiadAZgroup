@@ -241,6 +241,8 @@
 import { computed, onMounted, ref } from 'vue'
 import api from '../../js/api'
 
+const fallbackPaymentUrl = import.meta.env.VITE_KASPI_PAYMENT_URL || 'https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=22909&region_id=19'
+
 const loading = ref(true)
 const errorMessage = ref('')
 const requests = ref([])
@@ -326,7 +328,7 @@ const mapRequest = (item) => ({
   email: item.parent_email || item.user?.email || 'Не указан',
   subjectName: item.subject?.name || 'Без предмета',
   payment_status: item.payment_status || 'pending',
-  payment_url: item.payment_url || 'https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=22909&region_id=19',
+  payment_url: item.payment_url || fallbackPaymentUrl,
 })
 
 const requestActionHint = (request) => {

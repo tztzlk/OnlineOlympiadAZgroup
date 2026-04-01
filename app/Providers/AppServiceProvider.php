@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Support\DeploymentDatabaseInspector;
+use App\Support\LaravelDeploymentDatabaseInspector;
 use App\Support\DeploymentSafetyGuard;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -17,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(DeploymentDatabaseInspector::class, LaravelDeploymentDatabaseInspector::class);
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -217,6 +218,10 @@ it('lets admin import participants from csv', function () {
         'first_name' => 'Ayan',
         'last_name' => 'Import',
     ]);
+
+    $parent = User::query()->where('email', 'mom@example.com')->firstOrFail();
+
+    expect(Hash::check('TempPass123!', $parent->password))->toBeFalse();
 });
 
 it('lets admin export callback requests', function () {
