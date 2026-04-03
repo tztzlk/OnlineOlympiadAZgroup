@@ -148,8 +148,8 @@ const icons = [
 /* Orbs */
 .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.3; }
-.orb-1 { width: 550px; height: 550px; background: radial-gradient(circle, rgba(225,29,72,0.12), transparent); top: -180px; right: -120px; }
-.orb-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(225,29,72,0.08), transparent); bottom: -120px; left: -80px; }
+.orb-1 { width: 550px; height: 550px; background: radial-gradient(circle, rgba(208,179,107,0.14), transparent); top: -180px; right: -120px; }
+.orb-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(73,168,107,0.1), transparent); bottom: -120px; left: -80px; }
 
 .rules-container {
   max-width: 1100px;
@@ -168,11 +168,11 @@ const icons = [
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #E11D48;
-  background: rgba(225, 29, 72, 0.15);
+  color: #6c5a2f;
+  background: rgba(208, 179, 107, 0.18);
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(225, 29, 72, 0.3);
+  border: 1px solid rgba(208, 179, 107, 0.28);
   margin-bottom: 18px;
 }
 .page-title {
@@ -226,7 +226,7 @@ const icons = [
   padding: 24px;
   border-radius: 24px;
   border: 1px solid var(--surface-border);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09);
   overflow: hidden;
   transition: all 0.3s ease;
   animation: fadeUp 0.5s ease both;
@@ -242,14 +242,14 @@ const icons = [
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #E11D48, #E11D48, #BE123C);
+  background: linear-gradient(90deg, #d6bc77, #cdb169, #49a86b);
   opacity: 0;
   transition: opacity 0.3s;
 }
 .rule-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  border-color: rgba(225, 29, 72, 0.35);
+  box-shadow: 0 18px 42px rgba(104, 79, 28, 0.14);
+  border-color: rgba(208, 179, 107, 0.32);
 }
 .rule-card:hover::before { opacity: 1; }
 
@@ -270,16 +270,16 @@ const icons = [
 
 .rule-icon {
   width: 42px; height: 42px;
-  background: rgba(225, 29, 72, 0.15);
+  background: rgba(208, 179, 107, 0.16);
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  color: #E11D48;
+  color: #6c5a2f;
   transition: all 0.3s;
 }
 .rule-card:hover .rule-icon {
-  background: linear-gradient(135deg, #E11D48, #BE123C);
+  background: linear-gradient(135deg, #49a86b, #7fc894);
   color: white;
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 8px 18px rgba(73, 168, 107, 0.22);
 }
 
 .rule-title {
@@ -308,7 +308,7 @@ const icons = [
   border: 1px solid var(--surface-border);
   border-radius: 20px;
   padding: 22px 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09);
 }
 .cta-check {
   width: 32px; height: 32px;
@@ -331,19 +331,19 @@ const icons = [
   gap: 8px;
   padding: 12px 24px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #E11D48, #BE123C);
-  color: white;
+  background: linear-gradient(135deg, #d2b261, #bea25a);
+  color: #18120a;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 10px 24px rgba(104, 79, 28, 0.22);
   transition: all 0.2s;
   white-space: nowrap;
 }
 .cta-btn svg { transition: transform 0.2s; }
 .cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(225, 29, 72, 0.45);
+  box-shadow: 0 14px 30px rgba(104, 79, 28, 0.28);
 }
 .cta-btn:hover svg { transform: translateX(4px); }
 

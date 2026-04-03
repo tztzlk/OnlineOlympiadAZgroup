@@ -6,7 +6,7 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-sans: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
 }
 
 /* Theme: CSS variables for light/dark */
@@ -35,21 +35,21 @@
 }
 
 .dark {
-    --bg: #0F0F0F;
-    --text: #ffffff;
-    --card: #1A1A1A;
+    --bg: #efe5ca;
+    --text: #19150f;
+    --card: #f3ead2;
     --accent: #d0b36b;
     --accent-hover: #b99549;
-    --border: rgba(255, 255, 255, 0.08);
-    --text-secondary: #A1A1AA;
+    --border: rgba(96, 82, 42, 0.14);
+    --text-secondary: #5f5647;
     /* Surfaces (cards, panels) */
-    --surface: rgba(31, 27, 19, 0.92);
-    --surface-border: rgba(208, 179, 107, 0.14);
-    --text-on-surface: #ffffff;
-    --text-muted-on-surface: #A1A1AA;
-    --surface-soft: rgba(255, 255, 255, 0.04);
-    --surface-strong: #111111;
-    --overlay: rgba(15, 15, 15, 0.78);
+    --surface: rgba(255, 248, 235, 0.82);
+    --surface-border: rgba(96, 82, 42, 0.16);
+    --text-on-surface: #19150f;
+    --text-muted-on-surface: #4e4538;
+    --surface-soft: rgba(84, 73, 44, 0.06);
+    --surface-strong: #efe3ba;
+    --overlay: rgba(247, 241, 223, 0.78);
     --success-soft: #6bc28a;
     --success-soft-hover: #59ad77;
     --bg-primary: var(--bg);

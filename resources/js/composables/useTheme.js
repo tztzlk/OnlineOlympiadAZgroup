@@ -3,13 +3,13 @@ import { ref, onMounted } from 'vue'
 const STORAGE_KEY = 'theme'
 
 function getInitialDark() {
-  if (typeof window === 'undefined') return true
+  if (typeof window === 'undefined') return false
 
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored === 'dark') return true
   if (stored === 'light') return false
 
-  return true
+  return false
 }
 
 export function useTheme() {
