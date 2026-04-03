@@ -58,13 +58,13 @@ onMounted(load)
 </script>
 
 <style scoped>
-.admin-page { min-height: 100vh; padding: 28px; color: #102347; }
-.header, .table-card { background: rgba(255,255,255,0.94); border: 1px solid rgba(148,163,184,0.2); border-radius: 24px; padding: 22px; box-shadow: 0 18px 48px rgba(15,35,85,0.08); }
+.admin-page { min-height: 100vh; padding: 28px; color: var(--text); }
+.header, .table-card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 24px; padding: 22px; box-shadow: var(--shadow-card); }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.eyebrow { margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: #e11d48; }
+.eyebrow { margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: var(--accent-strong); }
 .table-card { margin-top: 18px; overflow-x: auto; }
-.primary-btn { border: 0; border-radius: 14px; padding: 12px 16px; background: linear-gradient(90deg, #2563eb, #1d4ed8); color: white; font-weight: 700; cursor: pointer; }
+.primary-btn { border: 0; border-radius: 14px; padding: 12px 16px; background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); font-weight: 700; cursor: pointer; box-shadow: 0 12px 26px rgba(201,171,99,.2); }
 table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #dbe6f3; vertical-align: top; }
+th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--surface-border); vertical-align: top; }
 @media (max-width: 760px) { .admin-page { padding: 16px; } .header { flex-direction: column; align-items: stretch; } }
 </style>

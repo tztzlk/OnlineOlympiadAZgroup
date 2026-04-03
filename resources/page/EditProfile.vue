@@ -1,22 +1,33 @@
 <template>
   <div class="edit-page">
     <div class="edit-card">
-      <form @submit.prevent="updateProfile">
-        <div class="input-group">
+      <div class="head">
+        <p class="eyebrow">Профиль</p>
+        <h1>Обновите данные аккаунта</h1>
+        <p>Поддерживайте контакты и информацию о школе в актуальном состоянии, чтобы команда могла быстро связаться с вами.</p>
+      </div>
+
+      <form @submit.prevent="updateProfile" class="form">
+        <label class="field">
+          <span>Имя</span>
           <input v-model="form.name" type="text" required placeholder="Имя" aria-label="Имя" />
-        </div>
-        <div class="input-group">
+        </label>
+        <label class="field">
+          <span>Email</span>
           <input v-model="form.email" type="email" required placeholder="Email" aria-label="Email" />
-        </div>
-        <div class="input-group">
+        </label>
+        <label class="field">
+          <span>Школа</span>
           <input v-model="form.school" type="text" required placeholder="Школа" aria-label="Школа" />
-        </div>
-        <div class="input-group">
+        </label>
+        <label class="field">
+          <span>Город</span>
           <input v-model="form.city" type="text" required placeholder="Город" aria-label="Город" />
-        </div>
-        <div class="input-group">
+        </label>
+        <label class="field">
+          <span>Телефон</span>
           <input v-model="form.phone" type="tel" required placeholder="Номер телефона" aria-label="Номер телефона" />
-        </div>
+        </label>
 
         <p v-if="message" class="message success">{{ message }}</p>
         <p v-if="error" class="message error">{{ error }}</p>
@@ -76,13 +87,13 @@ const updateProfile = async () => {
   try {
     const { data } = await api.put('/profile', form.value)
     userStore.user = data.user
-    message.value = 'Профиль успешно обновлён'
+    message.value = 'Профиль успешно обновлён.'
     setTimeout(() => router.push('/profile'), 900)
   } catch (err) {
     if (err.response?.data?.errors) {
       error.value = Object.values(err.response.data.errors)[0][0]
     } else {
-      error.value = 'Ошибка обновления'
+      error.value = 'Ошибка обновления.'
     }
   } finally {
     loading.value = false
@@ -91,20 +102,23 @@ const updateProfile = async () => {
 </script>
 
 <style scoped>
-.edit-page { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; background: var(--bg-primary, #0f0f0f); }
-.edit-card { width: 100%; max-width: 460px; background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); box-sizing: border-box; }
-.input-group { margin-bottom: 16px; }
-.input-group:last-of-type { margin-bottom: 24px; }
-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #e0e0e0; font-size: 1rem; background: #fff; color: #1a1a1a; box-sizing: border-box; }
+.edit-page { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; background: var(--bg); }
+.edit-card { width: 100%; max-width: 560px; background: var(--surface); padding: 34px; border-radius: var(--radius-lg); border: 1px solid var(--surface-border); box-shadow: var(--shadow-card); }
+.head { display: grid; gap: 10px; margin-bottom: 20px; }
+.eyebrow { margin: 0; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-strong); font-size: 12px; font-weight: 700; }
+h1 { margin: 0; color: var(--text); }
+.head p:last-child { color: var(--text-secondary); }
+.form { display: grid; gap: 14px; }
+.field { display: grid; gap: 8px; font-size: 14px; font-weight: 600; }
+input { width: 100%; padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); background: rgba(255,252,245,.95); color: var(--text); box-sizing: border-box; }
 input::placeholder { color: #9ca3af; }
-input:focus { outline: none; border-color: #e11d48; }
 .buttons { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
-.save-btn, .cancel-btn { flex: 1 1 0; min-width: 0; padding: 14px 20px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-.save-btn { background: #e11d48; color: #fff; }
+.save-btn, .cancel-btn { flex: 1 1 0; min-width: 0; padding: 14px 20px; border: none; border-radius: var(--radius-sm); font-size: 1rem; font-weight: 700; cursor: pointer; }
+.save-btn { background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); box-shadow: 0 12px 26px rgba(201,171,99,.2); }
 .save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-.cancel-btn { background: #e5e7eb; color: #4b5563; }
-.message { margin: 0 0 12px; font-size: 0.95rem; }
-.message.success { color: #16a34a; }
-.message.error { color: #dc2626; }
-@media (max-width: 480px) { .edit-card { padding: 28px; border-radius: 16px; } }
+.cancel-btn { background: rgba(79,167,116,.1); color: #316a49; }
+.message { margin: 0; font-size: .95rem; border-radius: var(--radius-sm); padding: 12px 14px; }
+.message.success { color: #2f6f4b; background: var(--success-bg); }
+.message.error { color: #8f3b3b; background: var(--danger-bg); }
+@media (max-width: 480px) { .edit-card { padding: 24px 18px; } }
 </style>

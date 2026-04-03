@@ -94,16 +94,16 @@ const submit = async () => {
 .about-page { min-height: 100vh; padding: 110px 20px 60px; background: var(--bg); color: var(--text-primary); }
 .hero, .grid, .callback-card { max-width: 1100px; margin: 0 auto; }
 .hero { margin-bottom: 28px; }
-.eyebrow { margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: #e11d48; }
+.eyebrow { margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: var(--accent-strong); }
 h1, h2 { margin: 0; }
 .lead { max-width: 760px; line-height: 1.7; color: var(--text-secondary); margin-top: 14px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.card, .callback-card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 24px; padding: 24px; }
+.card, .callback-card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 24px; padding: 24px; box-shadow: var(--shadow-card); }
 .card ul { margin: 14px 0 0; padding-left: 18px; line-height: 1.7; color: var(--text-secondary); }
 .callback-card { display: grid; grid-template-columns: 1fr minmax(280px, 420px); gap: 20px; align-items: start; }
 .callback-form { display: grid; gap: 12px; }
-input, textarea { width: 100%; border-radius: 14px; border: 1px solid var(--surface-border); padding: 13px 14px; background: color-mix(in srgb, var(--bg) 92%, var(--text) 8%); color: var(--text-on-surface); }
-.primary-btn { border: 0; border-radius: 14px; padding: 14px 16px; background: linear-gradient(90deg, #e11d48, #be123c); color: #fff; font-weight: 700; cursor: pointer; }
+input, textarea { width: 100%; border-radius: 14px; border: 1px solid var(--surface-border); padding: 13px 14px; background: rgba(255,252,245,.95); color: var(--text-on-surface); }
+.primary-btn { border: 0; border-radius: 14px; padding: 14px 16px; background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); font-weight: 700; cursor: pointer; box-shadow: 0 12px 26px rgba(201,171,99,.2); }
 .message { margin: 0; color: var(--text-secondary); }
 @media (max-width: 760px) { .callback-card { grid-template-columns: 1fr; } }
 </style>
