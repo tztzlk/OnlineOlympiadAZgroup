@@ -1,18 +1,25 @@
 <template>
   <div class="results-page">
-    <header class="header">
+    <header class="header-card">
       <div>
         <p class="eyebrow">Результаты</p>
-        <h1>Результаты детей</h1>
+        <h1>Итоги участия детей</h1>
+        <p class="header-copy">Здесь собраны завершённые олимпиады, баллы, процент правильных ответов и доступ к сертификатам.</p>
       </div>
-      <select v-model="selectedChildId" @change="loadResults">
-        <option value="">Все дети</option>
-        <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">{{ child.full_name }}</option>
-      </select>
+
+      <label class="filter-box">
+        <span>Показать результаты</span>
+        <select v-model="selectedChildId" @change="loadResults">
+          <option value="">Все дети</option>
+          <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
+            {{ child.full_name }}
+          </option>
+        </select>
+      </label>
     </header>
 
     <div v-if="loading" class="state-card">Загружаем результаты...</div>
-    <div v-else-if="!results.length" class="state-card">У выбранного ребёнка пока нет завершённых олимпиад.</div>
+    <div v-else-if="!results.length" class="state-card">У выбранного участника пока нет завершённых олимпиад.</div>
 
     <div v-else class="results-grid">
       <article v-for="result in results" :key="result.id" class="result-card">
@@ -20,9 +27,18 @@
           <div>
             <p class="child">{{ result.child_name }}</p>
             <h2>{{ result.subject }}</h2>
-            <p>{{ result.quiz_title }}</p>
+            <p class="quiz-title">{{ result.quiz_title }}</p>
           </div>
           <span class="status-chip" :class="result.statusClass">{{ result.status }}</span>
+        </div>
+
+        <div class="score-panel">
+          <strong>{{ result.score }}/{{ result.total }}</strong>
+          <span>{{ result.percent }}%</span>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" :class="result.statusClass" :style="{ width: `${result.percent}%` }"></div>
         </div>
 
         <div class="detail-grid">
@@ -34,19 +50,18 @@
             <span>Дата</span>
             <strong>{{ result.date }}</strong>
           </div>
-        </div>
-
-        <div class="score-line">
-          <strong>{{ result.score }}/{{ result.total }}</strong>
-          <span>{{ result.percent }}%</span>
-        </div>
-
-        <div class="progress-track">
-          <div class="progress-fill" :class="result.statusClass" :style="{ width: `${result.percent}%` }"></div>
+          <div class="detail-item">
+            <span>Школа</span>
+            <strong>{{ result.school }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Город</span>
+            <strong>{{ result.city }}</strong>
+          </div>
         </div>
 
         <div class="meta-row">
-          <span>{{ result.school }} · {{ result.city }}</span>
+          <span>Сертификат доступен после завершения олимпиады</span>
           <button class="certificate-btn" @click="downloadCertificate(result)">Скачать сертификат</button>
         </div>
       </article>
@@ -96,32 +111,211 @@ onMounted(loadResults)
 
 <style scoped>
 * { box-sizing: border-box; }
-.results-page { min-height: 100vh; background: var(--bg); color: var(--text-primary); padding: 110px 24px 40px; }
-.header, .state-card, .result-card { max-width: 1100px; margin: 0 auto; }
-.header { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
-.eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: #f43f5e; font-size: 12px; font-weight: 700; }
-h1, h2 { margin: 0; }
-select { border: 1px solid var(--surface-border); border-radius: 14px; padding: 12px 14px; background: var(--surface); color: var(--text-on-surface); }
-.state-card, .result-card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 24px; padding: 22px; }
-.state-card { margin-top: 20px; }
-.results-grid { max-width: 1100px; margin: 20px auto 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
-.result-head { display: flex; justify-content: space-between; gap: 12px; }
-.child { margin: 0 0 6px; color: #e11d48; font-weight: 700; }
-.result-head p, .meta-row { color: var(--text-muted-on-surface); }
-.status-chip { display: inline-flex; height: fit-content; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-.status-chip.win { background: #e8f8ed; color: #1f7a34; }
-.status-chip.participant { background: #ffe7e7; color: #9f1d1d; }
-.detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
-.detail-item { padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border); }
-.detail-item span { display: block; color: var(--text-muted-on-surface); font-size: 12px; margin-bottom: 6px; }
-.score-line { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 10px; }
-.score-line strong { font-size: 28px; }
-.score-line span { color: var(--text-muted-on-surface); font-weight: 700; }
-.progress-track { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.08); }
-.progress-fill { height: 100%; }
-.progress-fill.win { background: linear-gradient(90deg, #34d399, #15803d); }
-.progress-fill.participant { background: linear-gradient(90deg, #fb7185, #be123c); }
-.meta-row { margin-top: 14px; font-size: 14px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-.certificate-btn { color: #f43f5e; font-weight: 700; background: none; border: 0; cursor: pointer; padding: 0; }
-@media (max-width: 640px) { .results-page { padding: 100px 16px 30px; } .header, .result-head, .meta-row { flex-direction: column; align-items: flex-start; } .detail-grid { grid-template-columns: 1fr; } }
+
+.results-page {
+  min-height: 100vh;
+  padding: 110px 20px 48px;
+  background:
+    radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%),
+    var(--bg);
+  color: var(--text);
+}
+
+.header-card,
+.state-card,
+.result-card {
+  max-width: 1120px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.header-card {
+  padding: 26px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-strong);
+}
+
+.header-copy,
+.quiz-title,
+.meta-row,
+.state-card {
+  color: var(--text-secondary);
+}
+
+.filter-box {
+  min-width: 260px;
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filter-box select {
+  min-height: 50px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 245, 0.95);
+  padding: 12px 14px;
+  color: var(--text);
+}
+
+.state-card {
+  margin-top: 20px;
+  padding: 24px;
+}
+
+.results-grid {
+  max-width: 1120px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.result-card {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.child {
+  margin-bottom: 8px;
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-chip.win {
+  background: var(--success-bg);
+  color: #2f6f4b;
+}
+
+.status-chip.participant {
+  background: var(--warning-bg);
+  color: #8d6f31;
+}
+
+.score-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.score-panel strong {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.score-panel span {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.progress-track {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(100, 83, 41, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+}
+
+.progress-fill.win {
+  background: linear-gradient(90deg, var(--success-soft), #78c293);
+}
+
+.progress-fill.participant {
+  background: linear-gradient(90deg, var(--accent), #dfc27f);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 244, 0.82);
+}
+
+.detail-item span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.certificate-btn {
+  border: 0;
+  background: rgba(201, 171, 99, 0.16);
+  color: var(--accent-strong);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .results-page {
+    padding: 98px 14px 30px;
+  }
+
+  .header-card,
+  .result-head,
+  .meta-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-box {
+    min-width: 0;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

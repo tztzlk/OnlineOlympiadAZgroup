@@ -1,31 +1,70 @@
 <template>
   <div class="help-page">
-    <div class="help-card">
-      <div class="help-head">
-        <p class="eyebrow">Help Desk</p>
-        <h1>Обратная связь</h1>
-        <p>Напишите нам, если нужен доступ, помощь с оплатой, входом или прохождением теста.</p>
-      </div>
+    <div class="help-shell">
+      <section class="help-side">
+        <p class="eyebrow">Support</p>
+        <h1>Поддержка по заявкам, оплатам и входу</h1>
+        <p class="lead">
+          Напишите нам, если нужна помощь с регистрацией, подтверждением оплаты, доступом к олимпиаде или прохождением теста.
+        </p>
 
-      <form @submit.prevent="submit" class="help-form">
-        <div class="grid">
-          <input v-model="form.name" type="text" placeholder="Имя" required />
-          <input v-model="form.email" type="email" placeholder="Email" required />
-          <input v-model="form.phone" type="text" placeholder="Телефон" />
-          <input v-model="form.topic" type="text" placeholder="Тема обращения" required />
+        <div class="contact-list">
+          <a class="contact-card" :href="`mailto:${supportEmail}`">
+            <strong>Email поддержки</strong>
+            <span>{{ supportEmail }}</span>
+          </a>
+          <a class="contact-card" :href="supportPhoneHref">
+            <strong>Телефон</strong>
+            <span>{{ supportPhone }}</span>
+          </a>
         </div>
-        <textarea v-model="form.message" rows="6" placeholder="Опишите проблему или вопрос" required></textarea>
-        <p v-if="message" class="message success">{{ message }}</p>
-        <p v-if="error" class="message error">{{ error }}</p>
-        <button class="submit-btn" :disabled="loading">
-          {{ loading ? 'Отправляем...' : 'Отправить обращение' }}
-        </button>
-      </form>
 
-      <div class="contact-strip">
-        <a :href="`mailto:${supportEmail}`">{{ supportEmail }}</a>
-        <a :href="supportPhoneHref">{{ supportPhone }}</a>
-      </div>
+        <div class="trust-box">
+          <strong>Когда писать в поддержку?</strong>
+          <p>Если вы не понимаете статус заявки, не можете войти, не проходит оплата или возникла проблема с тестом.</p>
+        </div>
+      </section>
+
+      <section class="help-card">
+        <div class="help-head">
+          <p class="eyebrow">Обратная связь</p>
+          <h2>Опишите вопрос в свободной форме</h2>
+          <p>Чем точнее вы опишете проблему, тем быстрее команда сможет помочь.</p>
+        </div>
+
+        <form @submit.prevent="submit" class="help-form">
+          <div class="grid">
+            <label class="field">
+              <span>Имя</span>
+              <input v-model="form.name" type="text" placeholder="Ваше имя" required />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input v-model="form.email" type="email" placeholder="Email" required />
+            </label>
+            <label class="field">
+              <span>Телефон</span>
+              <input v-model="form.phone" type="text" placeholder="Телефон" />
+            </label>
+            <label class="field">
+              <span>Тема</span>
+              <input v-model="form.topic" type="text" placeholder="Например: оплата или вход" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Сообщение</span>
+            <textarea v-model="form.message" rows="6" placeholder="Опишите проблему или вопрос" required></textarea>
+          </label>
+
+          <p v-if="message" class="message success">{{ message }}</p>
+          <p v-if="error" class="message error">{{ error }}</p>
+
+          <button class="submit-btn" :disabled="loading">
+            {{ loading ? 'Отправляем...' : 'Отправить обращение' }}
+          </button>
+        </form>
+      </section>
     </div>
   </div>
 </template>
@@ -77,19 +116,162 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.help-page { min-height: 100vh; padding: 40px 20px; background: var(--bg); }
-.help-card { width: min(900px, 100%); margin: 0 auto; padding: 32px; border-radius: 28px; background: var(--surface); border: 1px solid var(--surface-border); }
-.eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; color: #e11d48; font-size: 12px; font-weight: 700; }
-h1 { margin: 0 0 10px; color: var(--text-on-surface); }
-.help-head p { color: var(--text-muted-on-surface); line-height: 1.6; }
-.help-form { margin-top: 24px; display: grid; gap: 14px; }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-input, textarea { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--surface-border); background: var(--surface-soft); color: var(--text-on-surface); }
-.message { margin: 0; font-size: 14px; }
-.success { color: #16a34a; }
-.error { color: #dc2626; }
-.submit-btn { justify-self: start; border: 0; border-radius: 14px; padding: 14px 20px; background: linear-gradient(90deg, #e11d48, #fb7185); color: #fff; font-weight: 700; cursor: pointer; }
-.contact-strip { margin-top: 22px; display: flex; gap: 16px; flex-wrap: wrap; }
-.contact-strip a { color: #e11d48; text-decoration: none; font-weight: 600; }
-@media (max-width: 640px) { .help-card { padding: 24px 18px; } .grid { grid-template-columns: 1fr; } .submit-btn { width: 100%; } }
+* { box-sizing: border-box; }
+
+.help-page {
+  min-height: 100vh;
+  padding: 110px 20px 48px;
+  background:
+    radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%),
+    var(--bg);
+}
+
+.help-shell {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 22px;
+}
+
+.help-side,
+.help-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.help-side {
+  padding: 30px;
+  display: grid;
+  gap: 20px;
+}
+
+.help-card {
+  padding: 30px;
+  display: grid;
+  gap: 20px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-strong);
+}
+
+.lead,
+.help-head p:last-child,
+.trust-box p,
+.contact-card span {
+  color: var(--text-secondary);
+}
+
+.contact-list {
+  display: grid;
+  gap: 12px;
+}
+
+.contact-card {
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(201, 171, 99, 0.18);
+  background: rgba(255, 251, 243, 0.82);
+  text-decoration: none;
+  display: grid;
+  gap: 4px;
+}
+
+.trust-box {
+  padding: 18px;
+  border-radius: var(--radius-md);
+  background: rgba(79, 167, 116, 0.08);
+  border: 1px solid rgba(79, 167, 116, 0.16);
+  display: grid;
+  gap: 8px;
+}
+
+.help-form {
+  display: grid;
+  gap: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 245, 0.95);
+  padding: 14px 16px;
+  color: var(--text);
+}
+
+.message {
+  margin: 0;
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  font-size: 14px;
+}
+
+.message.success {
+  background: var(--success-bg);
+  color: #2f6f4b;
+}
+
+.message.error {
+  background: var(--danger-bg);
+  color: #8f3b3b;
+}
+
+.submit-btn {
+  justify-self: start;
+  min-width: 220px;
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
+  color: var(--text);
+  box-shadow: 0 14px 28px rgba(201, 171, 99, 0.22);
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .help-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .help-page {
+    padding: 96px 14px 30px;
+  }
+
+  .help-side,
+  .help-card {
+    padding: 22px 18px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .submit-btn {
+    width: 100%;
+  }
+}
 </style>

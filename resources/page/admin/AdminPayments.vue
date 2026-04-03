@@ -144,18 +144,18 @@ onMounted(load)
 .admin-page {
   min-height: 100vh;
   padding: 28px;
-  color: #102347;
+  color: var(--text);
 }
 
 .header,
 .setup-card,
 .import-card,
 .table-card {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
   padding: 22px;
-  box-shadow: 0 18px 48px rgba(15, 35, 85, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .header {
@@ -171,7 +171,7 @@ onMounted(load)
   letter-spacing: 0.08em;
   font-size: 12px;
   font-weight: 700;
-  color: #e11d48;
+  color: var(--accent-strong);
 }
 
 .setup-card,
@@ -192,7 +192,7 @@ onMounted(load)
 .message,
 .empty-text {
   margin: 0;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .setup-actions {
@@ -204,7 +204,7 @@ onMounted(load)
 .primary-btn,
 .secondary-btn {
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   padding: 12px 16px;
   font-weight: 700;
   cursor: pointer;
@@ -215,14 +215,15 @@ onMounted(load)
 }
 
 .primary-btn {
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
-  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
+  color: var(--text);
+  box-shadow: 0 12px 26px rgba(201, 171, 99, 0.2);
 }
 
 .secondary-btn {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: rgba(79, 167, 116, 0.1);
+  color: #316a49;
+  border: 1px solid rgba(79, 167, 116, 0.16);
 }
 
 .wide-btn {
@@ -231,12 +232,12 @@ onMounted(load)
 
 .file-picker {
   display: block;
-  border: 1px dashed #bfdbfe;
-  border-radius: 16px;
+  border: 1px dashed rgba(201, 171, 99, 0.35);
+  border-radius: var(--radius-md);
   padding: 14px 16px;
-  background: #f8fbff;
+  background: rgba(255, 252, 244, 0.82);
   cursor: pointer;
-  color: #102347;
+  color: var(--text);
 }
 
 .file-picker input {
@@ -252,12 +253,12 @@ th,
 td {
   text-align: left;
   padding: 12px 10px;
-  border-bottom: 1px solid #dbe6f3;
+  border-bottom: 1px solid var(--surface-border);
 }
 
 code {
   word-break: break-word;
-  color: #e11d48;
+  color: var(--accent-strong);
 }
 
 @media (max-width: 760px) {

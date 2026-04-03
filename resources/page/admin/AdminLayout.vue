@@ -5,8 +5,13 @@
         <div class="brand-mark">OO</div>
         <div class="brand-copy">
           <strong>Online Olympiad</strong>
-          <span>Рабочая админ-панель</span>
+          <span>Операционная панель команды</span>
         </div>
+      </div>
+
+      <div class="sidebar-intro">
+        <p class="sidebar-eyebrow">Admin</p>
+        <p>Проверка заявок, оплаты, результаты и обратная связь в одном рабочем пространстве.</p>
       </div>
 
       <nav class="nav">
@@ -20,8 +25,8 @@
 
       <div class="sidebar-footer">
         <div class="support-card">
-          <span class="support-label">Для сотрудников</span>
-          <strong>Импорт, выгрузки и управление участниками в одном месте</strong>
+          <span class="support-label">Приоритет</span>
+          <strong>Сначала проверяйте новые заявки и оплаты, затем выдавайте доступ к олимпиадам.</strong>
         </div>
         <router-link to="/" class="back-link">Вернуться на сайт</router-link>
       </div>
@@ -39,8 +44,8 @@
 .admin-layout {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  background: #e9eef7;
+  grid-template-columns: 292px minmax(0, 1fr);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
 }
 
 .sidebar {
@@ -50,21 +55,25 @@
   padding: 22px 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   background:
-    radial-gradient(circle at top, rgba(244, 63, 94, 0.18), transparent 30%),
-    linear-gradient(180deg, #0f172a 0%, #16213b 100%);
-  color: #fff;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+    linear-gradient(180deg, rgba(255, 249, 238, 0.98) 0%, rgba(245, 236, 212, 0.96) 100%);
+  border-right: 1px solid var(--surface-border);
+  box-shadow: inset -1px 0 0 rgba(109, 89, 42, 0.04);
+}
+
+.brand,
+.support-card {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(201, 171, 99, 0.18);
+  background: rgba(255, 252, 244, 0.82);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 10px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 14px;
 }
 
 .brand-mark {
@@ -73,49 +82,71 @@
   border-radius: 16px;
   display: grid;
   place-items: center;
-  font-weight: 800;
   font-size: 18px;
-  background: linear-gradient(135deg, #f43f5e, #e11d48);
-  box-shadow: 0 12px 30px rgba(225, 29, 72, 0.35);
+  font-weight: 800;
+  color: var(--text);
+  background: linear-gradient(135deg, var(--accent) 0%, #e1c06f 100%);
+  box-shadow: 0 12px 24px rgba(201, 171, 99, 0.22);
 }
 
-.brand-copy strong,
-.brand-copy span {
-  display: block;
+.brand-copy {
+  display: grid;
+  gap: 4px;
 }
 
 .brand-copy strong {
-  font-size: 24px;
-  line-height: 1.1;
+  font-size: 22px;
+  line-height: 1.05;
+  color: var(--text);
 }
 
-.brand-copy span {
-  margin-top: 6px;
-  color: #9fb3d8;
-  font-size: 13px;
+.brand-copy span,
+.sidebar-intro p,
+.support-label {
+  color: var(--text-secondary);
+}
+
+.sidebar-intro {
+  display: grid;
+  gap: 8px;
+  padding: 6px 4px 2px;
+}
+
+.sidebar-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-strong);
 }
 
 .nav {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .nav-link,
 .back-link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
-  color: #d7e0f1;
-  padding: 14px 16px;
-  border-radius: 16px;
+  color: var(--text-secondary);
   font-weight: 700;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .nav-link:hover,
-.nav-link.nav-link-exact-active,
 .back-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  transform: translateX(2px);
+  background: rgba(201, 171, 99, 0.1);
+  color: var(--text);
+}
+
+.nav-link.nav-link-exact-active {
+  background: linear-gradient(135deg, rgba(201, 171, 99, 0.22) 0%, rgba(201, 171, 99, 0.12) 100%);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(201, 171, 99, 0.18);
 }
 
 .sidebar-footer {
@@ -126,34 +157,33 @@
 
 .support-card {
   padding: 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
+  display: grid;
+  gap: 8px;
 }
 
 .support-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #9fb3d8;
   font-size: 12px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 
 .support-card strong {
-  color: #fff;
-  line-height: 1.4;
+  color: var(--text);
+  line-height: 1.45;
 }
 
 .back-link {
-  background: rgba(255, 255, 255, 0.05);
-  text-align: center;
+  justify-content: center;
+  background: rgba(79, 167, 116, 0.08);
+  color: #316a49;
 }
 
 .content {
   min-width: 0;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 980px) {
   .admin-layout {
     grid-template-columns: 1fr;
   }
@@ -166,7 +196,7 @@
 
 @media (max-width: 640px) {
   .sidebar {
-    padding: 16px;
+    padding: 16px 14px;
   }
 
   .brand-copy strong {
