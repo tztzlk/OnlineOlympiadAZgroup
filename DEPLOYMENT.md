@@ -23,6 +23,8 @@ Most practical:
 1. Laravel Forge + a VPS provider
 2. Manual VPS provisioning if you are comfortable managing Nginx, PHP-FPM, and Supervisor yourself
 
+
+
 Recommended provider shapes:
 
 - budget launch: 2 vCPU / 4 GB RAM

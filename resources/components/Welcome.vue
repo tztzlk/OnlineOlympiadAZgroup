@@ -93,9 +93,9 @@ export default { name: 'Hero' }
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(15, 14, 40, 0.68) 0%,
-    rgba(30, 27, 75, 0.55) 50%,
-    rgba(15, 14, 40, 0.62) 100%
+    rgba(33, 24, 14, 0.46) 0%,
+    rgba(63, 51, 25, 0.32) 45%,
+    rgba(18, 13, 7, 0.5) 100%
   );
   z-index: 1;
 }
@@ -120,7 +120,7 @@ export default { name: 'Hero' }
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 .hero__title-accent {
-  background: linear-gradient(135deg, #E11D48, #f43f5e);
+  background: linear-gradient(135deg, #f3dc94, #d7b96a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -130,7 +130,7 @@ export default { name: 'Hero' }
   font-size: 16px;
   font-weight: 400;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 248, 235, 0.94);
   margin: 16px 0 0;
   max-width: 520px;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
@@ -150,18 +150,18 @@ export default { name: 'Hero' }
   gap: 9px;
   padding: 15px 32px;
   border-radius: 16px;
-  background: #E11D48;
-  color: white;
+  background: linear-gradient(135deg, #d2b261, #bea25a);
+  color: #18120a;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 700;
   text-decoration: none;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(225, 29, 72, 0.4);
+  box-shadow: 0 10px 28px rgba(104, 79, 28, 0.28);
   transition: all 0.25s ease;
 }
 .btn-primary svg { transition: transform 0.25s; }
-.btn-primary:hover { background: #BE123C; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(225, 29, 72, 0.5); }
+.btn-primary:hover { background: linear-gradient(135deg, #e1c679, #c7ab63); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(104, 79, 28, 0.32); }
 .btn-primary:hover svg { transform: translateX(4px); }
 
 .hero__features {
@@ -177,37 +177,54 @@ export default { name: 'Hero' }
   gap: 7px;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 250, 241, 0.94);
+  background: rgba(255, 248, 238, 0.12);
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(243, 223, 174, 0.22);
 }
-.feature-chip svg { color: #E11D48; flex-shrink: 0; }
+.feature-chip svg { color: #94d5a3; flex-shrink: 0; }
 
 .hero__stats {
   display: inline-flex;
   align-items: center;
   gap: 28px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 248, 235, 0.11);
+  border: 1px solid rgba(243, 223, 174, 0.2);
   border-radius: 20px;
   padding: 18px 36px;
   margin-top: 40px;
+  backdrop-filter: blur(12px);
 }
 .hero-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .hero-stat__num { font-size: 22px; font-weight: 600; color: #fff; line-height: 1; }
-.hero-stat__label { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 500; }
-.hero-stat-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.12); }
+.hero-stat__label { font-size: 12px; color: rgba(255, 242, 220, 0.72); font-weight: 500; }
+.hero-stat-divider { width: 1px; height: 36px; background: rgba(243, 223, 174, 0.18); }
 
 @media (max-width: 768px) {
   .hero { padding: 80px 20px 90px; }
+  .hero__bg {
+    background-position: 64% center;
+    background-size: cover;
+  }
   .hero__title { font-size: 36px; }
   .hero__subheadline { font-size: 15px; }
   .hero__stats { gap: 16px; padding: 14px 22px; flex-wrap: wrap; justify-content: center; }
   .hero-stat-divider { display: none; }
 }
 @media (max-width: 480px) {
+  .hero__bg {
+    background-position: 68% center;
+    background-size: auto 100%;
+  }
+  .hero__overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(21, 15, 9, 0.4) 0%,
+      rgba(21, 15, 9, 0.5) 58%,
+      rgba(21, 15, 9, 0.62) 100%
+    );
+  }
   .hero__title { font-size: 30px; }
   .btn-primary { width: 100%; justify-content: center; }
   .hero__actions { width: 100%; }

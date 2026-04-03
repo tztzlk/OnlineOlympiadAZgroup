@@ -15,7 +15,7 @@
         <div class="stat">
           <span class="stat__num">4.9</span>
           <div class="stat__stars">
-            <svg v-for="i in 5" :key="i" width="14" height="14" viewBox="0 0 24 24" fill="#E11D48" stroke="none">
+            <svg v-for="i in 5" :key="i" width="14" height="14" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
@@ -56,7 +56,7 @@
           <p class="review__text">{{ review.text }}</p>
 
           <div class="review__stars">
-            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#E11D48" stroke="none">
+            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
@@ -158,11 +158,11 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #E11D48;
-  background: rgba(225, 29, 72, 0.15);
+  color: #6c5a2f;
+  background: rgba(208, 179, 107, 0.18);
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(225, 29, 72, 0.3);
+  border: 1px solid rgba(208, 179, 107, 0.28);
   margin-bottom: 18px;
 }
 
@@ -185,11 +185,12 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   display: inline-flex;
   align-items: center;
   gap: 28px;
-  background: var(--surface);
+  background: rgba(255, 248, 235, 0.74);
   border: 1px solid var(--surface-border);
   border-radius: 20px;
   padding: 16px 32px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 14px 36px rgba(76, 61, 24, 0.1);
+  backdrop-filter: blur(10px);
 }
 .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .stat__num {
@@ -222,11 +223,11 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 /* Review card */
 .review {
   flex: 0 0 340px;
-  background: var(--surface);
+  background: rgba(255, 249, 239, 0.68);
   border-radius: 24px;
   padding: 30px;
   border: 1px solid var(--surface-border);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09);
   scroll-snap-align: start;
   transition: all 0.3s ease;
   display: flex;
@@ -234,31 +235,32 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   gap: 16px;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 .review::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: #E11D48;
+  background: var(--success-soft);
   opacity: 0;
   transition: opacity 0.3s;
 }
 .review:hover {
   transform: translateY(-6px);
-  box-shadow: 0 16px 48px rgba(225, 29, 72, 0.15);
-  border-color: rgba(225, 29, 72, 0.3);
+  box-shadow: 0 20px 48px rgba(73, 168, 107, 0.14);
+  border-color: rgba(73, 168, 107, 0.26);
 }
 .review:hover::before { opacity: 1; }
 
 .review__quote {
-  color: rgba(225, 29, 72, 0.5);
+  color: rgba(73, 168, 107, 0.42);
   line-height: 0;
 }
 
 .review__text {
   font-size: 15px;
-  color: var(--text-muted-on-surface);
+  color: rgba(19, 16, 12, 0.86);
   line-height: 1.7;
   margin: 0;
   flex: 1;
@@ -277,13 +279,13 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .review__avatar {
   width: 40px; height: 40px;
   border-radius: 50%;
-  background: #E11D48;
+  background: linear-gradient(135deg, var(--success-soft), #74c58d);
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 6px 14px rgba(73, 168, 107, 0.24);
 }
 
 .review__name {
@@ -298,8 +300,8 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: #E11D48;
-  background: rgba(225, 29, 72, 0.15);
+  color: #22663b;
+  background: rgba(73, 168, 107, 0.16);
   padding: 3px 9px;
   border-radius: 10px;
   font-weight: 600;
@@ -313,19 +315,19 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   width: 44px; height: 44px;
   border-radius: 50%;
   border: 1px solid var(--surface-border);
-  background: var(--surface);
-  color: #E11D48;
+  background: rgba(255, 248, 235, 0.92);
+  color: var(--success-soft);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 28px rgba(67, 55, 28, 0.12);
   transition: all 0.2s;
   z-index: 2;
 }
 .scroll-btn:hover {
-  background: rgba(225, 29, 72, 0.15);
-  border-color: rgba(225, 29, 72, 0.4);
+  background: rgba(73, 168, 107, 0.12);
+  border-color: rgba(73, 168, 107, 0.32);
   transform: translateY(-50%) scale(1.08);
-  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.25);
+  box-shadow: 0 16px 32px rgba(73, 168, 107, 0.18);
 }
 .left { left: -22px; }
 .right { right: -22px; }
@@ -347,7 +349,7 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 .dot.active {
   width: 24px;
   border-radius: 4px;
-  background: #E11D48;
+  background: var(--success-soft);
 }
 
 /* Responsive */
