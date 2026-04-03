@@ -4,11 +4,11 @@
       <div>
         <p class="eyebrow">Результаты</p>
         <h1>Итоги участия детей</h1>
-        <p class="header-copy">Здесь собраны завершённые олимпиады, баллы, процент правильных ответов и доступ к сертификатам.</p>
+        <p class="header-copy">Здесь собраны завершённые олимпиады, баллы, статусы и доступ к сертификатам каждого участника.</p>
       </div>
 
       <label class="filter-box">
-        <span>Показать результаты</span>
+        <span>Показывать результаты</span>
         <select v-model="selectedChildId" @change="loadResults">
           <option value="">Все дети</option>
           <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
@@ -18,8 +18,21 @@
       </label>
     </header>
 
-    <div v-if="loading" class="state-card">Загружаем результаты...</div>
-    <div v-else-if="!results.length" class="state-card">У выбранного участника пока нет завершённых олимпиад.</div>
+    <StatePanel
+      v-if="loading"
+      tone="neutral"
+      eyebrow="Результаты"
+      title="Загружаем результаты"
+      description="Собираем баллы, статусы и сертификаты по выбранному участнику."
+    />
+
+    <StatePanel
+      v-else-if="!results.length"
+      tone="empty"
+      eyebrow="Результаты"
+      title="Пока нет завершённых олимпиад"
+      description="Когда участник пройдёт первую олимпиаду, здесь появятся баллы, статус и сертификат."
+    />
 
     <div v-else class="results-grid">
       <article v-for="result in results" :key="result.id" class="result-card">
@@ -29,7 +42,7 @@
             <h2>{{ result.subject }}</h2>
             <p class="quiz-title">{{ result.quiz_title }}</p>
           </div>
-          <span class="status-chip" :class="result.statusClass">{{ result.status }}</span>
+          <StatusBadge :label="result.status_meta?.label || result.status" :tone="result.status_meta?.tone || 'neutral'" />
         </div>
 
         <div class="score-panel">
@@ -38,7 +51,11 @@
         </div>
 
         <div class="progress-track">
-          <div class="progress-fill" :class="result.statusClass" :style="{ width: `${result.percent}%` }"></div>
+          <div
+            class="progress-fill"
+            :class="result.status === 'passed' ? 'win' : 'participant'"
+            :style="{ width: `${result.percent}%` }"
+          ></div>
         </div>
 
         <div class="detail-grid">
@@ -61,8 +78,11 @@
         </div>
 
         <div class="meta-row">
-          <span>Сертификат доступен после завершения олимпиады</span>
-          <button class="certificate-btn" @click="downloadCertificate(result)">Скачать сертификат</button>
+          <span>Откройте превью сертификата, чтобы проверить данные перед скачиванием.</span>
+          <div class="meta-actions">
+            <RouterLink class="certificate-btn preview" :to="`/profile/results/${result.id}/certificate-preview`">Превью</RouterLink>
+            <button class="certificate-btn" @click="downloadCertificate(result)">Скачать сертификат</button>
+          </div>
         </div>
       </article>
     </div>
@@ -73,6 +93,8 @@
 import { onMounted, ref } from 'vue'
 import api from '../js/api'
 import { useUserStore } from '../stores/user'
+import StatePanel from '../components/StatePanel.vue'
+import StatusBadge from '../components/StatusBadge.vue'
 
 const userStore = useUserStore()
 const loading = ref(true)
@@ -115,14 +137,11 @@ onMounted(loadResults)
 .results-page {
   min-height: 100vh;
   padding: 110px 20px 48px;
-  background:
-    radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%),
-    var(--bg);
+  background: radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%), var(--bg);
   color: var(--text);
 }
 
 .header-card,
-.state-card,
 .result-card {
   max-width: 1120px;
   margin: 0 auto;
@@ -150,8 +169,7 @@ onMounted(loadResults)
 
 .header-copy,
 .quiz-title,
-.meta-row,
-.state-card {
+.meta-row {
   color: var(--text-secondary);
 }
 
@@ -170,11 +188,6 @@ onMounted(loadResults)
   background: rgba(255, 252, 245, 0.95);
   padding: 12px 14px;
   color: var(--text);
-}
-
-.state-card {
-  margin-top: 20px;
-  padding: 24px;
 }
 
 .results-grid {
@@ -202,26 +215,6 @@ onMounted(loadResults)
   margin-bottom: 8px;
   color: var(--accent-strong);
   font-weight: 700;
-}
-
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.status-chip.win {
-  background: var(--success-bg);
-  color: #2f6f4b;
-}
-
-.status-chip.participant {
-  background: var(--warning-bg);
-  color: #8d6f31;
 }
 
 .score-panel {
@@ -288,6 +281,12 @@ onMounted(loadResults)
   font-size: 14px;
 }
 
+.meta-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .certificate-btn {
   border: 0;
   background: rgba(201, 171, 99, 0.16);
@@ -296,6 +295,12 @@ onMounted(loadResults)
   padding: 11px 14px;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
+}
+
+.certificate-btn.preview {
+  background: rgba(79, 167, 116, 0.12);
+  color: #2f6f4b;
 }
 
 @media (max-width: 720px) {

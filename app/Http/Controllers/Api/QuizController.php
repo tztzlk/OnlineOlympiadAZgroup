@@ -9,6 +9,8 @@ use App\Models\Quiz;
 use App\Models\QuizCategory;
 use App\Models\QuizResult;
 use App\Models\Subject;
+use App\Support\NotificationWorkflow;
+use App\Support\OnboardingProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -249,6 +251,39 @@ class QuizController extends Controller
             ->update(['completed' => true]);
 
         $percent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
+        $resultStatus = $percent >= 60 ? 'passed' : 'failed';
+
+        OnboardingProgress::syncStep($user, 'results_certificate');
+
+        NotificationWorkflow::createForUser(
+            user: $user,
+            type: 'result_published',
+            title: 'Результат опубликован',
+            body: "Результат по олимпиаде {$quiz->subject?->name} уже доступен в кабинете. Итог: {$score} из {$total}.",
+            actionUrl: rtrim(config('app.url'), '/') . '/results',
+            statusKey: $resultStatus,
+            payload: [
+                'action_label' => 'Смотреть результат',
+                'context' => [
+                    'Предмет' => $quiz->subject?->name ?? 'Олимпиада',
+                    'Результат' => "{$score} из {$total}",
+                ],
+            ],
+            sendEmail: true
+        );
+
+        NotificationWorkflow::createForUser(
+            user: $user,
+            type: 'certificate_available',
+            title: 'Сертификат готов',
+            body: "Сертификат по олимпиаде {$quiz->subject?->name} можно открыть и скачать из кабинета.",
+            actionUrl: rtrim(config('app.url'), '/') . '/results',
+            statusKey: 'certificate_available',
+            payload: [
+                'action_label' => 'Открыть сертификат',
+            ],
+            sendEmail: true
+        );
 
         return response()->json([
             'message' => 'Олимпиада завершена.',
@@ -256,7 +291,7 @@ class QuizController extends Controller
             'score' => $score,
             'total' => $total,
             'percent' => $percent,
-            'status' => $percent >= 60 ? 'passed' : 'failed',
+            'status' => $resultStatus,
             'category' => [
                 'id' => $category->id,
                 'label' => $category->label,

@@ -21,6 +21,12 @@
 
       <!-- Тема и пользователь -->
       <div class="header__user">
+        <NotificationCenter
+          v-if="userStore.isAuthenticated"
+          :items="userStore.notifications"
+          :unread-count="userStore.notificationsUnread"
+          @mark-read="userStore.markNotificationRead"
+        />
         <button
           type="button"
           class="header__theme-toggle"
@@ -142,6 +148,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useTheme } from '../js/composables/useTheme'
 import api from '../js/api'
+import NotificationCenter from './NotificationCenter.vue'
 
 const router = useRouter()
 const { isDark, toggle: toggleTheme } = useTheme()
@@ -181,6 +188,9 @@ const handleScroll = () => {
 
 onMounted(async () => {
   await userStore.fetchUser()
+  if (userStore.isAuthenticated) {
+    await userStore.fetchNotifications(10)
+  }
   loading.value = false
   window.addEventListener('scroll', handleScroll)
 })

@@ -73,7 +73,7 @@
                 <input
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
-                  placeholder="Минимум 6 символов"
+                  placeholder="Минимум 12 символов"
                   required
                 />
                 <button type="button" class="toggle-btn" @click="showPassword = !showPassword">
@@ -106,7 +106,7 @@
           </div>
 
           <div class="notice-box">
-            После регистрации вы сможете добавить одного или нескольких детей в личном кабинете и выбрать предмет для участия.
+            Для регистрации нужен надёжный пароль: не менее 12 символов, с буквами в разном регистре, цифрами и символом.
           </div>
 
           <div v-if="error" class="message error">{{ error }}</div>
@@ -156,7 +156,7 @@ const strengthScore = computed(() => {
   const value = password.value
   if (!value) return 0
   let score = 0
-  if (value.length >= 6) score += 1
+  if (value.length >= 12) score += 1
   if (/[A-ZА-Я]/.test(value)) score += 1
   if (/[0-9]/.test(value)) score += 1
   if (/[^A-Za-zА-Яа-я0-9]/.test(value)) score += 1
@@ -166,6 +166,26 @@ const strengthScore = computed(() => {
 const strengthWidth = computed(() => ['0%', '25%', '50%', '75%', '100%'][strengthScore.value])
 const strengthClass = computed(() => ['', 'weak', 'fair', 'good', 'strong'][strengthScore.value])
 const strengthLabel = computed(() => ['', 'Слабый', 'Средний', 'Хороший', 'Надёжный'][strengthScore.value])
+
+const validatePassword = () => {
+  if (password.value.length < 12) {
+    return 'Пароль должен содержать минимум 12 символов.'
+  }
+
+  if (!/[A-ZА-Я]/.test(password.value) || !/[a-zа-я]/.test(password.value)) {
+    return 'Добавьте в пароль буквы в верхнем и нижнем регистре.'
+  }
+
+  if (!/[0-9]/.test(password.value)) {
+    return 'Добавьте в пароль хотя бы одну цифру.'
+  }
+
+  if (!/[^A-Za-zА-Яа-я0-9]/.test(password.value)) {
+    return 'Добавьте в пароль хотя бы один специальный символ.'
+  }
+
+  return ''
+}
 
 async function handleRegister() {
   error.value = ''
@@ -183,6 +203,12 @@ async function handleRegister() {
   const cleanPhone = phone.value.replace(/\D/g, '')
   if (cleanPhone.length < 11) {
     error.value = 'Введите корректный номер телефона.'
+    return
+  }
+
+  const passwordError = validatePassword()
+  if (passwordError) {
+    error.value = passwordError
     return
   }
 
@@ -206,7 +232,7 @@ async function handleRegister() {
     })
 
     userStore.setAuth(response.data.user, response.data.token)
-    router.push('/')
+    router.push('/profile')
   } catch (err) {
     if (err.response?.data?.errors) {
       error.value = Object.values(err.response.data.errors)[0][0]

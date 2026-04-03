@@ -7,6 +7,7 @@ use App\Models\CallbackRequest;
 use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
 use App\Models\PaymentRecord;
+use App\Models\PlatformNotification;
 use App\Models\Quiz;
 use App\Models\QuizResult;
 use App\Models\User;
@@ -20,20 +21,100 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
+        $totalRequests = OlympiadRequest::count();
+        $approvedRequests = OlympiadRequest::where('status', 'approved')->count();
+        $rejectedRequests = OlympiadRequest::where('status', 'rejected')->count();
+        $paidRequests = OlympiadRequest::where('payment_status', 'paid')->count();
+        $completedRequests = OlympiadRequest::where('completed', true)->count();
+        $weekStart = now()->startOfWeek();
+        $weekEnd = now()->endOfWeek();
+
         return response()->json([
             'message' => 'Добро пожаловать в админ-панель',
             'users' => User::count(),
             'children' => ChildProfile::count(),
             'quizzes' => Quiz::count(),
             'requests' => [
-                'total' => OlympiadRequest::count(),
+                'total' => $totalRequests,
                 'pending' => OlympiadRequest::where('status', 'pending')->count(),
-                'approved' => OlympiadRequest::where('status', 'approved')->count(),
-                'rejected' => OlympiadRequest::where('status', 'rejected')->count(),
+                'approved' => $approvedRequests,
+                'rejected' => $rejectedRequests,
             ],
             'results' => QuizResult::count(),
             'payments' => PaymentRecord::count(),
             'callbacks' => CallbackRequest::count(),
+            'queues' => [
+                'pending_requests' => OlympiadRequest::where('status', 'pending')
+                    ->latest()
+                    ->take(5)
+                    ->with(['user', 'subject', 'childProfile'])
+                    ->get()
+                    ->map(fn (OlympiadRequest $item) => [
+                        'id' => $item->public_id,
+                        'parent_name' => $item->user?->name,
+                        'child_name' => $item->childProfile?->full_name,
+                        'subject' => $item->subject?->name,
+                        'created_at' => optional($item->created_at)->format('d.m.Y H:i'),
+                    ]),
+                'payment_review' => PaymentRecord::whereIn('status', ['pending', 'failed'])
+                    ->latest()
+                    ->take(5)
+                    ->with(['parent', 'childProfile', 'subject'])
+                    ->get()
+                    ->map(fn (PaymentRecord $payment) => [
+                        'id' => $payment->public_id,
+                        'parent_name' => $payment->parent?->name,
+                        'child_name' => $payment->childProfile?->full_name,
+                        'subject' => $payment->subject?->name,
+                        'status' => $payment->status,
+                        'created_at' => optional($payment->created_at)->format('d.m.Y H:i'),
+                    ]),
+                'callbacks' => CallbackRequest::where('status', 'pending')
+                    ->latest()
+                    ->take(5)
+                    ->get()
+                    ->map(fn (CallbackRequest $callback) => [
+                        'id' => $callback->public_id,
+                        'name' => $callback->name,
+                        'phone' => $callback->phone,
+                        'created_at' => optional($callback->created_at)->format('d.m.Y H:i'),
+                    ]),
+            ],
+            'funnel' => [
+                'created' => $totalRequests,
+                'approved' => $approvedRequests,
+                'rejected' => $rejectedRequests,
+                'paid' => $paidRequests,
+                'completed' => $completedRequests,
+            ],
+            'payment_distribution' => [
+                'pending' => PaymentRecord::where('status', 'pending')->count(),
+                'paid' => PaymentRecord::where('status', 'paid')->count(),
+                'failed' => PaymentRecord::where('status', 'failed')->count(),
+            ],
+            'top_subjects' => QuizResult::query()
+                ->selectRaw('subjects.name as subject_name, COUNT(quiz_results.id) as results_count, ROUND(AVG((quiz_results.score / NULLIF(quiz_results.total, 0)) * 100), 0) as average_percent')
+                ->join('quizzes', 'quizzes.id', '=', 'quiz_results.quiz_id')
+                ->join('subjects', 'subjects.id', '=', 'quizzes.subject_id')
+                ->groupBy('subjects.name')
+                ->orderByDesc('results_count')
+                ->limit(5)
+                ->get()
+                ->map(fn ($row) => [
+                    'subject' => $row->subject_name,
+                    'results_count' => (int) $row->results_count,
+                    'average_percent' => (int) ($row->average_percent ?? 0),
+                ]),
+            'weekly' => [
+                'users' => User::whereBetween('created_at', [$weekStart, $weekEnd])->count(),
+                'requests' => OlympiadRequest::whereBetween('created_at', [$weekStart, $weekEnd])->count(),
+                'payments' => PaymentRecord::whereBetween('created_at', [$weekStart, $weekEnd])->count(),
+                'callbacks' => CallbackRequest::whereBetween('created_at', [$weekStart, $weekEnd])->count(),
+                'results' => QuizResult::whereBetween('created_at', [$weekStart, $weekEnd])->count(),
+            ],
+            'notifications' => [
+                'unread' => PlatformNotification::where('for_admin', true)->whereNull('read_at')->count(),
+            ],
         ]);
     }
 
@@ -156,7 +237,6 @@ class AdminController extends Controller
                     'phone' => trim((string) ($row['parent_phone'] ?? ('import-' . uniqid()))),
                     'school' => trim((string) ($row['school'] ?? '')),
                     'city' => trim((string) ($row['city'] ?? '')),
-                    // Imported accounts must not share a predictable bootstrap password.
                     'password' => Hash::make((string) Str::password(32)),
                 ]);
 

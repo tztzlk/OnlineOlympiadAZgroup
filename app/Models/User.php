@@ -22,6 +22,7 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'plan',
+        'settings',
         'public_id',
     ];
 
@@ -29,6 +30,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_admin' => 'boolean',
+        'settings' => 'array',
     ];
     protected $hidden = [
         'id',
@@ -62,5 +64,10 @@ class User extends Authenticatable
     public function paymentRecords()
     {
         return $this->hasMany(PaymentRecord::class, 'parent_id');
+    }
+
+    public function platformNotifications()
+    {
+        return $this->hasMany(PlatformNotification::class)->latest();
     }
 }

@@ -5,7 +5,7 @@
         <p class="eyebrow">Online Olympiad</p>
         <h1>Возвращайтесь в кабинет без лишнего стресса</h1>
         <p class="lead">
-          Здесь родители и участники отслеживают заявки, оплаты, тренировки и результаты в одной понятной системе.
+          Здесь родители и участники отслеживают заявки, оплаты, тренировки, результаты и сертификаты в одной понятной системе.
         </p>
 
         <div class="benefit-list">
@@ -26,7 +26,7 @@
         <div class="form-header">
           <p class="eyebrow">Вход</p>
           <h2>Войдите в аккаунт</h2>
-          <p>Введите email и пароль, чтобы продолжить работу с профилем и олимпиадами.</p>
+          <p>Введите email и пароль, чтобы открыть родительский кабинет и продолжить путь участника.</p>
         </div>
 
         <form @submit.prevent="handleLogin" class="auth-form" novalidate>
@@ -60,6 +60,10 @@
           <div class="helper-row">
             <RouterLink to="/forgot-password">Забыли пароль?</RouterLink>
             <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
+          </div>
+
+          <div class="next-step-box">
+            После входа вы сразу увидите текущий статус, последние уведомления и следующий шаг по участию.
           </div>
 
           <div v-if="error" class="message error">{{ error }}</div>
@@ -120,7 +124,7 @@ async function handleLogin() {
 
     userStore.setAuth(response.data.user, response.data.token)
     localStorage.setItem('session_type', 'user')
-    router.push('/')
+    router.push('/profile')
   } catch (err) {
     if (err.response?.status === 401) {
       error.value = 'Неверный email или пароль.'
@@ -297,10 +301,17 @@ async function handleLogin() {
   text-decoration: none;
 }
 
+.next-step-box,
 .message {
   border-radius: var(--radius-sm);
   padding: 13px 14px;
   font-size: 14px;
+}
+
+.next-step-box {
+  background: rgba(79, 167, 116, 0.08);
+  border: 1px solid rgba(79, 167, 116, 0.16);
+  color: var(--text-secondary);
 }
 
 .message.error {

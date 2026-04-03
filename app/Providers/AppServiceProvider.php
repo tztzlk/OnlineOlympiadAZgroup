@@ -6,6 +6,7 @@ use App\Support\DeploymentDatabaseInspector;
 use App\Support\LaravelDeploymentDatabaseInspector;
 use App\Support\DeploymentSafetyGuard;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -55,6 +56,18 @@ class AppServiceProvider extends ServiceProvider
 
         ResetPassword::createUrlUsing(function (object $user, string $token) {
             return rtrim(config('app.url'), '/') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
+        });
+
+        ResetPassword::toMailUsing(function (object $user, string $token) {
+            $url = rtrim(config('app.url'), '/') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
+
+            return (new MailMessage)
+                ->subject('Восстановление пароля')
+                ->greeting('Здравствуйте, ' . $user->name . '.')
+                ->line('Мы получили запрос на восстановление пароля для вашего кабинета Online Olympiad.')
+                ->action('Сменить пароль', $url)
+                ->line('Если вы не запрашивали восстановление, просто проигнорируйте это письмо.')
+                ->salutation('С уважением, команда Online Olympiad');
         });
     }
 }

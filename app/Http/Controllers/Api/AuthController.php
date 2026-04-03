@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\NotificationWorkflow;
+use App\Support\OnboardingProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -37,7 +39,39 @@ class AuthController extends Controller
             'city' => $request->string('city')->trim()->value(),
             'password' => Hash::make($request->string('password')->value()),
             'plan' => 'free',
+            'settings' => [
+                'onboarding' => [
+                    'completed_steps' => ['welcome'],
+                    'dismissed' => false,
+                ],
+            ],
         ]);
+
+        OnboardingProgress::syncStep($user, 'welcome');
+
+        NotificationWorkflow::createForUser(
+            user: $user,
+            type: 'registration_completed',
+            title: 'Регистрация завершена',
+            body: 'Аккаунт создан. Теперь добавьте ребёнка, выберите олимпиаду и отслеживайте статус участия в кабинете.',
+            actionUrl: rtrim(config('app.url'), '/') . '/profile',
+            statusKey: 'welcome',
+            payload: [
+                'action_label' => 'Открыть кабинет',
+                'context' => [
+                    'Следующий шаг' => 'Добавить профиль ребёнка',
+                ],
+            ],
+            sendEmail: true
+        );
+
+        NotificationWorkflow::createForAdmins(
+            type: 'new_user_registered',
+            title: 'Новый пользователь зарегистрирован',
+            body: "Пользователь {$user->name} ({$user->email}) создал аккаунт на платформе.",
+            actionUrl: '/admin',
+            statusKey: 'new_user'
+        );
 
         Log::channel('security')->info('auth.register_success', [
             'event' => 'auth.register_success',

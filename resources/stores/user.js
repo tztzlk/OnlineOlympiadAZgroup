@@ -6,6 +6,11 @@ export const useUserStore = defineStore('user', {
     user: JSON.parse(localStorage.getItem('user') || 'null'),
     children: [],
     stats: {},
+    summary: {},
+    onboarding: null,
+    currentTask: null,
+    notifications: [],
+    notificationsUnread: 0,
     token: localStorage.getItem('token') || null,
     sessionType: localStorage.getItem('session_type') || null,
     selectedChildId: localStorage.getItem('selectedChildId') || null,
@@ -15,6 +20,7 @@ export const useUserStore = defineStore('user', {
   getters: {
     isAuthenticated: (state) => !!state.token,
     selectedChild: (state) => state.children.find((child) => child.id === state.selectedChildId) || null,
+    hasUnreadNotifications: (state) => state.notificationsUnread > 0,
   },
 
   actions: {
@@ -46,6 +52,11 @@ export const useUserStore = defineStore('user', {
         this.user = res.data.user || res.data
         this.children = res.data.children || []
         this.stats = res.data.stats || {}
+        this.summary = res.data.summary || {}
+        this.onboarding = res.data.onboarding || null
+        this.currentTask = res.data.current_task || null
+        this.notifications = res.data.notifications_preview || []
+        this.notificationsUnread = this.notifications.filter((item) => !item.read_at).length
         this.sessionType = this.user?.is_admin ? 'admin' : 'user'
         localStorage.setItem('user', JSON.stringify(this.user))
         localStorage.setItem('session_type', this.sessionType)
@@ -77,10 +88,37 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    async fetchNotifications(limit = 20) {
+      if (!this.token) return
+
+      const { data } = await api.get('/profile/notifications', { params: { limit } })
+      this.notifications = data.items || []
+      this.notificationsUnread = data.unread_count || 0
+    },
+
+    async markNotificationRead(notificationId) {
+      if (!this.token) return
+
+      await api.patch(`/profile/notifications/${notificationId}/read`)
+      await this.fetchNotifications(20)
+    },
+
+    async syncOnboarding(payload) {
+      if (!this.token) return
+
+      const { data } = await api.patch('/profile/onboarding', payload)
+      this.onboarding = data
+    },
+
     logout() {
       this.user = null
       this.children = []
       this.stats = {}
+      this.summary = {}
+      this.onboarding = null
+      this.currentTask = null
+      this.notifications = []
+      this.notificationsUnread = 0
       this.token = null
       this.sessionType = null
       this.selectedChildId = null

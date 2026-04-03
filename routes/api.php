@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildProfileController;
 use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\NewsController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OlympiadRequestController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizController;
@@ -29,6 +30,7 @@ Route::post('/auth/admin/login', [AuthController::class, 'adminLogin'])->middlew
 
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+Route::get('/certificate-check/{result}', [ProfileController::class, 'publicCertificateLookup']);
 Route::get('/subjects', [SubjectController::class, 'index']);
 Route::get('/security/pow-challenge', [SecurityController::class, 'powChallenge']);
 Route::post('/support/feedback', [SupportController::class, 'feedback'])->middleware('pow:feedback');
@@ -81,9 +83,14 @@ Route::middleware(['auth:sanctum', 'throttle:api-user'])->group(function () {
         Route::get('/recent-olympiads', [ProfileController::class, 'recentOlympiads']);
         Route::get('/olympiads', [ProfileController::class, 'olympiads']);
         Route::get('/results', [ProfileController::class, 'myResults']);
+        Route::get('/results/{result}/certificate-preview', [ProfileController::class, 'certificatePreview']);
         Route::get('/results/{result}/certificate', [ProfileController::class, 'certificate']);
         Route::get('/payments', [ProfileController::class, 'payments']);
         Route::get('/trainings', [ProfileController::class, 'trainings']);
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+        Route::get('/onboarding', [NotificationController::class, 'onboarding']);
+        Route::patch('/onboarding', [NotificationController::class, 'syncOnboarding']);
     });
 
     Route::prefix('olympiad')->group(function () {

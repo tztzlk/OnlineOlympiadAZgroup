@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChildProfile;
+use App\Support\NotificationWorkflow;
+use App\Support\OnboardingProgress;
 use Illuminate\Http\Request;
 
 class ChildProfileController extends Controller
@@ -40,6 +42,25 @@ class ChildProfileController extends Controller
             'city' => $data['city'] ?? $user->city,
             'language_preference' => $data['language_preference'] ?? 'ru',
         ]);
+
+        OnboardingProgress::syncStep($user, 'child_profile');
+
+        NotificationWorkflow::createForUser(
+            user: $user,
+            type: 'child_added',
+            title: 'Профиль ребёнка добавлен',
+            body: "Профиль участника {$child->full_name} сохранён. Теперь можно перейти к выбору олимпиады.",
+            actionUrl: rtrim(config('app.url'), '/') . '/subject',
+            statusKey: 'child_profile',
+            payload: [
+                'action_label' => 'Выбрать олимпиаду',
+                'context' => [
+                    'Участник' => $child->full_name,
+                    'Класс' => $child->grade ?: 'Не указан',
+                ],
+            ],
+            sendEmail: true
+        );
 
         return response()->json([
             'message' => 'Профиль ребёнка создан.',

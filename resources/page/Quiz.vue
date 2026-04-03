@@ -1,29 +1,60 @@
 <template>
   <div class="quiz-page">
-    <div v-if="loading" class="state-card">Загружаем олимпиаду...</div>
-    <div v-else-if="loadError" class="state-card error">{{ loadErrorMessage }}</div>
+    <StatePanel
+      v-if="loading"
+      tone="neutral"
+      eyebrow="Олимпиада"
+      title="Загружаем олимпиаду"
+      description="Подготавливаем вопросы, правила и данные участника перед стартом."
+    />
+
+    <StatePanel
+      v-else-if="loadError"
+      tone="warning"
+      eyebrow="Доступ к олимпиаде"
+      :title="loadErrorTitle"
+      :description="loadErrorMessage"
+    >
+      <template #actions>
+        <RouterLink class="action-btn secondary" to="/profile">Вернуться в кабинет</RouterLink>
+        <RouterLink class="action-btn" to="/subject">Открыть выбор олимпиад</RouterLink>
+      </template>
+    </StatePanel>
 
     <template v-else-if="result">
       <div class="result-card">
         <p class="eyebrow">Результат</p>
         <h1>{{ result.score }} / {{ result.total }}</h1>
         <p class="description">Правильных ответов: {{ result.percent }}%</p>
-        <span class="status-chip" :class="result.status">{{ result.status === 'passed' ? 'Пройдено' : 'Не пройдено' }}</span>
-        <div class="result-actions">
-          <button class="action-btn secondary" @click="downloadCertificate">Скачать сертификат</button>
-          <button class="action-btn" @click="router.push('/results')">Перейти к результатам</button>
-        </div>
+        <StatusBadge :label="result.status === 'passed' ? 'Пройдено' : 'Не пройдено'" :tone="result.status === 'passed' ? 'success' : 'warning'" />
+
+        <StatePanel
+          class="result-panel"
+          :tone="result.status === 'passed' ? 'success' : 'warning'"
+          eyebrow="Следующий шаг"
+          :title="result.status === 'passed' ? 'Результат уже сохранён' : 'Попытка завершена и сохранена'"
+          description="Откройте страницу результатов, чтобы увидеть историю участия, и при необходимости проверьте сертификат участника."
+        >
+          <template #actions>
+            <RouterLink v-if="result.id" class="action-btn secondary" :to="`/profile/results/${result.id}/certificate-preview`">Превью сертификата</RouterLink>
+            <button class="action-btn secondary" @click="downloadCertificate">Скачать сертификат</button>
+            <RouterLink class="action-btn" to="/results">Перейти к результатам</RouterLink>
+          </template>
+        </StatePanel>
       </div>
     </template>
 
-    <template v-else-if="violationMessage">
-      <div class="state-card error">
-        <p class="eyebrow">Попытка сброшена</p>
-        <h1>Тест остановлен</h1>
-        <p class="description">{{ violationMessage }}</p>
-        <button class="action-btn" @click="router.push('/profile')">Вернуться в профиль</button>
-      </div>
-    </template>
+    <StatePanel
+      v-else-if="violationMessage"
+      tone="danger"
+      eyebrow="Попытка сброшена"
+      title="Тест остановлен"
+      :description="violationMessage"
+    >
+      <template #actions>
+        <RouterLink class="action-btn" to="/profile">Вернуться в профиль</RouterLink>
+      </template>
+    </StatePanel>
 
     <template v-else-if="quiz">
       <section v-if="!examStarted" class="intro-card">
@@ -39,10 +70,12 @@
           <div class="intro-item"><span>Время</span><strong>{{ quiz.time_limit }} минут</strong></div>
         </div>
 
-        <div class="warning-card">
-          <strong>Важно:</strong>
-          <span>{{ quiz.warning }}</span>
-        </div>
+        <StatePanel
+          tone="warning"
+          eyebrow="Важно перед стартом"
+          :title="quiz.warning"
+          description="Перед началом убедитесь, что у участника есть свободное время, стабильный интернет и готовность пройти олимпиаду в одном окне браузера."
+        />
 
         <ul class="rules-list">
           <li v-for="rule in quiz.warning_rules || defaultRules" :key="rule">{{ rule }}</li>
@@ -56,6 +89,7 @@
         <p v-if="fullscreenError" class="error-inline">{{ fullscreenError }}</p>
 
         <div class="intro-actions">
+          <RouterLink class="action-btn secondary" to="/profile">Вернуться в кабинет</RouterLink>
           <button class="action-btn" :disabled="!rulesAccepted" @click="startExam">Начать тест в полноэкранном режиме</button>
         </div>
       </section>
@@ -75,6 +109,14 @@
             <button class="stat-box fullscreen-btn" @click="requestFullscreen"><span>Режим</span><strong>{{ isFullscreen ? 'Полный экран' : 'Развернуть' }}</strong></button>
           </div>
         </header>
+
+        <StatePanel
+          v-if="submitError"
+          tone="warning"
+          eyebrow="Отправка ответов"
+          :title="submitError"
+          description="Пожалуйста, не закрывайте страницу. Можно попробовать отправить ответы ещё раз."
+        />
 
         <div class="progress-card">
           <div class="progress-top"><span>Прогресс</span><strong>{{ progressPercent }}%</strong></div>
@@ -140,6 +182,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../js/api'
 import { useUserStore } from '../stores/user'
+import StatePanel from '../components/StatePanel.vue'
+import StatusBadge from '../components/StatusBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -147,11 +191,13 @@ const userStore = useUserStore()
 
 const loading = ref(true)
 const loadError = ref(false)
+const loadErrorTitle = ref('Не удалось открыть олимпиаду')
 const loadErrorMessage = ref('')
 const quiz = ref(null)
 const result = ref(null)
 const violationMessage = ref('')
 const submitting = ref(false)
+const submitError = ref('')
 const userAnswers = ref({})
 const timeLeft = ref(0)
 const currentQuestionIndex = ref(0)
@@ -310,6 +356,7 @@ const handleFullscreenChange = () => {
 const loadQuiz = async () => {
   loading.value = true
   loadError.value = false
+  loadErrorTitle.value = 'Не удалось открыть олимпиаду'
   loadErrorMessage.value = ''
 
   try {
@@ -324,7 +371,9 @@ const loadQuiz = async () => {
     }
 
     if (data.already_submitted) {
-      router.push('/results')
+      loadError.value = true
+      loadErrorTitle.value = 'Олимпиада уже завершена'
+      loadErrorMessage.value = 'Для этого участника результат уже сохранён. Откройте страницу результатов, чтобы увидеть итог и сертификат.'
       return
     }
 
@@ -342,6 +391,7 @@ const startExam = async () => {
   const fullscreenOk = await requestFullscreen()
   if (!fullscreenOk) return
   examStarted.value = true
+  submitError.value = ''
   markVisited(0)
   startTimerFromSeconds((quiz.value.time_limit || 60) * 60)
 }
@@ -349,6 +399,7 @@ const startExam = async () => {
 const submitQuiz = async () => {
   if (!quiz.value || submitting.value || violated) return
   submitting.value = true
+  submitError.value = ''
   clearTimer()
 
   try {
@@ -361,7 +412,7 @@ const submitQuiz = async () => {
       await document.exitFullscreen().catch(() => {})
     }
   } catch (error) {
-    alert(error.response?.data?.message || 'Не удалось отправить ответы.')
+    submitError.value = error.response?.data?.message || 'Не удалось отправить ответы.'
     startTimerFromSeconds(timeLeft.value || 60)
   } finally {
     submitting.value = false
@@ -407,22 +458,21 @@ onUnmounted(async () => {
 
 <style scoped>
 * { box-sizing: border-box; }
-.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(201,171,99,0.14), transparent 22%), linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%); color: var(--text); padding: 90px 20px 110px; }
-.state-card, .intro-card, .exam-header, .progress-card, .question-card, .result-card { max-width: 1100px; margin: 0 auto; border-radius: var(--radius-lg); border: 1px solid var(--surface-border); background: var(--surface); backdrop-filter: blur(12px); box-shadow: var(--shadow-card); }
-.state-card, .result-card, .intro-card { margin-top: 20px; padding: 30px; }
-.error { color: #8f3b3b; }
+.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(201,171,99,0.14), transparent 22%), linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%); color: var(--text); padding: 90px 20px 110px; display: grid; gap: 18px; }
+.intro-card, .exam-header, .progress-card, .question-card, .result-card { max-width: 1100px; width: 100%; margin: 0 auto; border-radius: var(--radius-lg); border: 1px solid var(--surface-border); background: var(--surface); backdrop-filter: blur(12px); box-shadow: var(--shadow-card); }
+.result-card, .intro-card { padding: 30px; display: grid; gap: 18px; }
+.result-panel { margin-top: 8px; }
 .eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-strong); font-size: 12px; font-weight: 700; }
 h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); }
 h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .description, .child-chip { margin-top: 12px; color: var(--text-secondary); line-height: 1.6; }
-.intro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 22px; }
+.intro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 8px; }
 .intro-item { padding: 16px; border-radius: var(--radius-md); background: rgba(255,252,244,0.82); border: 1px solid var(--surface-border); }
 .intro-item span { display: block; color: var(--text-secondary); font-size: 12px; margin-bottom: 8px; }
-.warning-card { margin-top: 18px; padding: 16px 18px; display: flex; gap: 10px; align-items: flex-start; color: var(--accent-strong); background: var(--warning-bg); border-radius: var(--radius-md); }
-.rules-list { margin: 18px 0 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.7; }
-.confirm-row { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; color: var(--text); }
-.error-inline { margin-top: 18px; color: #8f3b3b; font-weight: 700; }
-.intro-actions { margin-top: 24px; display: flex; justify-content: flex-end; }
+.rules-list { margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.7; }
+.confirm-row { display: flex; gap: 10px; align-items: flex-start; color: var(--text); }
+.error-inline { margin: 0; color: #8f3b3b; font-weight: 700; }
+.intro-actions { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
 .exam-shell { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
 .exam-header { padding: 24px; display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
 .hero-stats { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 12px; }
@@ -452,13 +502,9 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .answer-label { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(201,171,99,0.16); font-size: 12px; font-weight: 700; color: var(--accent-strong); }
 .answer-text { line-height: 1.55; }
 .sticky-footer { position: sticky; bottom: 16px; z-index: 3; display: flex; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 20px; background: rgba(255,249,238,0.94); border: 1px solid var(--surface-border); backdrop-filter: blur(14px); box-shadow: var(--shadow-card); }
-.result-actions { margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
-.action-btn { border: 0; border-radius: 14px; padding: 12px 18px; background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 12px 26px rgba(201,171,99,0.2); }
+.action-btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 14px; padding: 12px 18px; background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 12px 26px rgba(201,171,99,0.2); }
 .action-btn.secondary { background: rgba(255,252,244,0.82); border: 1px solid var(--surface-border); box-shadow: none; }
 .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.status-chip { display: inline-flex; margin-top: 16px; padding: 6px 10px; border-radius: 999px; font-weight: 700; }
-.status-chip.passed { background: var(--success-bg); color: #2f6f4b; }
-.status-chip.failed { background: var(--danger-bg); color: #8f3b3b; }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .sticky-footer { position: static; } .intro-actions .action-btn { width: 100%; } }
+@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .sticky-footer { position: static; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions) { width: 100%; } }
 </style>

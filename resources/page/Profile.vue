@@ -1,16 +1,27 @@
 <template>
   <div class="profile-page">
-    <div v-if="loading" class="state-card">Загружаем личный кабинет...</div>
-    <div v-else-if="!user" class="state-card">Пожалуйста, войдите в аккаунт, чтобы увидеть данные профиля.</div>
+    <StatePanel
+      v-if="loading"
+      tone="neutral"
+      eyebrow="Кабинет"
+      title="Загружаем кабинет"
+      description="Собираем участников, заявки, оплаты, уведомления и результаты в одном месте."
+    />
+
+    <StatePanel
+      v-else-if="!user"
+      tone="warning"
+      eyebrow="Кабинет"
+      title="Нужен вход в аккаунт"
+      description="Войдите, чтобы видеть детей, заявки, оплаты, результаты и сертификаты."
+    />
 
     <template v-else>
       <section class="hero-card">
         <div class="hero-main">
-          <p class="eyebrow">Личный кабинет</p>
+          <p class="eyebrow">Родительский кабинет</p>
           <h1>{{ user.name }}</h1>
-          <p class="hero-copy">
-            Управляйте участниками, заявками, оплатами, тренировками и результатами из одного кабинета.
-          </p>
+          <p class="hero-copy">Управляйте участниками, заявками, оплатами, тренировками и сертификатами из одного центра действий.</p>
           <div class="hero-meta">
             <span>{{ user.email }}</span>
             <span>{{ user.phone || 'Телефон не указан' }}</span>
@@ -34,17 +45,85 @@
         <article class="stat-card">
           <span>Активные заявки</span>
           <strong>{{ stats.olympiads || olympiads.length }}</strong>
-          <small>Олимпиады и заявки в системе</small>
+          <small>Все олимпиады и запросы в системе</small>
         </article>
         <article class="stat-card">
-          <span>Тренировки</span>
-          <strong>{{ trainings.length }}</strong>
-          <small>Последние тренировочные попытки</small>
+          <span>Доступно к старту</span>
+          <strong>{{ stats.ready_to_start || 0 }}</strong>
+          <small>Одобрено и оплачено, можно начинать</small>
         </article>
         <article class="stat-card">
-          <span>Оплаты</span>
-          <strong>{{ payments.length }}</strong>
-          <small>История подтверждённых и ожидающих оплат</small>
+          <span>Уведомления</span>
+          <strong>{{ userStore.notificationsUnread }}</strong>
+          <small>Непрочитанные статусы и события</small>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <StatePanel
+          class="dashboard-span"
+          :tone="currentTask?.tone || 'neutral'"
+          eyebrow="Текущий шаг"
+          :title="currentTask?.title || 'Кабинет готов к работе'"
+          :description="currentTask?.description || 'Выберите олимпиаду или откройте результаты.'"
+        >
+          <template #actions>
+            <RouterLink v-if="currentTask?.action_url" class="btn btn-primary" :to="currentTask.action_url">
+              {{ currentTask.action_label || 'Открыть' }}
+            </RouterLink>
+          </template>
+        </StatePanel>
+
+        <article v-if="onboarding" class="panel-card">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Onboarding</p>
+              <h2>Как пройти путь участника</h2>
+            </div>
+            <strong class="progress-value">{{ onboarding.progress_percent }}%</strong>
+          </div>
+
+          <div class="progress-track"><div class="progress-fill" :style="{ width: `${onboarding.progress_percent}%` }"></div></div>
+
+          <div class="onboarding-steps">
+            <div v-for="step in onboarding.steps" :key="step.key" class="onboarding-step" :class="{ done: step.completed }">
+              <div class="onboarding-step__index">{{ step.index }}</div>
+              <div>
+                <strong>{{ step.label }}</strong>
+                <p>{{ step.description }}</p>
+              </div>
+              <button
+                v-if="!step.completed"
+                type="button"
+                class="step-complete"
+                @click="completeOnboarding(step.key)"
+              >
+                Готово
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Центр уведомлений</p>
+              <h2>Последние события</h2>
+            </div>
+            <button v-if="userStore.hasUnreadNotifications" class="btn btn-outline compact" @click="refreshNotifications">Обновить</button>
+          </div>
+
+          <div v-if="userStore.notifications.length" class="notification-list">
+            <article v-for="item in userStore.notifications" :key="item.id" class="notification-card" :class="{ unread: !item.read_at }">
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.body }}</p>
+              <div class="notification-meta">
+                <span>{{ item.date }}</span>
+                <button v-if="!item.read_at" class="link-btn" @click="userStore.markNotificationRead(item.id)">Прочитано</button>
+              </div>
+            </article>
+          </div>
+          <p v-else class="empty-text">Пока нет новых событий. Когда изменится статус заявки, оплаты или результата, карточки появятся здесь.</p>
         </article>
       </section>
 
@@ -70,7 +149,7 @@
                 <h3>{{ child.full_name }}</h3>
                 <p>{{ child.grade ? `${child.grade} класс` : 'Класс не указан' }}</p>
               </div>
-              <span class="child-state">{{ child.id === userStore.selectedChildId ? 'Выбран' : 'Готов к участию' }}</span>
+              <StatusBadge :label="child.id === userStore.selectedChildId ? 'Выбран' : 'Готов к участию'" :tone="child.id === userStore.selectedChildId ? 'success' : 'neutral'" />
             </div>
             <p class="child-meta">{{ child.school || 'Школа не указана' }} · {{ child.city || 'Город не указан' }}</p>
             <div class="child-actions">
@@ -90,30 +169,12 @@
           </div>
 
           <div class="form-grid">
-            <label class="field">
-              <span>Имя</span>
-              <input v-model="childForm.first_name" placeholder="Имя" required />
-            </label>
-            <label class="field">
-              <span>Фамилия</span>
-              <input v-model="childForm.last_name" placeholder="Фамилия" required />
-            </label>
-            <label class="field">
-              <span>Дата рождения</span>
-              <input v-model="childForm.birth_date" type="date" />
-            </label>
-            <label class="field">
-              <span>Класс</span>
-              <input v-model.number="childForm.grade" type="number" min="1" max="11" placeholder="Например: 7" />
-            </label>
-            <label class="field">
-              <span>Школа</span>
-              <input v-model="childForm.school" placeholder="Школа" />
-            </label>
-            <label class="field">
-              <span>Город</span>
-              <input v-model="childForm.city" placeholder="Город" />
-            </label>
+            <label class="field"><span>Имя</span><input v-model="childForm.first_name" placeholder="Имя" required /></label>
+            <label class="field"><span>Фамилия</span><input v-model="childForm.last_name" placeholder="Фамилия" required /></label>
+            <label class="field"><span>Дата рождения</span><input v-model="childForm.birth_date" type="date" /></label>
+            <label class="field"><span>Класс</span><input v-model.number="childForm.grade" type="number" min="1" max="11" placeholder="Например: 7" /></label>
+            <label class="field"><span>Школа</span><input v-model="childForm.school" placeholder="Школа" /></label>
+            <label class="field"><span>Город</span><input v-model="childForm.city" placeholder="Город" /></label>
             <label class="field field-wide">
               <span>Язык интерфейса</span>
               <select v-model="childForm.language_preference">
@@ -136,7 +197,7 @@
           <div>
             <p class="eyebrow">Шаг 2</p>
             <h2>Статус участия в олимпиадах</h2>
-            <p class="section-copy">Следите, где заявка ожидает проверки, где нужна оплата и где уже открыт доступ к тесту.</p>
+            <p class="section-copy">Отслеживайте, где заявка ждёт проверки, где нужна оплата и где уже открыт доступ к тесту.</p>
           </div>
           <RouterLink to="/subject" class="btn btn-primary">Перейти к выбору олимпиады</RouterLink>
         </div>
@@ -149,25 +210,13 @@
                 <p>{{ item.child?.full_name || 'Ребёнок не выбран' }}</p>
               </div>
               <div class="badge-stack">
-                <span class="badge">{{ item.status }}</span>
-                <span class="badge badge-soft">{{ item.payment_status }}</span>
+                <StatusBadge :label="item.status_meta.label" :tone="item.status_meta.tone" />
+                <StatusBadge :label="item.payment_status_meta.label" :tone="item.payment_status_meta.tone" />
               </div>
             </div>
 
-            <p class="card-copy">
-              <template v-if="item.status === 'approved' && item.payment_status === 'paid' && !item.completed">
-                Всё готово: можно перейти к олимпиаде или пройти тренировку перед стартом.
-              </template>
-              <template v-else-if="item.status === 'approved' && item.payment_status !== 'paid'">
-                Заявка одобрена. Следующий шаг — подтвердить оплату и дождаться доступа.
-              </template>
-              <template v-else-if="item.status === 'pending'">
-                Заявка отправлена и ожидает проверки администратором.
-              </template>
-              <template v-else>
-                Проверьте статус заявки и при необходимости свяжитесь с поддержкой.
-              </template>
-            </p>
+            <CountdownBadge :target="item.countdown?.target" :label="item.countdown?.label || 'Старт олимпиады'" />
+            <p class="card-copy">{{ item.next_action }}</p>
 
             <div class="actions-row">
               <button
@@ -181,7 +230,7 @@
             </div>
           </article>
         </div>
-        <p v-else class="empty-text">У вас пока нет активных заявок. После выбора предмета они появятся здесь с понятным статусом.</p>
+        <p v-else class="empty-text">У вас пока нет активных заявок. После выбора предмета они появятся здесь с понятным статусом и следующими шагами.</p>
       </section>
 
       <section class="section-card two-col">
@@ -195,9 +244,12 @@
 
           <div v-if="payments.length" class="compact-list">
             <article v-for="item in payments" :key="item.id" class="compact-item">
-              <strong>{{ item.child_name || 'Без участника' }}</strong>
+              <div class="compact-head">
+                <strong>{{ item.child_name || 'Без участника' }}</strong>
+                <StatusBadge :label="item.status_meta?.label || item.status" :tone="item.status_meta?.tone || 'neutral'" />
+              </div>
               <span>{{ item.subject || 'Предмет не указан' }}</span>
-              <small>{{ item.status }} · {{ item.date }}</small>
+              <small>{{ item.date }}</small>
             </article>
           </div>
           <p v-else class="empty-text">Когда заявки начнут переходить к оплате, история появится здесь.</p>
@@ -221,6 +273,37 @@
           <p v-else class="empty-text">Тренировки появятся после первых пробных попыток.</p>
         </div>
       </section>
+
+      <section class="section-card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Шаг 5</p>
+            <h2>Последние результаты и сертификаты</h2>
+            <p class="section-copy">Когда олимпиада завершена, здесь сразу появляется итог, ссылка на страницу результата и превью сертификата.</p>
+          </div>
+          <RouterLink to="/results" class="btn btn-primary">Открыть все результаты</RouterLink>
+        </div>
+
+        <div v-if="latestResults.length" class="list-grid">
+          <article v-for="item in latestResults" :key="item.id" class="list-card">
+            <div class="card-head">
+              <div>
+                <h3>{{ item.subject }}</h3>
+                <p>{{ item.child_name }} · {{ item.category_label }}</p>
+              </div>
+              <StatusBadge :label="item.status_meta?.label || item.status" :tone="item.status_meta?.tone || 'neutral'" />
+            </div>
+
+            <p class="card-copy">Результат: {{ item.score }}/{{ item.total }} · {{ item.percent }}%. {{ item.date }}</p>
+
+            <div class="actions-row">
+              <RouterLink class="btn btn-outline" to="/results">Смотреть результат</RouterLink>
+              <RouterLink class="btn btn-primary" :to="item.certificate_preview_url">Превью сертификата</RouterLink>
+            </div>
+          </article>
+        </div>
+        <p v-else class="empty-text">После первой завершённой олимпиады здесь появятся результаты участника и доступ к сертификату.</p>
+      </section>
     </template>
   </div>
 </template>
@@ -230,6 +313,9 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import api from '../js/api'
+import StatePanel from '../components/StatePanel.vue'
+import StatusBadge from '../components/StatusBadge.vue'
+import CountdownBadge from '../components/CountdownBadge.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -241,12 +327,13 @@ const children = ref([])
 const olympiads = ref([])
 const payments = ref([])
 const trainings = ref([])
+const latestResults = ref([])
+const onboarding = ref(null)
+const currentTask = ref(null)
 const editingChildId = ref(null)
 const savingChild = ref(false)
 
-const canReturnToAdminPanel = computed(() => {
-  return Boolean(user.value?.is_admin && userStore.sessionType === 'admin')
-})
+const canReturnToAdminPanel = computed(() => Boolean(user.value?.is_admin && userStore.sessionType === 'admin'))
 
 const childForm = reactive({
   first_name: '',
@@ -275,21 +362,34 @@ const hydrate = async () => {
   user.value = userStore.user
   children.value = userStore.children
   stats.value = userStore.stats
+  onboarding.value = userStore.onboarding
+  currentTask.value = userStore.currentTask
 
   if (user.value) {
-    const [olympiadsRes, paymentsRes, trainingsRes] = await Promise.all([
+    const [olympiadsRes, paymentsRes, trainingsRes, resultsRes] = await Promise.all([
       api.get('/profile/olympiads'),
       api.get('/profile/payments'),
       api.get('/profile/trainings'),
+      api.get('/profile/results'),
     ])
 
     olympiads.value = olympiadsRes.data
     payments.value = paymentsRes.data
     trainings.value = trainingsRes.data
+    latestResults.value = resultsRes.data.slice(0, 3)
   }
 
   resetChildForm()
   loading.value = false
+}
+
+const refreshNotifications = async () => {
+  await userStore.fetchNotifications(10)
+}
+
+const completeOnboarding = async (step) => {
+  await userStore.syncOnboarding({ step })
+  onboarding.value = userStore.onboarding
 }
 
 const selectChild = (childId) => {
@@ -323,6 +423,8 @@ const saveChild = async () => {
     await userStore.fetchUser()
     children.value = userStore.children
     stats.value = userStore.stats
+    onboarding.value = userStore.onboarding
+    currentTask.value = userStore.currentTask
     resetChildForm()
   } finally {
     savingChild.value = false
@@ -348,15 +450,15 @@ onMounted(hydrate)
 .profile-page {
   min-height: 100vh;
   padding: 110px 20px 56px;
-  background:
-    radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%),
-    var(--bg);
+  background: radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%), var(--bg);
   color: var(--text);
+  display: grid;
+  gap: 18px;
 }
 
 .hero-card,
 .section-card,
-.state-card,
+.panel-card,
 .stat-card {
   max-width: 1140px;
   margin: 0 auto;
@@ -374,11 +476,6 @@ onMounted(hydrate)
   align-items: flex-start;
 }
 
-.hero-main {
-  display: grid;
-  gap: 12px;
-}
-
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -392,7 +489,6 @@ onMounted(hydrate)
 .empty-text,
 .card-copy,
 .child-meta,
-.state-card,
 .compact-item span,
 .compact-item small {
   color: var(--text-secondary);
@@ -415,21 +511,38 @@ onMounted(hydrate)
   gap: 10px;
 }
 
-.stats-grid {
+.stats-grid,
+.dashboard-grid {
   max-width: 1140px;
-  margin: 18px auto 0;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
-.stat-card {
+.stats-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-grid {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.dashboard-span {
+  grid-column: span 2;
+}
+
+.stat-card,
+.panel-card {
   padding: 22px;
+}
+
+.stat-card {
   display: grid;
   gap: 8px;
 }
 
-.stat-card span {
+.stat-card span,
+.progress-value {
   color: var(--text-secondary);
   font-size: 13px;
 }
@@ -439,44 +552,122 @@ onMounted(hydrate)
   line-height: 1;
 }
 
-.stat-card small {
+.panel-head,
+.section-head,
+.form-head,
+.child-top,
+.card-head,
+.compact-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.panel-head h2,
+.section-head h2,
+.form-head h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.progress-track {
+  margin: 14px 0 0;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(100, 83, 41, 0.1);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #dfc27f);
+}
+
+.onboarding-steps,
+.notification-list,
+.children-grid,
+.list-grid,
+.compact-list {
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-step,
+.notification-card,
+.child-card,
+.list-card,
+.compact-item,
+.child-form,
+.field input,
+.field select {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 244, 0.82);
+}
+
+.onboarding-step {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.onboarding-step.done {
+  border-color: rgba(79, 167, 116, 0.28);
+}
+
+.onboarding-step__index {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(201, 171, 99, 0.16);
+  color: var(--accent-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.onboarding-step p,
+.notification-card p { margin: 6px 0 0; color: var(--text-secondary); line-height: 1.55; }
+
+.step-complete,
+.link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notification-card {
+  padding: 14px;
+}
+
+.notification-card.unread {
+  border-color: rgba(201, 171, 99, 0.34);
+  box-shadow: 0 0 0 3px rgba(201, 171, 99, 0.09);
+}
+
+.notification-meta {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
   color: var(--text-secondary);
   font-size: 13px;
 }
 
 .section-card {
-  margin-top: 18px;
   padding: 24px;
-}
-
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-  margin-bottom: 18px;
-}
-
-.section-head.compact {
-  margin-bottom: 14px;
 }
 
 .children-grid,
 .list-grid {
-  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-}
-
-.child-card,
-.list-card,
-.compact-item,
-.field input,
-.field select,
-.child-form {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 244, 0.82);
 }
 
 .child-card,
@@ -491,36 +682,9 @@ onMounted(hydrate)
   box-shadow: 0 0 0 4px rgba(201, 171, 99, 0.12);
 }
 
-.child-top,
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.child-state,
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: var(--success-bg);
-  color: #2f6f4b;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .badge-stack {
   display: grid;
   gap: 8px;
-}
-
-.badge-soft {
-  background: rgba(201, 171, 99, 0.18);
-  color: var(--accent-strong);
 }
 
 .child-form {
@@ -528,12 +692,6 @@ onMounted(hydrate)
   padding: 20px;
   display: grid;
   gap: 18px;
-}
-
-.form-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .form-grid {
@@ -560,30 +718,14 @@ onMounted(hydrate)
   color: var(--text);
 }
 
-.compact-list {
-  display: grid;
-  gap: 12px;
-}
-
-.compact-item {
-  padding: 16px;
-  display: grid;
-  gap: 4px;
-}
-
-.compact-item strong {
-  font-size: 17px;
-}
-
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
 
-.info-column {
-  display: grid;
-  gap: 8px;
+.compact-item {
+  padding: 16px;
 }
 
 .btn {
@@ -599,6 +741,8 @@ onMounted(hydrate)
   border: 0;
   cursor: pointer;
 }
+
+.btn.compact { min-height: 40px; padding: 10px 14px; }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
@@ -617,11 +761,16 @@ onMounted(hydrate)
   color: #316a49;
 }
 
-@media (max-width: 920px) {
+@media (max-width: 980px) {
   .stats-grid,
+  .dashboard-grid,
   .two-col,
   .form-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-span {
+    grid-column: auto;
   }
 }
 
@@ -631,14 +780,19 @@ onMounted(hydrate)
   }
 
   .hero-card,
+  .panel-head,
   .section-head,
   .child-top,
-  .card-head {
+  .card-head,
+  .notification-meta,
+  .onboarding-step {
+    grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
   }
 
   .stats-grid,
+  .dashboard-grid,
   .two-col,
   .form-grid {
     grid-template-columns: 1fr;

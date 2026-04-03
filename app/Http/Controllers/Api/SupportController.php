@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CallbackRequest;
+use App\Support\NotificationWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -67,6 +68,14 @@ class SupportController extends Controller
         ]);
 
         $callback = CallbackRequest::create($data);
+
+        NotificationWorkflow::createForAdmins(
+            type: 'new_callback_request',
+            title: 'Новый запрос на обратный звонок',
+            body: "Поступил callback-запрос от {$callback->name}.",
+            actionUrl: '/admin/callbacks',
+            statusKey: $callback->status
+        );
 
         return response()->json([
             'message' => 'Заявка на обратный звонок отправлена.',

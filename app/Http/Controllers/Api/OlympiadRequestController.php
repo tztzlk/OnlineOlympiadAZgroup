@@ -8,6 +8,8 @@ use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
 use App\Models\PaymentRecord;
 use App\Models\Subject;
+use App\Support\NotificationWorkflow;
+use App\Support\OnboardingProgress;
 use Illuminate\Http\Request;
 
 class OlympiadRequestController extends Controller
@@ -74,7 +76,34 @@ class OlympiadRequestController extends Controller
                 'payment_status' => 'pending',
             ]);
             $requestModel->load(['subject', 'user', 'childProfile']);
+
+            NotificationWorkflow::createForUser(
+                user: $user,
+                type: 'olympiad_request_submitted',
+                title: 'Заявка отправлена',
+                body: "Заявка на олимпиаду по предмету {$requestModel->subject?->name} отправлена и ожидает проверки администратора.",
+                actionUrl: rtrim(config('app.url'), '/') . '/profile',
+                statusKey: 'request_pending',
+                payload: [
+                    'action_label' => 'Смотреть статус',
+                    'context' => [
+                        'Участник' => $child->full_name,
+                        'Предмет' => $requestModel->subject?->name ?? 'Олимпиада',
+                    ],
+                ],
+                sendEmail: true
+            );
+
+            NotificationWorkflow::createForAdmins(
+                type: 'new_olympiad_request',
+                title: 'Новая заявка на олимпиаду',
+                body: "Поступила новая заявка от {$user->name} на предмет {$requestModel->subject?->name}.",
+                actionUrl: '/admin/requests',
+                statusKey: 'request_pending'
+            );
         }
+
+        OnboardingProgress::syncStep($user, 'choose_subject');
 
         $payment = PaymentRecord::updateOrCreate(
             ['olympiad_request_id' => $requestModel->id],
@@ -212,6 +241,29 @@ class OlympiadRequestController extends Controller
         ]);
         $olympiadRequest->load(['subject', 'user', 'childProfile']);
 
+        if ($olympiadRequest->user) {
+            $isApproved = $olympiadRequest->status === 'approved';
+
+            NotificationWorkflow::createForUser(
+                user: $olympiadRequest->user,
+                type: $isApproved ? 'olympiad_request_approved' : 'olympiad_request_rejected',
+                title: $isApproved ? 'Заявка одобрена' : 'Заявка отклонена',
+                body: $isApproved
+                    ? "Заявка на {$olympiadRequest->subject?->name} одобрена. Следующий шаг — подтверждение оплаты."
+                    : "Заявка на {$olympiadRequest->subject?->name} отклонена. Проверьте данные участника или свяжитесь с поддержкой.",
+                actionUrl: rtrim(config('app.url'), '/') . '/profile',
+                statusKey: $olympiadRequest->status,
+                payload: [
+                    'action_label' => 'Открыть кабинет',
+                    'context' => [
+                        'Участник' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
+                        'Предмет' => $olympiadRequest->subject?->name ?? 'Олимпиада',
+                    ],
+                ],
+                sendEmail: true
+            );
+        }
+
         return response()->json([
             'message' => 'Статус заявки обновлён.',
             'request' => new OlympiadRequestResource($olympiadRequest),
@@ -256,6 +308,51 @@ class OlympiadRequestController extends Controller
         );
 
         $olympiadRequest->load(['subject', 'user', 'childProfile']);
+
+        if ($olympiadRequest->user) {
+            if ($status === 'paid') {
+                OnboardingProgress::syncStep($olympiadRequest->user, 'approval_payment');
+            }
+
+            NotificationWorkflow::createForUser(
+                user: $olympiadRequest->user,
+                type: match ($status) {
+                    'paid' => 'payment_confirmed',
+                    'failed' => 'payment_failed',
+                    default => 'payment_pending',
+                },
+                title: match ($status) {
+                    'paid' => 'Оплата подтверждена',
+                    'failed' => 'Оплата не подтверждена',
+                    default => 'Оплата ожидает подтверждения',
+                },
+                body: match ($status) {
+                    'paid' => "Оплата за {$olympiadRequest->subject?->name} подтверждена. Если заявка одобрена, доступ к олимпиаде открыт.",
+                    'failed' => "Платёж по олимпиаде {$olympiadRequest->subject?->name} не был подтверждён.",
+                    default => "Оплата по олимпиаде {$olympiadRequest->subject?->name} ожидает подтверждения.",
+                },
+                actionUrl: rtrim(config('app.url'), '/') . '/profile',
+                statusKey: $status,
+                payload: [
+                    'action_label' => 'Проверить статус',
+                    'context' => [
+                        'Участник' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
+                        'Предмет' => $olympiadRequest->subject?->name ?? 'Олимпиада',
+                    ],
+                ],
+                sendEmail: in_array($status, ['paid', 'failed'], true)
+            );
+        }
+
+        if ($status !== 'paid') {
+            NotificationWorkflow::createForAdmins(
+                type: 'payment_review_needed',
+                title: 'Требуется проверка оплаты',
+                body: "Статус платежа по заявке {$olympiadRequest->subject?->name} обновлён: {$status}.",
+                actionUrl: '/admin/payments',
+                statusKey: $status
+            );
+        }
 
         return response()->json([
             'message' => 'Статус оплаты обновлён.',

@@ -11,7 +11,7 @@
 
       <div class="sidebar-intro">
         <p class="sidebar-eyebrow">Admin</p>
-        <p>Проверка заявок, оплаты, результаты и обратная связь в одном рабочем пространстве.</p>
+        <p>Проверка заявок, оплаты, результатов и обратной связи в одном рабочем пространстве.</p>
       </div>
 
       <nav class="nav">
@@ -20,13 +20,39 @@
         <router-link to="/admin/quizzes" class="nav-link" exact-active-class="nav-link-exact-active">Олимпиады</router-link>
         <router-link to="/admin/results" class="nav-link" exact-active-class="nav-link-exact-active">Результаты</router-link>
         <router-link to="/admin/payments" class="nav-link" exact-active-class="nav-link-exact-active">Оплаты</router-link>
-        <router-link to="/admin/callbacks" class="nav-link" exact-active-class="nav-link-exact-active">Звонки</router-link>
+        <router-link to="/admin/callbacks" class="nav-link" exact-active-class="nav-link-exact-active">Обращения</router-link>
       </nav>
+
+      <div class="notification-panel">
+        <div class="notification-head">
+          <div>
+            <p class="sidebar-eyebrow">Events</p>
+            <strong>Что требует внимания сейчас</strong>
+          </div>
+          <span class="notification-badge">{{ unreadCount }}</span>
+        </div>
+
+        <div v-if="notifications.length" class="notification-list">
+          <button
+            v-for="item in notifications"
+            :key="item.id"
+            type="button"
+            class="notification-item"
+            :class="{ unread: !item.read_at }"
+            @click="handleNotification(item)"
+          >
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.body }}</p>
+            <span>{{ item.date }}</span>
+          </button>
+        </div>
+        <p v-else class="notification-empty">Новых событий нет. Когда появятся заявки, оплаты или обращения, они будут видны здесь.</p>
+      </div>
 
       <div class="sidebar-footer">
         <div class="support-card">
           <span class="support-label">Приоритет</span>
-          <strong>Сначала проверяйте новые заявки и оплаты, затем выдавайте доступ к олимпиадам.</strong>
+          <strong>Сначала проверяйте новые заявки и оплаты, затем выдавайте доступ к олимпиадам и закрывайте обращения.</strong>
         </div>
         <router-link to="/" class="back-link">Вернуться на сайт</router-link>
       </div>
@@ -38,13 +64,51 @@
   </div>
 </template>
 
+<script setup>
+import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../../stores/user'
+
+const router = useRouter()
+const userStore = useUserStore()
+
+const notifications = computed(() => userStore.notifications.slice(0, 6))
+const unreadCount = computed(() => userStore.notificationsUnread)
+
+const normalizeActionUrl = (value) => {
+  if (!value) return '/admin'
+
+  if (value.startsWith('http')) {
+    try {
+      return new URL(value).pathname || '/admin'
+    } catch {
+      return '/admin'
+    }
+  }
+
+  return value
+}
+
+const handleNotification = async (item) => {
+  if (!item.read_at) {
+    await userStore.markNotificationRead(item.id)
+  }
+
+  router.push(normalizeActionUrl(item.action_url))
+}
+
+onMounted(async () => {
+  await userStore.fetchNotifications(12)
+})
+</script>
+
 <style scoped>
 * { box-sizing: border-box; }
 
 .admin-layout {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 292px minmax(0, 1fr);
+  grid-template-columns: 328px minmax(0, 1fr);
   background: linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
 }
 
@@ -56,14 +120,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background:
-    linear-gradient(180deg, rgba(255, 249, 238, 0.98) 0%, rgba(245, 236, 212, 0.96) 100%);
+  background: linear-gradient(180deg, rgba(255, 249, 238, 0.98) 0%, rgba(245, 236, 212, 0.96) 100%);
   border-right: 1px solid var(--surface-border);
   box-shadow: inset -1px 0 0 rgba(109, 89, 42, 0.04);
 }
 
 .brand,
-.support-card {
+.support-card,
+.notification-panel {
   border-radius: var(--radius-md);
   border: 1px solid rgba(201, 171, 99, 0.18);
   background: rgba(255, 252, 244, 0.82);
@@ -102,7 +166,10 @@
 
 .brand-copy span,
 .sidebar-intro p,
-.support-label {
+.support-label,
+.notification-item p,
+.notification-item span,
+.notification-empty {
   color: var(--text-secondary);
 }
 
@@ -149,6 +216,60 @@
   box-shadow: inset 0 0 0 1px rgba(201, 171, 99, 0.18);
 }
 
+.notification-panel {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.notification-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.notification-head strong,
+.support-card strong,
+.notification-item strong {
+  color: var(--text);
+}
+
+.notification-badge {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(79, 167, 116, 0.14);
+  color: #316a49;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.notification-list {
+  display: grid;
+  gap: 10px;
+}
+
+.notification-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 255, 255, 0.46);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+}
+
+.notification-item.unread {
+  box-shadow: 0 0 0 3px rgba(201, 171, 99, 0.1);
+  border-color: rgba(201, 171, 99, 0.3);
+}
+
 .sidebar-footer {
   margin-top: auto;
   display: grid;
@@ -169,7 +290,6 @@
 }
 
 .support-card strong {
-  color: var(--text);
   line-height: 1.45;
 }
 
@@ -183,7 +303,7 @@
   min-width: 0;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1080px) {
   .admin-layout {
     grid-template-columns: 1fr;
   }
