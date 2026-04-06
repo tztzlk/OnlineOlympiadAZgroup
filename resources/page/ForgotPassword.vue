@@ -65,9 +65,22 @@ const submit = async () => {
   error.value = ''
 
   try {
-    const { data } = await api.post('/auth/forgot-password', { email: email.value.trim() })
+    const { data } = await api.post(
+      '/auth/forgot-password',
+      { email: email.value.trim() },
+      { timeout: 15000 }
+    )
     message.value = data.message
   } catch (err) {
+    if (err.code === 'ECONNABORTED') {
+      error.value = 'Сервер отвечает слишком долго. Попробуйте ещё раз через несколько секунд.'
+      return
+    }
+
+    if (!err.response) {
+      error.value = 'Не удалось связаться с сервером. Проверьте, что локальный сервер запущен.'
+      return
+    }
     error.value = err.response?.data?.message || 'Не удалось отправить ссылку.'
   } finally {
     loading.value = false
