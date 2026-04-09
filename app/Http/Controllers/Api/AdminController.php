@@ -75,7 +75,9 @@ class AdminController extends Controller
                     ->get()
                     ->map(fn (CallbackRequest $callback) => [
                         'id' => $callback->public_id,
+                        'type' => $callback->type ?? 'callback',
                         'name' => $callback->name,
+                        'topic' => $callback->topic,
                         'phone' => $callback->phone,
                         'created_at' => optional($callback->created_at)->format('d.m.Y H:i'),
                     ]),
@@ -326,9 +328,11 @@ class AdminController extends Controller
                 ->get()
                 ->map(fn (CallbackRequest $callback) => [
                     'id' => $callback->id,
+                    'type' => $callback->type ?? 'callback',
                     'name' => $callback->name,
                     'phone' => $callback->phone,
                     'email' => $callback->email,
+                    'topic' => $callback->topic,
                     'message' => $callback->message,
                     'status' => $callback->status,
                     'date' => optional($callback->created_at)->format('d.m.Y H:i'),

@@ -55,7 +55,7 @@ function createOlympiadFixture(User $parent): array
     return compact('child', 'subject', 'quiz', 'category', 'question', 'correctAnswer');
 }
 
-it('creates a new olympiad request as pending and pending payment', function () {
+it('creates a new olympiad participation as approved with pending payment', function () {
     $parent = User::factory()->create();
     ['child' => $child, 'subject' => $subject] = createOlympiadFixture($parent);
 
@@ -69,7 +69,7 @@ it('creates a new olympiad request as pending and pending payment', function () 
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk()
-        ->assertJsonPath('request.status', 'pending')
+        ->assertJsonPath('request.status', 'approved')
         ->assertJsonPath('request.payment_status', 'pending')
         ->assertJsonPath('request.child_profile_id', $child->public_id)
         ->assertJsonPath('redirect_to_quiz', false);
@@ -78,12 +78,12 @@ it('creates a new olympiad request as pending and pending payment', function () 
         'user_id' => $parent->id,
         'child_profile_id' => $child->id,
         'subject_id' => $subject->id,
-        'status' => 'pending',
+        'status' => 'approved',
         'payment_status' => 'pending',
     ]);
 });
 
-it('updates an existing olympiad request without creating duplicates or auto approving it', function () {
+it('updates an existing participation without creating duplicates and resets unpaid entries to pending payment', function () {
     $parent = User::factory()->create();
     ['child' => $child, 'subject' => $subject] = createOlympiadFixture($parent);
 
@@ -100,7 +100,7 @@ it('updates an existing olympiad request without creating duplicates or auto app
 
     $request = OlympiadRequest::query()->firstOrFail();
     $request->update([
-        'status' => 'pending',
+        'status' => 'approved',
         'payment_status' => 'failed',
     ]);
 
@@ -112,8 +112,8 @@ it('updates an existing olympiad request without creating duplicates or auto app
         'parent_phone' => '+77011111111',
         'parent_email' => 'updated@example.com',
     ])->assertOk()
-        ->assertJsonPath('request.status', 'pending')
-        ->assertJsonPath('request.payment_status', 'failed');
+        ->assertJsonPath('request.status', 'approved')
+        ->assertJsonPath('request.payment_status', 'pending');
 
     expect(OlympiadRequest::count())->toBe(1);
 
@@ -121,12 +121,12 @@ it('updates an existing olympiad request without creating duplicates or auto app
         'id' => $request->id,
         'language' => 'kk',
         'parent_name' => 'Обновлённый родитель',
-        'payment_status' => 'failed',
-        'status' => 'pending',
+        'payment_status' => 'pending',
+        'status' => 'approved',
     ]);
 });
 
-it('does not allow quiz access until request is approved and payment is confirmed', function () {
+it('does not allow quiz access until payment is confirmed', function () {
     $parent = User::factory()->create();
     ['child' => $child, 'subject' => $subject] = createOlympiadFixture($parent);
 
@@ -142,12 +142,6 @@ it('does not allow quiz access until request is approved and payment is confirme
     ])->assertOk();
 
     $request = OlympiadRequest::query()->firstOrFail();
-
-    $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
-        ->assertStatus(403)
-        ->assertJsonPath('message', 'Заявка ещё не одобрена администратором.');
-
-    $request->update(['status' => 'approved']);
 
     $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
         ->assertStatus(402)

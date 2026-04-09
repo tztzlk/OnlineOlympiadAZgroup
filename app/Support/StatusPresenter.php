@@ -9,10 +9,10 @@ class StatusPresenter
         return match ($status) {
             'approved' => [
                 'key' => 'approved',
-                'label' => 'Одобрено',
+                'label' => 'Оформлено',
                 'tone' => 'success',
                 'icon' => 'check-circle',
-                'description' => 'Заявка подтверждена, можно переходить к оплате или старту.',
+                'description' => 'Участие оформлено, можно переходить к оплате или старту.',
                 'next_action' => 'Проверьте статус оплаты и доступ к олимпиаде.',
             ],
             'rejected' => [
@@ -20,15 +20,15 @@ class StatusPresenter
                 'label' => 'Отклонено',
                 'tone' => 'danger',
                 'icon' => 'x-circle',
-                'description' => 'Заявка отклонена администратором.',
+                'description' => 'Участие отклонено администратором.',
                 'next_action' => 'Проверьте данные участника или свяжитесь с поддержкой.',
             ],
             default => [
                 'key' => 'pending',
-                'label' => 'На проверке',
+                'label' => 'Требует проверки',
                 'tone' => 'warning',
                 'icon' => 'clock',
-                'description' => 'Заявка отправлена и ожидает проверки.',
+                'description' => 'Участие ожидает дополнительной проверки.',
                 'next_action' => 'Ожидайте решения администратора.',
             ],
         };
@@ -43,7 +43,7 @@ class StatusPresenter
                 'tone' => 'success',
                 'icon' => 'wallet',
                 'description' => 'Оплата подтверждена.',
-                'next_action' => 'Если заявка одобрена, можно начинать олимпиаду.',
+                'next_action' => 'Если участие оформлено, можно начинать олимпиаду.',
             ],
             'failed' => [
                 'key' => 'failed',
@@ -59,7 +59,7 @@ class StatusPresenter
                 'tone' => 'warning',
                 'icon' => 'credit-card',
                 'description' => 'Оплата ещё не подтверждена.',
-                'next_action' => 'После одобрения заявки оплатите участие.',
+                'next_action' => 'Оплатите участие и дождитесь подтверждения платежа.',
             ],
         };
     }

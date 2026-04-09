@@ -65,15 +65,15 @@ it('keeps admin vue pages free from mojibake text regressions', function () {
         ],
         resource_path('page/admin/AdminDashboard.vue') => [
             'mustContain' => [
-                'Панель управления олимпиадами',
-                'Актуальная статистика',
-                'Статусы заявок',
+                'Операционный центр олимпиад',
+                'Воронка участия',
+                'Платёжные статусы',
                 'Быстрые переходы',
             ],
         ],
         resource_path('page/admin/AdminLayout.vue') => [
             'mustContain' => [
-                'Рабочая админ-панель',
+                'Операционная панель команды',
                 'Заявки',
                 'Олимпиады',
                 'Вернуться на сайт',
@@ -81,10 +81,10 @@ it('keeps admin vue pages free from mojibake text regressions', function () {
         ],
         resource_path('page/admin/AdminRequests.vue') => [
             'mustContain' => [
-                'Заявки и оплата участников',
-                'Статус заявки',
+                'Участники и подтверждение оплат',
+                'Статус оплаты',
                 'Подтвердить оплату',
-                'Вернуть в ожидание',
+                'Вернуть в ожидание оплаты',
             ],
         ],
     ];
@@ -98,6 +98,6 @@ it('keeps admin vue pages free from mojibake text regressions', function () {
             expect($contents)->toContain($expectedText);
         }
 
-        expect($contents)->not->toContain('Рџ');
+        expect($contents)->not->toContain('Р Сџ');
     }
 });

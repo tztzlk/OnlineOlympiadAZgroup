@@ -3,9 +3,12 @@
     <header class="header">
       <div>
         <p class="eyebrow">Оплаты</p>
-        <h1>История оплат и импорт участников</h1>
+        <h1>История оплат и экспорт данных участников</h1>
       </div>
-      <button class="primary-btn" @click="downloadExport">Выгрузить оплаты</button>
+      <div class="header-actions">
+        <button class="secondary-btn" @click="downloadParticipantsExport">Выгрузить участников</button>
+        <button class="primary-btn" @click="downloadPaymentsExport">Выгрузить оплаты</button>
+      </div>
     </header>
 
     <section class="setup-card">
@@ -20,25 +23,6 @@
       </div>
       <p v-if="copyMessage" class="message">{{ copyMessage }}</p>
       <p class="helper-text">Подтверждать оплату администратор может на странице «Заявки», меняя статус оплаты на `paid`.</p>
-    </section>
-
-    <section class="import-card">
-      <div>
-        <h2>Импорт родителей и детей</h2>
-        <p>Загрузите CSV из Excel с колонками:</p>
-        <code>parent_email;parent_name;parent_phone;child_first_name;child_last_name;grade;birth_date;school;city;language_preference</code>
-      </div>
-
-      <label class="file-picker">
-        <input type="file" accept=".csv,.txt" @change="handleFile" />
-        <span>{{ file?.name || 'Выбор файла: файл не выбран' }}</span>
-      </label>
-
-      <button class="primary-btn wide-btn" :disabled="!file || importing" @click="upload">
-        {{ importing ? 'Импортируем...' : 'Импортировать CSV' }}
-      </button>
-
-      <p v-if="importMessage" class="message">{{ importMessage }}</p>
     </section>
 
     <section class="table-card">
@@ -75,9 +59,6 @@ import { onMounted, ref } from 'vue'
 import api from '../../js/api'
 
 const payments = ref([])
-const file = ref(null)
-const importing = ref(false)
-const importMessage = ref('')
 const copyMessage = ref('')
 const paymentUrl = import.meta.env.VITE_KASPI_PAYMENT_URL || 'https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=22909&region_id=19'
 
@@ -92,32 +73,6 @@ const load = async () => {
   payments.value = data
 }
 
-const handleFile = (event) => {
-  file.value = event.target.files?.[0] || null
-}
-
-const upload = async () => {
-  if (!file.value) return
-
-  importing.value = true
-  importMessage.value = ''
-  const formData = new FormData()
-  formData.append('file', file.value)
-
-  try {
-    const { data } = await api.post('/admin/participants/import', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-
-    importMessage.value = `${data.message}. Импортировано: ${data.imported}. Ошибок: ${data.errors.length}`
-    await load()
-  } catch (error) {
-    importMessage.value = error.response?.data?.message || 'Не удалось выполнить импорт.'
-  } finally {
-    importing.value = false
-  }
-}
-
 const copyPaymentLink = async () => {
   try {
     await navigator.clipboard.writeText(paymentUrl)
@@ -127,14 +82,23 @@ const copyPaymentLink = async () => {
   }
 }
 
-const downloadExport = async () => {
-  const { data } = await api.get('/admin/payments/export', { responseType: 'blob' })
+const downloadFile = (data, fileName) => {
   const url = URL.createObjectURL(new Blob([data], { type: 'application/vnd.ms-excel' }))
   const link = document.createElement('a')
   link.href = url
-  link.download = 'payments.xls'
+  link.download = fileName
   link.click()
   URL.revokeObjectURL(url)
+}
+
+const downloadPaymentsExport = async () => {
+  const { data } = await api.get('/admin/payments/export', { responseType: 'blob' })
+  downloadFile(data, 'payments.xls')
+}
+
+const downloadParticipantsExport = async () => {
+  const { data } = await api.get('/admin/participants/export', { responseType: 'blob' })
+  downloadFile(data, 'participants.xls')
 }
 
 onMounted(load)
@@ -149,7 +113,6 @@ onMounted(load)
 
 .header,
 .setup-card,
-.import-card,
 .table-card {
   background: var(--surface);
   border: 1px solid var(--surface-border);
@@ -165,6 +128,12 @@ onMounted(load)
   gap: 16px;
 }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .eyebrow {
   margin: 0 0 6px;
   text-transform: uppercase;
@@ -175,15 +144,13 @@ onMounted(load)
 }
 
 .setup-card,
-.import-card,
 .table-card {
   margin-top: 18px;
   display: grid;
   gap: 14px;
 }
 
-.setup-copy h2,
-.import-card h2 {
+.setup-copy h2 {
   margin: 0 0 10px;
 }
 
@@ -226,24 +193,6 @@ onMounted(load)
   border: 1px solid rgba(79, 167, 116, 0.16);
 }
 
-.wide-btn {
-  width: 100%;
-}
-
-.file-picker {
-  display: block;
-  border: 1px dashed rgba(201, 171, 99, 0.35);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  background: rgba(255, 252, 244, 0.82);
-  cursor: pointer;
-  color: var(--text);
-}
-
-.file-picker input {
-  display: none;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
@@ -271,6 +220,7 @@ code {
     align-items: stretch;
   }
 
+  .header-actions,
   .setup-actions {
     flex-direction: column;
   }

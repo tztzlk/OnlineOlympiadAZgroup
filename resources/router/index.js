@@ -7,6 +7,7 @@ import AdminLayout from "../page/admin/AdminLayout.vue";
 const routes = [
   { path: "/", name: "Home", component: Home },
   { path: "/subject", name: "Subject", component: Subject },
+  { path: "/subjects/:subjectId", name: "SubjectDetail", component: () => import("../page/SubjectDetail.vue") },
   { path: "/about", name: "About", component: () => import("../page/About.vue") },
   { path: "/rules", name: "Rules", component: () => import("../page/Rules.vue") },
   { path: "/leaderboard", name: "Leaderboard", component: () => import("../page/Leaderboard.vue") },

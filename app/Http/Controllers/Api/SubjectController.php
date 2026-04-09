@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Quiz;
+use App\Models\QuizCategory;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 
@@ -32,6 +34,13 @@ class SubjectController extends Controller
         try {
             $subject = Subject::query()
                 ->where('public_id', $id)
+                ->whereHas('quizzes', fn ($query) => $query->where('is_published', true))
+                ->with([
+                    'quizzes' => fn ($query) => $query
+                        ->where('is_published', true)
+                        ->with('categories')
+                        ->orderByDesc('id'),
+                ])
                 ->first();
 
             if (!$subject) {
@@ -40,7 +49,7 @@ class SubjectController extends Controller
                 ], 404);
             }
 
-            return response()->json($this->mapSubject($subject));
+            return response()->json($this->mapSubjectDetail($subject));
         } catch (\Exception) {
             return response()->json([
                 'message' => 'Ошибка сервера.',
@@ -77,6 +86,50 @@ class SubjectController extends Controller
             'description' => $subject->description,
             'start_date' => optional($subject->start_date)->toDateString(),
             'published_quizzes_count' => $subject->published_quizzes_count ?? 0,
+        ];
+    }
+
+    protected function mapSubjectDetail(Subject $subject): array
+    {
+        /** @var Quiz|null $quiz */
+        $quiz = $subject->quizzes->first();
+        $gradeRanges = $quiz
+            ? $quiz->categories
+                ->map(function (QuizCategory $category) {
+                    if ($category->grade_from === null || $category->grade_to === null) {
+                        return null;
+                    }
+
+                    return $category->grade_from === $category->grade_to
+                        ? (string) $category->grade_from
+                        : "{$category->grade_from}-{$category->grade_to}";
+                })
+                ->filter()
+                ->unique()
+                ->values()
+                ->all()
+            : [];
+
+        return [
+            ...$this->mapSubject($subject),
+            'time_limit' => $quiz?->time_limit,
+            'grade_ranges' => $gradeRanges,
+            'registration_url' => '/subject?subject=' . $subject->public_id,
+            'payment_url' => config('services.kaspi.payment_url'),
+            'faq' => [
+                [
+                    'question' => "Как зарегистрироваться на олимпиаду по {$subject->name}?",
+                    'answer' => 'Выберите предмет, заполните данные участника, оплатите участие через Kaspi и дождитесь подтверждения платежа.',
+                ],
+                [
+                    'question' => 'Для каких классов подходит олимпиада?',
+                    'answer' => 'Актуальные диапазоны классов указаны на странице предмета и зависят от опубликованных категорий олимпиады.',
+                ],
+                [
+                    'question' => 'Когда будут результаты?',
+                    'answer' => 'Результаты доступны после завершения олимпиады в личном кабинете, а сертификат можно проверить по публичному ID.',
+                ],
+            ],
         ];
     }
 }

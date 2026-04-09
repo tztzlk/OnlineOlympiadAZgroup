@@ -21,6 +21,16 @@ class SupportController extends Controller
             'message' => 'required|string|max:5000',
         ]);
 
+        $requestRecord = CallbackRequest::create([
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?: 'not_provided',
+            'email' => $data['email'],
+            'topic' => $data['topic'],
+            'message' => $data['message'],
+            'type' => 'helpdesk',
+            'status' => 'new',
+        ]);
+
         $supportAddress = config('services.support.email') ?: config('mail.from.address');
 
         if (!$supportAddress) {
@@ -53,6 +63,14 @@ class SupportController extends Controller
             ], 500);
         }
 
+        NotificationWorkflow::createForAdmins(
+            type: 'new_helpdesk_request',
+            title: 'Новое обращение из Help Desk',
+            body: "Поступило обращение от {$requestRecord->name}: {$requestRecord->topic}.",
+            actionUrl: '/admin/callbacks',
+            statusKey: $requestRecord->status
+        );
+
         return response()->json([
             'message' => 'Обращение отправлено. Мы скоро свяжемся с вами.',
         ]);
@@ -67,7 +85,10 @@ class SupportController extends Controller
             'message' => 'nullable|string|max:3000',
         ]);
 
-        $callback = CallbackRequest::create($data);
+        $callback = CallbackRequest::create([
+            ...$data,
+            'type' => 'callback',
+        ]);
 
         NotificationWorkflow::createForAdmins(
             type: 'new_callback_request',

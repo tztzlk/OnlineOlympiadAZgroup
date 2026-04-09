@@ -152,14 +152,18 @@
               <input
                 v-model.number="questionCountInputs[activeCategoryIndex]"
                 type="number"
-                min="1"
+                min="0"
                 max="100"
                 @change="applyQuestionCount(activeCategoryIndex)"
               />
             </label>
           </div>
 
-          <div class="questions-list">
+          <p v-if="!activeCategory.questions.length" class="empty-category-text">
+            Для этого диапазона вопросы пока не добавлены. Укажите количество больше `0`, если хотите включить эту категорию в олимпиаду.
+          </p>
+
+          <div v-else class="questions-list">
             <section
               v-for="(question, qIndex) in activeCategory.questions"
               :key="`${activeCategory.label}-${qIndex}`"
@@ -227,6 +231,25 @@
                   </label>
                 </label>
               </div>
+              <div class="answer-actions">
+                <span class="answer-count">Вариантов ответа: {{ question.answers.length }}</span>
+                <button
+                  type="button"
+                  class="ghost-btn small-btn"
+                  :disabled="question.answers.length >= 8"
+                  @click="addAnswerOption(question)"
+                >
+                  Добавить вариант
+                </button>
+                <button
+                  type="button"
+                  class="ghost-btn small-btn"
+                  :disabled="question.answers.length <= 2"
+                  @click="removeAnswerOption(question)"
+                >
+                  Удалить последний
+                </button>
+              </div>
             </section>
           </div>
         </section>
@@ -264,7 +287,14 @@ const showModal = ref(false)
 const editingId = ref(null)
 const formError = ref('')
 const activeCategoryIndex = ref(0)
-const questionCountInputs = ref(CATEGORY_PRESETS.map(() => 10))
+const questionCountInputs = ref(CATEGORY_PRESETS.map(() => 0))
+const ANSWER_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+
+const createAnswerOption = (answerIndex, answer = {}) => ({
+  label: answer.label || ANSWER_LABELS[answerIndex] || `Option ${answerIndex + 1}`,
+  position: answer.position ?? answerIndex + 1,
+  answer: answer.answer || '',
+})
 
 const createEmptyQuestion = (index) => ({
   question: '',
@@ -275,16 +305,12 @@ const createEmptyQuestion = (index) => ({
   image_path: '',
   image: '',
   uploading: false,
-  answers: ['A', 'B', 'C', 'D', 'E'].map((label, answerIndex) => ({
-    label,
-    position: answerIndex + 1,
-    answer: '',
-  })),
+  answers: Array.from({ length: 4 }, (_, answerIndex) => createAnswerOption(answerIndex)),
 })
 
 const createCategory = (preset) => ({
   ...preset,
-  questions: Array.from({ length: 10 }, (_, index) => createEmptyQuestion(index)),
+  questions: [],
 })
 
 const createForm = () => ({
@@ -335,6 +361,11 @@ const closeModal = () => {
 
 const buildImage = (question) => question.image || question.image_url || question.image_path || ''
 
+const normalizeAnswers = (answers = []) => {
+  const normalized = answers.map((answer, answerIndex) => createAnswerOption(answerIndex, answer))
+  return normalized.length ? normalized : Array.from({ length: 4 }, (_, answerIndex) => createAnswerOption(answerIndex))
+}
+
 const mapCategoryFromResponse = (category, preset) => ({
   label: category.label || preset.label,
   grade_from: category.grade_from ?? preset.grade_from,
@@ -349,14 +380,7 @@ const mapCategoryFromResponse = (category, preset) => ({
     image_path: question.image_path || '',
     image: question.image || question.image_url || question.image_path || '',
     uploading: false,
-    answers: ['A', 'B', 'C', 'D', 'E'].map((label, answerIndex) => {
-      const found = (question.answers || []).find((answer) => answer.label === label) || question.answers?.[answerIndex]
-      return {
-        label,
-        position: answerIndex + 1,
-        answer: found?.answer || '',
-      }
-    }),
+    answers: normalizeAnswers(question.answers || []),
   })),
 })
 
@@ -389,7 +413,7 @@ const editQuiz = async (quiz) => {
 }
 
 const applyQuestionCount = (categoryIndex) => {
-  const targetCount = Math.min(100, Math.max(1, Number(questionCountInputs.value[categoryIndex]) || 1))
+  const targetCount = Math.min(100, Math.max(0, Number(questionCountInputs.value[categoryIndex]) || 0))
   questionCountInputs.value[categoryIndex] = targetCount
 
   const category = form.value.categories[categoryIndex]
@@ -402,16 +426,33 @@ const applyQuestionCount = (categoryIndex) => {
       position: index + 1,
       image: buildImage(existing),
       uploading: false,
-      answers: ['A', 'B', 'C', 'D', 'E'].map((label, answerIndex) => {
-        const answer = existing.answers?.find((item) => item.label === label) || existing.answers?.[answerIndex]
-        return {
-          label,
-          position: answerIndex + 1,
-          answer: answer?.answer || '',
-        }
-      }),
+      answers: normalizeAnswers(existing.answers),
     }
   })
+}
+
+const reindexAnswers = (question) => {
+  question.answers = question.answers.map((answer, answerIndex) => ({
+    ...answer,
+    label: ANSWER_LABELS[answerIndex] || answer.label || `Option ${answerIndex + 1}`,
+    position: answerIndex + 1,
+  }))
+
+  if (!question.answers.some((answer) => answer.label === question.correct_answer)) {
+    question.correct_answer = question.answers[0]?.label || 'A'
+  }
+}
+
+const addAnswerOption = (question) => {
+  if (question.answers.length >= 8) return
+  question.answers.push(createAnswerOption(question.answers.length))
+  reindexAnswers(question)
+}
+
+const removeAnswerOption = (question) => {
+  if (question.answers.length <= 2) return
+  question.answers.pop()
+  reindexAnswers(question)
 }
 
 const handleImageSourceChange = (question) => {
@@ -478,6 +519,10 @@ const validateForm = () => {
         return `Загрузите изображение для вопроса ${index + 1} в категории ${category.label}.`
       }
 
+      if (question.answers.length < 2) {
+        return `Р”РѕР±Р°РІСЊС‚Рµ РјРёРЅРёРјСѓРј РґРІР° РІР°СЂРёР°РЅС‚Р° РѕС‚РІРµС‚Р° РІ РІРѕРїСЂРѕСЃ ${index + 1} РєР°С‚РµРіРѕСЂРёРё ${category.label}.`
+      }
+
       for (const answer of question.answers) {
         if (!answer.answer.trim()) {
           return `Заполните вариант ${answer.label} в вопросе ${index + 1} категории ${category.label}.`
@@ -501,7 +546,9 @@ const normalizePayload = () => ({
   description: form.value.description.trim(),
   time_limit: Number(form.value.time_limit) || 60,
   is_published: !!form.value.is_published,
-  categories: form.value.categories.map((category, categoryIndex) => ({
+  categories: form.value.categories
+    .filter((category) => category.questions.length > 0)
+    .map((category, categoryIndex) => ({
     label: category.label,
     grade_from: category.grade_from,
     grade_to: category.grade_to,
@@ -523,6 +570,17 @@ const normalizePayload = () => ({
 })
 
 const saveQuiz = async () => {
+  const filledCategories = form.value.categories.filter((category) => category.questions.length > 0)
+  if (!filledCategories.length) {
+    formError.value = 'Добавьте хотя бы одну категорию с вопросами.'
+    return
+  }
+
+  form.value = {
+    ...form.value,
+    categories: filledCategories,
+  }
+
   formError.value = validateForm()
   if (formError.value) return
 
@@ -619,6 +677,10 @@ input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var
 .image-preview { border: 1px solid var(--surface-border); border-radius: 18px; padding: 12px; background: rgba(255,252,244,.92); }
 .image-preview img { display: block; width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; background: rgba(255,252,244,.8); }
 .answers-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.answer-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.answer-count { color: var(--text-secondary); font-size: 13px; font-weight: 700; }
+.empty-category-text { margin: 0; color: var(--text-secondary); font-weight: 600; }
+.small-btn { padding: 10px 14px; border-radius: 12px; }
 .radio-row { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
 .error-text { margin: 16px 0 0; color: #8f3b3b; font-weight: 600; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }

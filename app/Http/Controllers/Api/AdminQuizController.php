@@ -114,7 +114,7 @@ class AdminQuizController extends Controller
 
     protected function validatePayload(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'subject_id' => 'nullable|string',
             'subject.name' => 'required_without:subject_id|string|max:255',
             'subject.description' => 'nullable|string',
@@ -135,12 +135,38 @@ class AdminQuizController extends Controller
             'categories.*.questions.*.image_url' => 'nullable|string',
             'categories.*.questions.*.image_path' => 'nullable|string',
             'categories.*.questions.*.position' => 'nullable|integer|min:1|max:100',
-            'categories.*.questions.*.answers' => 'required|array|size:5',
-            'categories.*.questions.*.correct_answer' => 'required|string|in:A,B,C,D,E',
-            'categories.*.questions.*.answers.*.label' => 'required|string|in:A,B,C,D,E',
+            'categories.*.questions.*.answers' => 'required|array|min:2|max:8',
+            'categories.*.questions.*.correct_answer' => 'required|string|max:10',
+            'categories.*.questions.*.answers.*.label' => 'required|string|max:10',
             'categories.*.questions.*.answers.*.answer' => 'required|string',
-            'categories.*.questions.*.answers.*.position' => 'nullable|integer|min:1|max:5',
+            'categories.*.questions.*.answers.*.position' => 'nullable|integer|min:1|max:8',
         ]);
+
+        foreach ($data['categories'] as $category) {
+            foreach ($category['questions'] as $questionIndex => $question) {
+                $labels = collect($question['answers'])->pluck('label')->map(fn ($label) => trim((string) $label));
+
+                if ($labels->contains('')) {
+                    abort(response()->json([
+                        'message' => "Question " . ($questionIndex + 1) . " in category {$category['label']} contains an empty answer label.",
+                    ], 422));
+                }
+
+                if ($labels->duplicates()->isNotEmpty()) {
+                    abort(response()->json([
+                        'message' => "Question " . ($questionIndex + 1) . " in category {$category['label']} has duplicate answer labels.",
+                    ], 422));
+                }
+
+                if (!$labels->contains((string) $question['correct_answer'])) {
+                    abort(response()->json([
+                        'message' => "Question " . ($questionIndex + 1) . " in category {$category['label']} must point to an existing correct answer.",
+                    ], 422));
+                }
+            }
+        }
+
+        return $data;
     }
 
     protected function resolveSubject(array $data): Subject

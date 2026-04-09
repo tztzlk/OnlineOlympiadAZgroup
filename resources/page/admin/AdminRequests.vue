@@ -2,10 +2,11 @@
   <div class="admin-page">
     <header class="page-head">
       <div>
-        <p class="eyebrow">Заявки</p>
-        <h1>Заявки и оплата участников</h1>
+        <p class="eyebrow">Участники</p>
+        <h1>Участники и подтверждение оплат</h1>
         <p class="subtext">
-          Здесь администратор вручную проверяет новые заявки, подтверждает оплату и открывает доступ к олимпиаде.
+          Здесь видно, кто оформил участие, кто уже оплатил олимпиаду и кому ещё не подтверждён платёж.
+          После подтверждения оплаты участник сразу получает доступ к олимпиаде.
         </p>
       </div>
 
@@ -19,20 +20,6 @@
         </label>
 
         <div class="filter-panel">
-          <div class="filter-group">
-            <span class="filter-label">Статус заявки</span>
-            <button
-              v-for="filter in requestFilters"
-              :key="filter.value"
-              type="button"
-              class="filter-btn"
-              :class="{ active: activeRequestFilter === filter.value }"
-              @click="activeRequestFilter = filter.value"
-            >
-              {{ filter.label }}
-            </button>
-          </div>
-
           <div class="filter-group">
             <span class="filter-label">Статус оплаты</span>
             <button
@@ -52,36 +39,32 @@
 
     <div class="stats-row" v-if="!loading">
       <div class="stat-card">
-        <span>Всего заявок</span>
+        <span>Всего участников</span>
         <strong>{{ requests.length }}</strong>
       </div>
       <div class="stat-card pending">
-        <span>Ждут проверки</span>
-        <strong>{{ requestsByStatus.pending }}</strong>
-      </div>
-      <div class="stat-card approved">
-        <span>Одобрены</span>
-        <strong>{{ requestsByStatus.approved }}</strong>
-      </div>
-      <div class="stat-card rejected">
-        <span>Отклонены</span>
-        <strong>{{ requestsByStatus.rejected }}</strong>
+        <span>Ждут оплату</span>
+        <strong>{{ requestsByPayment.pending }}</strong>
       </div>
       <div class="stat-card paid">
         <span>Оплата подтверждена</span>
         <strong>{{ requestsByPayment.paid }}</strong>
       </div>
+      <div class="stat-card failed">
+        <span>Оплата не прошла</span>
+        <strong>{{ requestsByPayment.failed }}</strong>
+      </div>
     </div>
 
-    <div v-if="loading" class="state-card">Загружаем заявки...</div>
+    <div v-if="loading" class="state-card">Загружаем участников...</div>
     <div v-else-if="errorMessage" class="state-card error-card">{{ errorMessage }}</div>
-    <div v-else-if="!filteredRequests.length" class="state-card">По текущим фильтрам заявок нет.</div>
+    <div v-else-if="!filteredRequests.length" class="state-card">По текущим фильтрам участников нет.</div>
 
     <div v-else class="request-grid">
       <article v-for="request in filteredRequests" :key="request.id" class="request-card">
         <div class="request-top">
           <div>
-            <p class="request-id">Заявка #{{ request.id }}</p>
+            <p class="request-id">Участие #{{ request.id }}</p>
             <h2>{{ request.name }}</h2>
             <p class="request-meta">{{ request.subjectName }}</p>
           </div>
@@ -97,6 +80,10 @@
             <strong>{{ request.email }}</strong>
           </div>
           <div class="detail">
+            <span>Телефон родителя</span>
+            <strong>{{ request.parent_phone || 'Не указан' }}</strong>
+          </div>
+          <div class="detail">
             <span>Класс</span>
             <strong>{{ request.grade || 'Не указан' }}</strong>
           </div>
@@ -105,7 +92,7 @@
             <strong>{{ languageLabel(request.language) }}</strong>
           </div>
           <div class="detail">
-            <span>Дата заявки</span>
+            <span>Дата оформления</span>
             <strong>{{ formatDate(request.created_at) }}</strong>
           </div>
           <div class="detail">
@@ -122,30 +109,6 @@
 
         <div class="actions">
           <button type="button" class="ghost-btn" @click="viewRequest(request)">Подробнее</button>
-          <button
-            v-if="request.status !== 'approved'"
-            type="button"
-            class="success-btn"
-            @click="updateStatus(request, 'approved')"
-          >
-            Одобрить заявку
-          </button>
-          <button
-            v-if="request.status !== 'rejected'"
-            type="button"
-            class="danger-btn"
-            @click="updateStatus(request, 'rejected')"
-          >
-            Отклонить заявку
-          </button>
-          <button
-            v-if="request.status !== 'pending'"
-            type="button"
-            class="ghost-btn"
-            @click="updateStatus(request, 'pending')"
-          >
-            Вернуть в ожидание
-          </button>
           <button
             v-if="request.payment_status !== 'paid'"
             type="button"
@@ -168,7 +131,7 @@
             class="ghost-btn"
             @click="updatePaymentStatus(request, 'pending')"
           >
-            Вернуть оплату в ожидание
+            Вернуть в ожидание оплаты
           </button>
         </div>
       </article>
@@ -187,7 +150,7 @@
 
         <div class="modal-grid">
           <div class="modal-field">
-            <span>Статус заявки</span>
+            <span>Статус участия</span>
             <strong>{{ statusLabel(selectedRequest.status) }}</strong>
           </div>
           <div class="modal-field">
@@ -219,7 +182,7 @@
             <strong>{{ languageLabel(selectedRequest.language) }}</strong>
           </div>
           <div class="modal-field">
-            <span>Дата заявки</span>
+            <span>Дата оформления</span>
             <strong>{{ formatDate(selectedRequest.created_at) }}</strong>
           </div>
           <div class="modal-field">
@@ -248,15 +211,7 @@ const errorMessage = ref('')
 const requests = ref([])
 const selectedRequest = ref(null)
 const search = ref('')
-const activeRequestFilter = ref('all')
 const activePaymentFilter = ref('all')
-
-const requestFilters = [
-  { value: 'all', label: 'Все' },
-  { value: 'pending', label: 'Ожидают' },
-  { value: 'approved', label: 'Одобрены' },
-  { value: 'rejected', label: 'Отклонены' },
-]
 
 const paymentFilters = [
   { value: 'all', label: 'Все' },
@@ -266,9 +221,9 @@ const paymentFilters = [
 ]
 
 const statusLabel = (status) => ({
-  pending: 'Ожидает проверки',
-  approved: 'Одобрена',
-  rejected: 'Отклонена',
+  pending: 'Требует проверки',
+  approved: 'Оформлено',
+  rejected: 'Отклонено',
 }[status] ?? status)
 
 const paymentLabel = (status) => ({
@@ -285,6 +240,7 @@ const languageLabel = (language) => ({
 
 const formatDate = (date) => {
   if (!date) return 'Не указана'
+
   return new Date(date).toLocaleString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
@@ -293,12 +249,6 @@ const formatDate = (date) => {
     minute: '2-digit',
   })
 }
-
-const requestsByStatus = computed(() => ({
-  pending: requests.value.filter((item) => item.status === 'pending').length,
-  approved: requests.value.filter((item) => item.status === 'approved').length,
-  rejected: requests.value.filter((item) => item.status === 'rejected').length,
-}))
 
 const requestsByPayment = computed(() => ({
   pending: requests.value.filter((item) => item.payment_status === 'pending').length,
@@ -310,7 +260,6 @@ const filteredRequests = computed(() => {
   const query = search.value.trim().toLowerCase()
 
   return requests.value.filter((request) => {
-    const requestFilterMatch = activeRequestFilter.value === 'all' || request.status === activeRequestFilter.value
     const paymentFilterMatch = activePaymentFilter.value === 'all' || request.payment_status === activePaymentFilter.value
     const searchMatch =
       !query ||
@@ -318,7 +267,7 @@ const filteredRequests = computed(() => {
       request.email.toLowerCase().includes(query) ||
       request.subjectName.toLowerCase().includes(query)
 
-    return requestFilterMatch && paymentFilterMatch && searchMatch
+    return paymentFilterMatch && searchMatch
   })
 })
 
@@ -332,23 +281,19 @@ const mapRequest = (item) => ({
 })
 
 const requestActionHint = (request) => {
-  if (request.status === 'pending') {
-    return 'Сначала проверьте заявку, затем одобрите её. После этого участник сможет оплатить олимпиаду.'
+  if (request.payment_status === 'pending') {
+    return 'Участие уже оформлено. Осталось дождаться оплаты или подтвердить её вручную после проверки.'
   }
 
-  if (request.status === 'approved' && request.payment_status === 'pending') {
-    return 'Заявка одобрена. Ожидается оплата и ручное подтверждение администратора.'
+  if (request.payment_status === 'paid') {
+    return 'Оплата подтверждена. Участник уже может начать олимпиаду.'
   }
 
-  if (request.status === 'approved' && request.payment_status === 'paid') {
-    return 'Все условия выполнены. Участник может начать олимпиаду.'
+  if (request.payment_status === 'failed') {
+    return 'Платёж не был подтверждён. После повторной оплаты можно вернуть запись в ожидание.'
   }
 
-  if (request.status === 'rejected') {
-    return 'Отклонённая заявка не допускается к олимпиаде даже при наличии оплаты.'
-  }
-
-  return 'Проверьте данные и подтвердите следующий шаг вручную.'
+  return 'Проверьте данные участника и статус оплаты.'
 }
 
 const syncRequest = (target, payload) => {
@@ -368,19 +313,9 @@ const loadRequests = async () => {
     requests.value = (data.data || []).map(mapRequest)
   } catch (error) {
     console.error(error)
-    errorMessage.value = error.response?.data?.message || 'Не удалось загрузить заявки.'
+    errorMessage.value = error.response?.data?.message || 'Не удалось загрузить участников.'
   } finally {
     loading.value = false
-  }
-}
-
-const updateStatus = async (request, status) => {
-  try {
-    const { data } = await api.patch(`/admin/requests/${request.id}/status`, { status })
-    syncRequest(request, data)
-  } catch (error) {
-    console.error(error)
-    errorMessage.value = error.response?.data?.message || 'Не удалось обновить статус заявки.'
   }
 }
 
@@ -528,7 +463,7 @@ h1 {
 
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -551,9 +486,8 @@ h1 {
 }
 
 .stat-card.pending { background: linear-gradient(180deg, var(--warning-bg) 0%, rgba(255, 249, 238, 0.95) 100%); }
-.stat-card.approved { background: linear-gradient(180deg, var(--success-bg) 0%, rgba(255, 249, 238, 0.95) 100%); }
-.stat-card.rejected { background: linear-gradient(180deg, var(--danger-bg) 0%, rgba(255, 249, 238, 0.95) 100%); }
 .stat-card.paid { background: linear-gradient(180deg, rgba(201, 171, 99, 0.14) 0%, rgba(255, 249, 238, 0.95) 100%); }
+.stat-card.failed { background: linear-gradient(180deg, var(--danger-bg) 0%, rgba(255, 249, 238, 0.95) 100%); }
 
 .state-card {
   border-radius: var(--radius-lg);
@@ -674,7 +608,6 @@ h1 {
 
 .ghost-btn,
 .success-btn,
-.danger-btn,
 .warning-btn,
 .close-btn {
   border: 0;
@@ -692,11 +625,6 @@ h1 {
 .success-btn {
   background: var(--success-bg);
   color: #2f6f4b;
-}
-
-.danger-btn {
-  background: var(--danger-bg);
-  color: #8f3b3b;
 }
 
 .warning-btn {

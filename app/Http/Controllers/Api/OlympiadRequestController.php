@@ -63,8 +63,8 @@ class OlympiadRequestController extends Controller
         if ($existing) {
             $existing->update([
                 ...$payload,
-                'status' => $existing->status ?: 'pending',
-                'payment_status' => $existing->payment_status ?: 'pending',
+                'status' => 'approved',
+                'payment_status' => $existing->payment_status === 'paid' ? 'paid' : 'pending',
                 'paid_at' => $existing->payment_status === 'paid' ? $existing->paid_at : null,
             ]);
 
@@ -72,20 +72,20 @@ class OlympiadRequestController extends Controller
         } else {
             $requestModel = OlympiadRequest::create([
                 ...$payload,
-                'status' => 'pending',
+                'status' => 'approved',
                 'payment_status' => 'pending',
             ]);
             $requestModel->load(['subject', 'user', 'childProfile']);
 
             NotificationWorkflow::createForUser(
                 user: $user,
-                type: 'olympiad_request_submitted',
-                title: 'Заявка отправлена',
-                body: "Заявка на олимпиаду по предмету {$requestModel->subject?->name} отправлена и ожидает проверки администратора.",
+                type: 'olympiad_request_approved',
+                title: 'Участие оформлено',
+                body: "Участие в олимпиаде по предмету {$requestModel->subject?->name} оформлено. Можно переходить к оплате.",
                 actionUrl: rtrim(config('app.url'), '/') . '/profile',
-                statusKey: 'request_pending',
+                statusKey: 'approved',
                 payload: [
-                    'action_label' => 'Смотреть статус',
+                    'action_label' => 'Открыть кабинет',
                     'context' => [
                         'Участник' => $child->full_name,
                         'Предмет' => $requestModel->subject?->name ?? 'Олимпиада',
@@ -95,11 +95,11 @@ class OlympiadRequestController extends Controller
             );
 
             NotificationWorkflow::createForAdmins(
-                type: 'new_olympiad_request',
-                title: 'Новая заявка на олимпиаду',
-                body: "Поступила новая заявка от {$user->name} на предмет {$requestModel->subject?->name}.",
-                actionUrl: '/admin/requests',
-                statusKey: 'request_pending'
+                type: 'new_payment_pending',
+                title: 'Новый участник ждёт оплату',
+                body: "Оформлено участие {$user->name} по предмету {$requestModel->subject?->name}. Ожидается оплата.",
+                actionUrl: '/admin/payments',
+                statusKey: 'pending'
             );
         }
 
@@ -118,11 +118,11 @@ class OlympiadRequestController extends Controller
 
         return response()->json([
             'message' => $existing
-                ? 'Заявка обновлена. Данные сохранены без создания дубликата.'
-                : 'Заявка отправлена. Дождитесь проверки администратором и подтверждения оплаты.',
+                ? 'Участие обновлено. Можно переходить к оплате.'
+                : 'Участие оформлено. Переходите к оплате.',
             'request' => new OlympiadRequestResource($requestModel),
             'payment' => $this->mapPayment($payment),
-            'redirect_to_quiz' => $requestModel->status === 'approved' && $requestModel->payment_status === 'paid',
+            'redirect_to_quiz' => $requestModel->payment_status === 'paid',
             'payment_url' => config('services.kaspi.payment_url'),
         ]);
     }
@@ -247,10 +247,10 @@ class OlympiadRequestController extends Controller
             NotificationWorkflow::createForUser(
                 user: $olympiadRequest->user,
                 type: $isApproved ? 'olympiad_request_approved' : 'olympiad_request_rejected',
-                title: $isApproved ? 'Заявка одобрена' : 'Заявка отклонена',
+                title: $isApproved ? 'Участие подтверждено' : 'Участие отклонено',
                 body: $isApproved
-                    ? "Заявка на {$olympiadRequest->subject?->name} одобрена. Следующий шаг — подтверждение оплаты."
-                    : "Заявка на {$olympiadRequest->subject?->name} отклонена. Проверьте данные участника или свяжитесь с поддержкой.",
+                    ? "Участие по предмету {$olympiadRequest->subject?->name} подтверждено. Следующий шаг — оплата."
+                    : "Участие по предмету {$olympiadRequest->subject?->name} отклонено. Проверьте данные участника или свяжитесь с поддержкой.",
                 actionUrl: rtrim(config('app.url'), '/') . '/profile',
                 statusKey: $olympiadRequest->status,
                 payload: [
@@ -265,7 +265,7 @@ class OlympiadRequestController extends Controller
         }
 
         return response()->json([
-            'message' => 'Статус заявки обновлён.',
+            'message' => 'Статус участия обновлён.',
             'request' => new OlympiadRequestResource($olympiadRequest),
         ]);
     }
@@ -327,7 +327,7 @@ class OlympiadRequestController extends Controller
                     default => 'Оплата ожидает подтверждения',
                 },
                 body: match ($status) {
-                    'paid' => "Оплата за {$olympiadRequest->subject?->name} подтверждена. Если заявка одобрена, доступ к олимпиаде открыт.",
+                    'paid' => "Оплата за {$olympiadRequest->subject?->name} подтверждена. Доступ к олимпиаде открыт.",
                     'failed' => "Платёж по олимпиаде {$olympiadRequest->subject?->name} не был подтверждён.",
                     default => "Оплата по олимпиаде {$olympiadRequest->subject?->name} ожидает подтверждения.",
                 },
@@ -348,7 +348,7 @@ class OlympiadRequestController extends Controller
             NotificationWorkflow::createForAdmins(
                 type: 'payment_review_needed',
                 title: 'Требуется проверка оплаты',
-                body: "Статус платежа по заявке {$olympiadRequest->subject?->name} обновлён: {$status}.",
+                body: "Статус платежа по предмету {$olympiadRequest->subject?->name} обновлён: {$status}.",
                 actionUrl: '/admin/payments',
                 statusKey: $status
             );
@@ -368,7 +368,7 @@ class OlympiadRequestController extends Controller
         $olympiadRequest->delete();
 
         return response()->json([
-            'message' => 'Заявка удалена.',
+            'message' => 'Запись участия удалена.',
         ]);
     }
 

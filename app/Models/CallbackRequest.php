@@ -14,7 +14,9 @@ class CallbackRequest extends Model
         'name',
         'phone',
         'email',
+        'topic',
         'message',
+        'type',
         'status',
     ];
 

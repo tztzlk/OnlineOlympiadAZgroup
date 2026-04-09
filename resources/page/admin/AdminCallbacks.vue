@@ -2,8 +2,8 @@
   <div class="admin-page">
     <header class="header">
       <div>
-        <p class="eyebrow">Callbacks</p>
-        <h1>Заявки на обратный звонок</h1>
+        <p class="eyebrow">Обращения</p>
+        <h1>Help Desk и обратные звонки</h1>
       </div>
       <button class="primary-btn" @click="downloadExport">Выгрузить Excel</button>
     </header>
@@ -12,18 +12,22 @@
       <table>
         <thead>
           <tr>
+            <th>Тип</th>
             <th>Имя</th>
             <th>Телефон</th>
             <th>Email</th>
+            <th>Тема</th>
             <th>Сообщение</th>
             <th>Дата</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="item in callbacks" :key="item.id">
+            <td>{{ item.type === 'helpdesk' ? 'Help Desk' : 'Callback' }}</td>
             <td>{{ item.name }}</td>
-            <td>{{ item.phone }}</td>
+            <td>{{ item.phone && item.phone !== 'not_provided' ? item.phone : '—' }}</td>
             <td>{{ item.email || '—' }}</td>
+            <td>{{ item.topic || '—' }}</td>
             <td>{{ item.message || '—' }}</td>
             <td>{{ item.date }}</td>
           </tr>

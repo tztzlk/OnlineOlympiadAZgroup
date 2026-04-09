@@ -32,6 +32,7 @@ Route::get('/news', [NewsController::class, 'index']);
 Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 Route::get('/certificate-check/{result}', [ProfileController::class, 'publicCertificateLookup']);
 Route::get('/subjects', [SubjectController::class, 'index']);
+Route::get('/subjects/{id}', [SubjectController::class, 'show']);
 Route::get('/security/pow-challenge', [SecurityController::class, 'powChallenge']);
 Route::post('/support/feedback', [SupportController::class, 'feedback'])->middleware('pow:feedback');
 Route::post('/support/callback', [SupportController::class, 'callback'])->middleware('pow:callback');

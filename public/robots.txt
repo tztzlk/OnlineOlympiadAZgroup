@@ -1,2 +1,4 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://onlineolympiadazgroup-3fw5c0hn.on-forge.com/sitemap.xml

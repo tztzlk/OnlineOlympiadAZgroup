@@ -5,6 +5,7 @@ import router from '../router/index.js'
 import { createPinia } from 'pinia'
 import { useUserStore } from '../stores/user.js'
 import { i18n } from '../i18n.js'
+import { applySeo, getStaticSeoForPath } from './composables/useSeo.js'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -20,4 +21,22 @@ if (userStore.token) {
 
 }
 
+router.afterEach((to) => {
+  if (to.path.startsWith('/subjects/')) {
+    return
+  }
+
+  const seo = getStaticSeoForPath(to.path)
+  if (seo) {
+    applySeo(seo)
+  }
+})
+
 app.mount('#app')
+
+document.documentElement.classList.add('app-mounted')
+
+const initialSeo = getStaticSeoForPath(window.location.pathname)
+if (initialSeo) {
+  applySeo(initialSeo)
+}

@@ -6,7 +6,7 @@ it('keeps user-facing olympiad pages and api messages free from mojibake', funct
             'mustContain' => [
                 'Оформление участия',
                 'Оплатить через Kaspi',
-                'Заявка отправлена',
+                'Сохранить и перейти к оплате',
             ],
         ],
         resource_path('page/Training.vue') => [
@@ -23,7 +23,7 @@ it('keeps user-facing olympiad pages and api messages free from mojibake', funct
         ],
         app_path('Http/Controllers/Api/OlympiadRequestController.php') => [
             'mustContain' => [
-                'Заявка отправлена. Дождитесь проверки администратором и подтверждения оплаты.',
+                'Участие оформлено. Переходите к оплате.',
                 'Статус оплаты обновлён.',
             ],
         ],
@@ -51,7 +51,7 @@ it('keeps user-facing olympiad pages and api messages free from mojibake', funct
             expect($contents)->toContain($expectedText);
         }
 
-        expect($contents)->not->toContain('Рџ');
-        expect($contents)->not->toContain('СЃС‚');
+        expect($contents)->not->toContain('Р Сџ');
+        expect($contents)->not->toContain('РЎРѓРЎвЂљ');
     }
 });

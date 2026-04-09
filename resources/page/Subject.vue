@@ -3,8 +3,11 @@
     <div class="container">
       <div class="page-header">
         <div class="page-badge">Предметы</div>
-        <h1 class="page-title">Выберите олимпиаду и оформите участие</h1>
-        <p class="page-subtitle">Путь простой: выберите предмет, укажите участника, отправьте заявку, дождитесь проверки и оплаты, затем переходите к олимпиаде.</p>
+        <h1 class="page-title">Выберите олимпиаду и сразу переходите к оплате</h1>
+        <p class="page-subtitle">
+          Путь стал проще: выберите предмет, укажите участника, сохраните данные и оплатите участие.
+          После подтверждения оплаты в админке доступ к олимпиаде откроется автоматически.
+        </p>
       </div>
 
       <div class="subjects-grid">
@@ -21,6 +24,13 @@
           <h2 class="subject-card__name">{{ subject.name }}</h2>
           <p class="subject-card__desc">{{ subject.description }}</p>
           <CountdownBadge :target="subject.start_date" label="До старта" />
+          <RouterLink
+            class="subject-card__link"
+            :to="`/subjects/${subject.id}`"
+            @click.stop
+          >
+            Страница предмета
+          </RouterLink>
         </div>
       </div>
 
@@ -47,7 +57,7 @@
           tone="warning"
           eyebrow="Нужен аккаунт"
           title="Сначала войдите в кабинет"
-          description="После входа можно сохранить данные ребёнка, отправить заявку и отслеживать оплату."
+          description="После входа можно сохранить данные ребёнка, сразу перейти к оплате и отслеживать подтверждение платежа."
         >
           <template #actions>
             <RouterLink to="/login" class="step-link">Войти</RouterLink>
@@ -67,15 +77,15 @@
             <article class="flow-step">
               <span class="flow-step__index">2</span>
               <div>
-                <h3>Заполните заявку</h3>
-                <p>Укажите ребёнка, язык олимпиады и контакты родителя. Заявка сохранится в кабинете.</p>
+                <h3>Сохраните данные и оплатите</h3>
+                <p>Укажите язык олимпиады и контакты родителя. После сохранения откроется ссылка на оплату Kaspi.</p>
               </div>
             </article>
             <article class="flow-step">
               <span class="flow-step__index">3</span>
               <div>
-                <h3>Следите за статусом</h3>
-                <p>После проверки администратором здесь появится следующий шаг: оплата, старт или рекомендация обратиться в поддержку.</p>
+                <h3>Дождитесь подтверждения оплаты</h3>
+                <p>Как только администратор отметит платёж, здесь появится кнопка для старта олимпиады.</p>
               </div>
             </article>
           </div>
@@ -89,7 +99,7 @@
               </option>
             </select>
             <small v-if="!userStore.children.length" class="helper">
-              У вас пока нет профилей детей. Заполните форму ниже, и профиль будет создан автоматически вместе с заявкой.
+              У вас пока нет профилей детей. Заполните форму ниже, и профиль создастся автоматически вместе с участием.
             </small>
           </div>
 
@@ -160,7 +170,7 @@
 
           <div class="single-action">
             <button :disabled="!canProceed || submitting" class="start-btn" @click="startOlympiad">
-              {{ submitting ? 'Сохраняем...' : 'Отправить заявку' }}
+              {{ submitting ? 'Сохраняем...' : 'Сохранить и перейти к оплате' }}
             </button>
           </div>
 
@@ -185,15 +195,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import api from '../js/api'
 import StatePanel from '../components/StatePanel.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import CountdownBadge from '../components/CountdownBadge.vue'
+import { applySeo, getStaticSeoForPath } from '../js/composables/useSeo'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const subjects = ref([])
@@ -230,10 +242,10 @@ const canProceed = computed(() =>
 )
 
 const requestStatusLabel = computed(() => ({
-  pending: 'Заявка на проверке',
-  approved: 'Заявка одобрена',
-  rejected: 'Заявка отклонена',
-}[requestStatus.value] || 'Заявка не оформлена'))
+  pending: 'Участие требует проверки',
+  approved: 'Участие оформлено',
+  rejected: 'Участие отклонено',
+}[requestStatus.value] || 'Участие ещё не оформлено'))
 
 const paymentStatusLabel = computed(() => ({
   pending: 'Оплата ожидается',
@@ -255,7 +267,7 @@ const paymentTone = computed(() => ({
 
 const showKaspiButton = computed(() =>
   Boolean(paymentUrl.value) &&
-  requestStatus.value === 'approved' &&
+  requestStatus.value !== 'rejected' &&
   paymentStatus.value !== 'paid'
 )
 
@@ -265,11 +277,11 @@ const canStartOlympiad = computed(() =>
 
 const requestHint = computed(() => {
   if (requestStatus.value === 'pending') {
-    return 'Заявка отправлена. Администратор проверит данные участника и откроет следующий шаг.'
+    return 'Данные сохранены, но участие временно требует дополнительной проверки администратором.'
   }
 
   if (requestStatus.value === 'approved' && paymentStatus.value === 'pending') {
-    return 'Заявка одобрена. Оплатите участие и дождитесь подтверждения платежа.'
+    return 'Участие оформлено. Оплатите олимпиаду и дождитесь подтверждения платежа администратором.'
   }
 
   if (requestStatus.value === 'approved' && paymentStatus.value === 'paid') {
@@ -277,10 +289,10 @@ const requestHint = computed(() => {
   }
 
   if (requestStatus.value === 'rejected') {
-    return 'Заявка отклонена. Проверьте данные участника или свяжитесь с поддержкой.'
+    return 'Участие отклонено. Проверьте данные участника или свяжитесь с поддержкой.'
   }
 
-  return 'После отправки заявки вы увидите здесь понятный статус и следующий шаг.'
+  return 'После сохранения данных вы сразу увидите ссылку на оплату и текущий статус участия.'
 })
 
 const hydrateParentDefaults = () => {
@@ -308,6 +320,16 @@ const applyChildSelection = () => {
 const fetchSubjects = async () => {
   const { data } = await api.get('/subjects')
   subjects.value = data
+}
+
+const syncSubjectFromQuery = async () => {
+  const subjectId = route.query.subject ? String(route.query.subject) : ''
+  if (!subjectId || !subjects.value.length) return
+
+  const matched = subjects.value.find((item) => item.id === subjectId)
+  if (!matched) return
+
+  await selectSubject(matched)
 }
 
 const fetchRequestStatus = async () => {
@@ -355,7 +377,7 @@ const startOlympiad = async () => {
     }
 
     const { data } = await api.post('/olympiad/request', payload)
-    requestStatus.value = data.request?.status || 'pending'
+    requestStatus.value = data.request?.status || 'approved'
     paymentStatus.value = data.request?.payment_status || 'pending'
     paymentUrl.value = data.payment_url || ''
 
@@ -365,6 +387,10 @@ const startOlympiad = async () => {
     if (data.request?.child_profile_id) {
       userStore.setSelectedChild(data.request.child_profile_id)
       selectedChildId.value = String(data.request.child_profile_id)
+    }
+
+    if (data.payment_url && data.request?.payment_status !== 'paid') {
+      window.open(data.payment_url, '_blank', 'noopener')
     }
   } catch (error) {
     window.alert(error.response?.data?.message || 'Не удалось оформить участие.')
@@ -387,9 +413,15 @@ const goToQuiz = () => {
 onMounted(async () => {
   await userStore.fetchUser()
   hydrateParentDefaults()
+  applySeo(getStaticSeoForPath('/subject'))
   selectedChildId.value = userStore.selectedChildId ? String(userStore.selectedChildId) : ''
   if (selectedChildId.value) applyChildSelection()
   await fetchSubjects()
+  await syncSubjectFromQuery()
+})
+
+watch(() => route.query.subject, async () => {
+  await syncSubjectFromQuery()
 })
 </script>
 
@@ -409,6 +441,7 @@ onMounted(async () => {
 .subject-card__img-wrap img { width: 60px; height: 60px; object-fit: contain; }
 .subject-card__name { font-size: 18px; font-weight: 600; color: var(--text-on-surface); margin: 0; }
 .subject-card__desc { font-size: 14px; color: var(--text-muted-on-surface); line-height: 1.5; margin: 0; }
+.subject-card__link { color: var(--accent-strong); font-weight: 700; text-decoration: none; }
 .step-box { background: var(--surface); padding: 36px; border-radius: 28px; border: 1px solid var(--surface-border); display: grid; gap: 16px; }
 .step-box__header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
 .step-box__header h2 { color: var(--text-on-surface); margin: 0 0 4px; }
