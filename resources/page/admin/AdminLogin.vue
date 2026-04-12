@@ -97,6 +97,7 @@ import { ref } from 'vue'
 import api from '../../js/api'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
+import { firstAdminRoute, hasAdminAccess } from '../../js/adminAccess'
 
 const email = ref('')
 const password = ref('')
@@ -119,7 +120,7 @@ const login = async () => {
 
     const user = res.data.user
 
-    if (!user.is_admin) {
+    if (!hasAdminAccess(user)) {
       throw new Error('Доступ только для администратора')
     }
 
@@ -129,7 +130,7 @@ const login = async () => {
     localStorage.setItem('session_type', 'admin')
     userStore.setAuth(user, token)
 
-    await router.replace({ name: 'AdminDashboard' })
+    await router.replace(firstAdminRoute(user))
   } catch (err) {
     error.value =
       err.response?.data?.message ||

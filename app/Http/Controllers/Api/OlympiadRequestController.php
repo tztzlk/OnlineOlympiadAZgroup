@@ -112,6 +112,7 @@ class OlympiadRequestController extends Controller
                 'child_profile_id' => $child->id,
                 'subject_id' => $requestModel->subject_id,
                 'status' => $requestModel->payment_status,
+                'comment' => $this->buildPaymentComment($requestModel),
                 'paid_at' => $requestModel->payment_status === 'paid' ? $requestModel->paid_at : null,
             ]
         );
@@ -122,6 +123,8 @@ class OlympiadRequestController extends Controller
                 : 'Участие оформлено. Переходите к оплате.',
             'request' => new OlympiadRequestResource($requestModel),
             'payment' => $this->mapPayment($payment),
+            'payment_reference' => $requestModel->public_id,
+            'payment_comment' => $this->buildPaymentComment($requestModel),
             'redirect_to_quiz' => $requestModel->payment_status === 'paid',
             'payment_url' => config('services.kaspi.payment_url'),
         ]);
@@ -150,6 +153,8 @@ class OlympiadRequestController extends Controller
         return response()->json([
             'status' => $requestModel?->status,
             'payment_status' => $requestModel?->payment_status,
+            'payment_reference' => $requestModel?->public_id,
+            'payment_comment' => $requestModel ? $this->buildPaymentComment($requestModel) : null,
             'payment_url' => config('services.kaspi.payment_url'),
             'child_profile_id' => $requestModel?->childProfile?->public_id,
             'paid_at' => optional($requestModel?->paid_at)->toISOString(),
@@ -200,6 +205,8 @@ class OlympiadRequestController extends Controller
                 'email' => $olympiadRequest->user?->email,
             ],
             'created_at' => optional($olympiadRequest->created_at)->toISOString(),
+            'payment_reference' => $olympiadRequest->public_id,
+            'payment_comment' => $this->buildPaymentComment($olympiadRequest),
             'payment_url' => config('services.kaspi.payment_url'),
         ]);
     }
@@ -228,7 +235,7 @@ class OlympiadRequestController extends Controller
     {
         $user = $request->user();
 
-        if (!$user || !$user->is_admin) {
+        if (!$user || !$user->hasAdminCapability('requests')) {
             return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
@@ -274,7 +281,7 @@ class OlympiadRequestController extends Controller
     {
         $user = $request->user();
 
-        if (!$user || !$user->is_admin) {
+        if (!$user || !$user->hasAdminCapability('payments')) {
             return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
@@ -418,6 +425,14 @@ class OlympiadRequestController extends Controller
             'external_reference' => $payment->external_reference,
             'comment' => $payment->comment,
         ];
+    }
+
+    protected function buildPaymentComment(OlympiadRequest $request): string
+    {
+        $subject = $request->subject?->name ?? 'Олимпиада';
+        $child = $request->childProfile?->full_name ?? trim($request->first_name . ' ' . $request->last_name);
+
+        return trim("Заявка {$request->public_id} · {$subject} · {$child}");
     }
 
     protected function latestRequestIdsQuery()

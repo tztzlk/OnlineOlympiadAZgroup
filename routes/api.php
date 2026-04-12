@@ -43,33 +43,33 @@ Route::post('/webhooks/telegram', [WebhookController::class, 'telegram'])->middl
 Route::middleware(['auth:sanctum', 'throttle:api-user', 'admin'])
     ->prefix('admin')
     ->group(function () {
-        Route::get('/dashboard', [AdminController::class, 'dashboard']);
-        Route::get('/users', [AdminController::class, 'getUsers']);
-        Route::get('/participants', [AdminController::class, 'participants']);
-        Route::get('/participants/export', [AdminController::class, 'exportParticipants']);
-        Route::post('/participants/import', [AdminController::class, 'importParticipants']);
-        Route::get('/users-results', [AdminController::class, 'usersResults']);
-        Route::get('/users-results/export', [AdminController::class, 'exportUsersResults']);
-        Route::get('/payments', [AdminController::class, 'payments']);
-        Route::get('/payments/export', [AdminController::class, 'exportPayments']);
-        Route::get('/callbacks', [AdminController::class, 'callbacks']);
-        Route::get('/callbacks/export', [AdminController::class, 'exportCallbacks']);
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->middleware('admin:dashboard');
+        Route::get('/users', [AdminController::class, 'getUsers'])->middleware('admin:dashboard');
+        Route::get('/participants', [AdminController::class, 'participants'])->middleware('admin:payments');
+        Route::get('/participants/export', [AdminController::class, 'exportParticipants'])->middleware('admin:payments');
+        Route::post('/participants/import', [AdminController::class, 'importParticipants'])->middleware('admin:payments');
+        Route::get('/users-results', [AdminController::class, 'usersResults'])->middleware('admin:results');
+        Route::get('/users-results/export', [AdminController::class, 'exportUsersResults'])->middleware('admin:results');
+        Route::get('/payments', [AdminController::class, 'payments'])->middleware('admin:payments');
+        Route::get('/payments/export', [AdminController::class, 'exportPayments'])->middleware('admin:payments');
+        Route::get('/callbacks', [AdminController::class, 'callbacks'])->middleware('admin:callbacks');
+        Route::get('/callbacks/export', [AdminController::class, 'exportCallbacks'])->middleware('admin:callbacks');
 
-        Route::get('/requests', [OlympiadRequestController::class, 'index']);
-        Route::get('/requests/stats', [OlympiadRequestController::class, 'stats']);
-        Route::get('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'show']);
-        Route::patch('/requests/{olympiadRequest}/status', [OlympiadRequestController::class, 'updateStatus']);
-        Route::patch('/requests/{olympiadRequest}/payment', [OlympiadRequestController::class, 'updatePaymentStatus']);
-        Route::delete('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'destroy']);
+        Route::get('/requests', [OlympiadRequestController::class, 'index'])->middleware('admin:requests');
+        Route::get('/requests/stats', [OlympiadRequestController::class, 'stats'])->middleware('admin:requests');
+        Route::get('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'show'])->middleware('admin:requests');
+        Route::patch('/requests/{olympiadRequest}/status', [OlympiadRequestController::class, 'updateStatus'])->middleware('admin:requests');
+        Route::patch('/requests/{olympiadRequest}/payment', [OlympiadRequestController::class, 'updatePaymentStatus'])->middleware('admin:payments');
+        Route::delete('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'destroy'])->middleware('admin:requests');
 
-        Route::get('/quizzes', [AdminQuizController::class, 'index']);
-        Route::post('/quizzes', [AdminQuizController::class, 'store']);
-        Route::post('/quizzes/upload-image', [AdminQuizController::class, 'uploadQuestionImage'])->middleware('body.limit:10240');
-        Route::get('/quizzes/{quiz}', [AdminQuizController::class, 'show']);
-        Route::match(['put', 'patch'], '/quizzes/{quiz}', [AdminQuizController::class, 'update']);
-        Route::delete('/quizzes/{quiz}', [AdminQuizController::class, 'destroy']);
-        Route::post('/quizzes/{quiz}/publish', [AdminQuizController::class, 'publish']);
-        Route::post('/quizzes/{quiz}/unpublish', [AdminQuizController::class, 'unpublish']);
+        Route::get('/quizzes', [AdminQuizController::class, 'index'])->middleware('admin:quizzes');
+        Route::post('/quizzes', [AdminQuizController::class, 'store'])->middleware('admin:quizzes');
+        Route::post('/quizzes/upload-image', [AdminQuizController::class, 'uploadQuestionImage'])->middleware(['admin:quizzes', 'body.limit:10240']);
+        Route::get('/quizzes/{quiz}', [AdminQuizController::class, 'show'])->middleware('admin:quizzes');
+        Route::match(['put', 'patch'], '/quizzes/{quiz}', [AdminQuizController::class, 'update'])->middleware('admin:quizzes');
+        Route::delete('/quizzes/{quiz}', [AdminQuizController::class, 'destroy'])->middleware('admin:quizzes');
+        Route::post('/quizzes/{quiz}/publish', [AdminQuizController::class, 'publish'])->middleware('admin:quizzes');
+        Route::post('/quizzes/{quiz}/unpublish', [AdminQuizController::class, 'unpublish'])->middleware('admin:quizzes');
     });
 
 Route::middleware(['auth:sanctum', 'throttle:api-user'])->group(function () {

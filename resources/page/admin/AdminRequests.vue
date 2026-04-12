@@ -103,6 +103,10 @@
             <span>Ссылка на оплату</span>
             <a :href="request.payment_url" target="_blank" rel="noopener">Открыть Kaspi</a>
           </div>
+          <div class="detail">
+            <span>Комментарий к оплате</span>
+            <strong>{{ request.payment_comment || request.payment_reference || 'Не указан' }}</strong>
+          </div>
         </div>
 
         <p class="request-note">{{ requestActionHint(request) }}</p>
@@ -194,6 +198,10 @@
         <div class="payment-link-card">
           <span>Ссылка Kaspi</span>
           <a :href="selectedRequest.payment_url" target="_blank" rel="noopener">Открыть оплату</a>
+        </div>
+        <div class="payment-link-card">
+          <span>Комментарий к оплате</span>
+          <strong>{{ selectedRequest.payment_comment || selectedRequest.payment_reference || 'Не указан' }}</strong>
         </div>
       </div>
     </div>

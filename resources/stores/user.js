@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '../js/api'
+import { hasAdminAccess } from '../js/adminAccess'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -27,7 +28,7 @@ export const useUserStore = defineStore('user', {
     setAuth(user, token) {
       this.user = user
       this.token = token
-      this.sessionType = user?.is_admin ? 'admin' : 'user'
+      this.sessionType = hasAdminAccess(user) ? 'admin' : 'user'
       localStorage.setItem('user', JSON.stringify(user))
       localStorage.setItem('token', token)
       localStorage.setItem('session_type', this.sessionType)
@@ -57,7 +58,7 @@ export const useUserStore = defineStore('user', {
         this.currentTask = res.data.current_task || null
         this.notifications = res.data.notifications_preview || []
         this.notificationsUnread = this.notifications.filter((item) => !item.read_at).length
-        this.sessionType = this.user?.is_admin ? 'admin' : 'user'
+        this.sessionType = hasAdminAccess(this.user) ? 'admin' : 'user'
         localStorage.setItem('user', JSON.stringify(this.user))
         localStorage.setItem('session_type', this.sessionType)
 

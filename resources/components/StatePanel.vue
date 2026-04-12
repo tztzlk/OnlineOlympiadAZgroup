@@ -92,7 +92,7 @@ const iconGlyph = computed(() => {
 
 .state-panel--success .state-panel__icon {
   background: var(--success-bg);
-  color: #2f6f4b;
+  color: var(--success-soft);
 }
 
 .state-panel--warning .state-panel__icon {
@@ -106,10 +106,19 @@ const iconGlyph = computed(() => {
   color: #8e4343;
 }
 
+.state-panel--info .state-panel__icon {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.state-panel--info .state-panel__eyebrow {
+  color: var(--info);
+}
+
 .state-panel--empty .state-panel__icon,
 .state-panel--neutral .state-panel__icon {
-  background: rgba(201, 171, 99, 0.14);
-  color: var(--accent-strong);
+  background: var(--info-soft);
+  color: var(--info);
 }
 
 @media (max-width: 640px) {

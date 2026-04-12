@@ -109,7 +109,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Неверный email или пароль.'], 401);
         }
 
-        if ($user->is_admin) {
+        if ($user->hasAdminAccess()) {
             Log::channel('security')->warning('auth.login_blocked_admin_endpoint_mismatch', [
                 'event' => 'auth.login_blocked_admin_endpoint_mismatch',
                 'user_public_id' => $user->public_id,
@@ -160,7 +160,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Неверный email или пароль.'], 401);
         }
 
-        if (!$user->is_admin) {
+        if (!$user->hasAdminAccess()) {
             Log::channel('security')->warning('auth.admin_login_forbidden', [
                 'event' => 'auth.admin_login_forbidden',
                 'user_public_id' => $user->public_id,

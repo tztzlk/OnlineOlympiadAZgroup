@@ -30,9 +30,9 @@ defineProps({
   background: currentColor;
 }
 
-.status-badge--success { background: var(--success-bg); color: #2f6f4b; }
+.status-badge--success { background: var(--success-bg); color: var(--success-soft); }
 .status-badge--warning { background: var(--warning-bg); color: #8d6f31; }
 .status-badge--danger,
 .status-badge--error { background: var(--danger-bg); color: #8e4343; }
-.status-badge--neutral { background: rgba(201, 171, 99, 0.16); color: var(--accent-strong); }
+.status-badge--neutral { background: var(--info-soft); color: var(--info); }
 </style>

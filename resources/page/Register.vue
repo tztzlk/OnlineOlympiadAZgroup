@@ -30,41 +30,27 @@
         <div class="form-header">
           <p class="eyebrow">Регистрация</p>
           <h2>Откройте личный кабинет</h2>
-          <p>Укажите основные данные семьи. Детали по участию вы сможете настроить уже внутри кабинета.</p>
+          <p>{{ currentStepDescription }}</p>
+        </div>
+
+        <div class="progress-box" aria-label="Прогресс регистрации">
+          <div class="progress-box__top">
+            <strong>Шаг {{ currentStep }} из 2</strong>
+            <span>{{ currentStepTitle }}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" :style="{ width: progressWidth }"></div>
+          </div>
         </div>
 
         <form @submit.prevent="handleRegister" class="register-form" novalidate>
-          <div class="form-grid">
-            <label class="field">
-              <span>Имя и фамилия</span>
-              <input v-model="name" type="text" placeholder="Иван Иванов" required />
-            </label>
-
-            <label class="field">
+          <div v-if="currentStep === 1" class="form-grid">
+            <label class="field field-wide">
               <span>Email</span>
               <input v-model="email" type="email" placeholder="you@example.com" required />
-            </label>
-
-            <label class="field">
-              <span>Школа</span>
-              <input v-model="school" type="text" placeholder="Например: Лицей №12" required />
-            </label>
-
-            <label class="field">
-              <span>Город</span>
-              <input v-model="city" type="text" placeholder="Например: Астана" required />
-            </label>
-
-            <label class="field field-wide">
-              <span>Телефон</span>
-              <input
-                v-model="phone"
-                type="tel"
-                maxlength="18"
-                placeholder="+7 (___) ___-__-__"
-                @input="formatPhone"
-                required
-              />
+              <small class="field-hint" :class="{ 'is-error': emailTouched && emailError }">
+                {{ emailTouched && emailError ? emailError : 'Используйте email, на который удобно получать уведомления и входить в кабинет.' }}
+              </small>
             </label>
 
             <label class="field">
@@ -98,7 +84,48 @@
             </label>
           </div>
 
-          <div v-if="password" class="strength-box">
+          <div v-else class="form-grid">
+            <label class="field field-wide">
+              <span>Имя и фамилия родителя</span>
+              <input v-model="name" type="text" placeholder="Иван Иванов" required />
+              <small class="field-hint" :class="{ 'is-error': nameTouched && nameError }">
+                {{ nameTouched && nameError ? nameError : 'Укажите имя взрослого, который оформляет участие и оплачивает заявку.' }}
+              </small>
+            </label>
+
+            <label class="field">
+              <span>Телефон</span>
+              <input
+                v-model="phone"
+                type="tel"
+                maxlength="18"
+                placeholder="+7 (___) ___-__-__"
+                @input="formatPhone"
+                required
+              />
+              <small class="field-hint" :class="{ 'is-error': phoneTouched && phoneError }">
+                {{ phoneTouched && phoneError ? phoneError : 'Введите номер в формате +7 (777) 000-00-00.' }}
+              </small>
+            </label>
+
+            <label class="field">
+              <span>Город</span>
+              <input v-model="city" type="text" placeholder="Например: Астана" required />
+              <small class="field-hint" :class="{ 'is-error': cityTouched && cityError }">
+                {{ cityTouched && cityError ? cityError : 'Город нужен для профиля участника и сертификатов.' }}
+              </small>
+            </label>
+
+            <label class="field field-wide">
+              <span>Школа</span>
+              <input v-model="school" type="text" placeholder="Например: Лицей №12" required />
+              <small class="field-hint" :class="{ 'is-error': schoolTouched && schoolError }">
+                {{ schoolTouched && schoolError ? schoolError : 'Школа отобразится в профиле и может использоваться в результатах.' }}
+              </small>
+            </label>
+          </div>
+
+          <div v-if="currentStep === 1 && password" class="strength-box">
             <div class="strength-track">
               <div class="strength-fill" :style="{ width: strengthWidth }" :class="strengthClass"></div>
             </div>
@@ -106,14 +133,29 @@
           </div>
 
           <div class="notice-box">
-            Для регистрации нужен надёжный пароль: не менее 12 символов, с буквами в разном регистре, цифрами и символом.
+            {{ currentStepNotice }}
           </div>
+
+          <label v-if="currentStep === 2" class="agreement-box">
+            <input v-model="rulesAccepted" type="checkbox" />
+            <span>
+              Я ознакомлен с правилами участия и условиями платформы. Подробные правила доступны на странице выбранной олимпиады.
+            </span>
+          </label>
 
           <div v-if="error" class="message error">{{ error }}</div>
 
-          <button type="submit" class="submit-btn" :disabled="loading">
-            {{ loading ? 'Создаём аккаунт...' : 'Зарегистрироваться' }}
-          </button>
+          <div class="form-actions">
+            <button v-if="currentStep === 2" type="button" class="secondary-btn" @click="currentStep = 1">
+              Назад
+            </button>
+            <button v-if="currentStep === 1" type="button" class="submit-btn" @click="goToStepTwo">
+              Продолжить
+            </button>
+            <button v-else type="submit" class="submit-btn" :disabled="loading">
+              {{ loading ? 'Создаём аккаунт...' : 'Зарегистрироваться' }}
+            </button>
+          </div>
         </form>
 
         <div class="form-footer">
@@ -125,7 +167,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../js/api'
 import { solveProofOfWork } from '../js/pow'
@@ -134,6 +176,7 @@ import { useUserStore } from '../stores/user'
 const router = useRouter()
 const userStore = useUserStore()
 
+const currentStep = ref(1)
 const name = ref('')
 const email = ref('')
 const school = ref('')
@@ -145,12 +188,49 @@ const error = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
 const showConfirm = ref(false)
+const emailTouched = ref(false)
+const nameTouched = ref(false)
+const phoneTouched = ref(false)
+const cityTouched = ref(false)
+const schoolTouched = ref(false)
+const rulesAccepted = ref(false)
 
 const steps = [
   { title: 'Создайте родительский аккаунт', text: 'Введите базовые контакты, чтобы получить доступ к личному кабинету.' },
   { title: 'Добавьте ребёнка в профиль', text: 'Внутри кабинета можно указать данные участника и выбрать язык.' },
   { title: 'Оформите заявку и следите за статусом', text: 'Вы будете видеть проверку, оплату, доступ к тесту и результаты.' },
 ]
+
+const currentStepTitle = computed(() => (
+  currentStep.value === 1 ? 'Доступ к кабинету' : 'Данные родителя'
+))
+
+const currentStepDescription = computed(() => (
+  currentStep.value === 1
+    ? 'Сначала задайте email и пароль, чтобы создать безопасный вход в личный кабинет.'
+    : 'Теперь нужны данные родителя. Они понадобятся для заявок, оплаты и связи по участию.'
+))
+
+const currentStepNotice = computed(() => (
+  currentStep.value === 1
+    ? 'Для регистрации нужен надёжный пароль: не менее 12 символов, с буквами в разном регистре, цифрами и символом.'
+    : 'Контакты родителя используются в заявках, оплате и уведомлениях по олимпиаде. Эти данные можно будет обновить в профиле.'
+))
+
+const progressWidth = computed(() => (currentStep.value === 1 ? '50%' : '100%'))
+const emailError = computed(() => {
+  const value = email.value.trim()
+  if (!value) return 'Введите email.'
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : 'Проверьте формат email, например name@example.com.'
+})
+const nameError = computed(() => (name.value.trim() ? '' : 'Укажите имя и фамилию родителя.'))
+const cityError = computed(() => (city.value.trim() ? '' : 'Укажите город.'))
+const schoolError = computed(() => (school.value.trim() ? '' : 'Укажите школу.'))
+const phoneError = computed(() => {
+  const cleanPhone = phone.value.replace(/\D/g, '')
+  if (!cleanPhone.length) return 'Введите номер в формате +7 (777) 000-00-00.'
+  return cleanPhone.length < 11 ? 'Номер должен быть полным: +7 (777) 000-00-00.' : ''
+})
 
 const strengthScore = computed(() => {
   const value = password.value
@@ -187,33 +267,77 @@ const validatePassword = () => {
   return ''
 }
 
-async function handleRegister() {
-  error.value = ''
-
-  if (!school.value.trim()) {
-    error.value = 'Укажите школу.'
-    return
-  }
-
-  if (!city.value.trim()) {
-    error.value = 'Укажите город.'
-    return
-  }
-
-  const cleanPhone = phone.value.replace(/\D/g, '')
-  if (cleanPhone.length < 11) {
-    error.value = 'Введите корректный номер телефона.'
-    return
+const validateStepOne = () => {
+  if (emailError.value) {
+    return emailError.value
   }
 
   const passwordError = validatePassword()
   if (passwordError) {
-    error.value = passwordError
-    return
+    return passwordError
   }
 
   if (password.value !== confirmPassword.value) {
-    error.value = 'Пароли не совпадают.'
+    return 'Пароли не совпадают.'
+  }
+
+  return ''
+}
+
+const validateStepTwo = () => {
+  if (nameError.value) {
+    return nameError.value
+  }
+
+  if (schoolError.value) {
+    return schoolError.value
+  }
+
+  if (cityError.value) {
+    return cityError.value
+  }
+
+  if (phoneError.value) {
+    return phoneError.value
+  }
+
+  if (!rulesAccepted.value) {
+    return 'Подтвердите, что ознакомились с правилами участия.'
+  }
+
+  return ''
+}
+
+function goToStepTwo() {
+  error.value = ''
+  emailTouched.value = true
+  const stepError = validateStepOne()
+  if (stepError) {
+    error.value = stepError
+    return
+  }
+
+  currentStep.value = 2
+}
+
+async function handleRegister() {
+  error.value = ''
+  emailTouched.value = true
+  nameTouched.value = true
+  phoneTouched.value = true
+  cityTouched.value = true
+  schoolTouched.value = true
+
+  const stepOneError = validateStepOne()
+  if (stepOneError) {
+    currentStep.value = 1
+    error.value = stepOneError
+    return
+  }
+
+  const stepTwoError = validateStepTwo()
+  if (stepTwoError) {
+    error.value = stepTwoError
     return
   }
 
@@ -245,6 +369,7 @@ async function handleRegister() {
 }
 
 function formatPhone(e) {
+  phoneTouched.value = true
   let value = e.target.value.replace(/\D/g, '')
   if (!value.startsWith('7')) value = '7' + value
   value = value.substring(0, 11)
@@ -255,6 +380,31 @@ function formatPhone(e) {
   if (value.length >= 9) formatted += '-' + value.substring(9, 11)
   phone.value = formatted
 }
+
+watch(email, () => {
+  emailTouched.value = true
+  if (error.value) error.value = ''
+})
+
+watch(name, () => {
+  nameTouched.value = true
+  if (error.value) error.value = ''
+})
+
+watch(phone, () => {
+  phoneTouched.value = true
+  if (error.value) error.value = ''
+})
+
+watch(city, () => {
+  cityTouched.value = true
+  if (error.value) error.value = ''
+})
+
+watch(school, () => {
+  schoolTouched.value = true
+  if (error.value) error.value = ''
+})
 </script>
 
 <style scoped>
@@ -371,6 +521,43 @@ function formatPhone(e) {
   color: var(--text-secondary);
 }
 
+.progress-box {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 252, 244, 0.82);
+  border: 1px solid rgba(201, 171, 99, 0.18);
+}
+
+.progress-box__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.progress-box__top strong {
+  color: var(--text);
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(100, 83, 41, 0.12);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
+  transition: width 0.25s ease;
+}
+
 .register-form {
   display: grid;
   gap: 18px;
@@ -387,6 +574,17 @@ function formatPhone(e) {
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
+}
+
+.field-hint {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.field-hint.is-error {
+  color: #b45309;
 }
 
 .field-wide {
@@ -465,6 +663,27 @@ function formatPhone(e) {
   font-size: 14px;
 }
 
+.agreement-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 252, 245, 0.92);
+  border: 1px solid var(--surface-border);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.agreement-box input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--success-soft);
+}
+
 .notice-box {
   background: rgba(201, 171, 99, 0.12);
   color: var(--text-secondary);
@@ -477,20 +696,39 @@ function formatPhone(e) {
   border: 1px solid rgba(198, 90, 90, 0.18);
 }
 
-.submit-btn {
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.submit-btn,
+.secondary-btn {
   min-height: 56px;
-  border: 0;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  color: var(--text);
-  box-shadow: 0 14px 30px rgba(201, 171, 99, 0.24);
   font-size: 16px;
   cursor: pointer;
 }
 
-.submit-btn:hover:not(:disabled) {
+.submit-btn {
+  border: 0;
+  padding: 0 24px;
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
+  color: var(--text);
+  box-shadow: 0 14px 30px rgba(201, 171, 99, 0.24);
+}
+
+.secondary-btn {
+  border: 1px solid var(--surface-border);
+  padding: 0 20px;
+  background: rgba(255, 252, 245, 0.95);
+  color: var(--accent-strong);
+}
+
+.submit-btn:hover:not(:disabled),
+.secondary-btn:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, #d5b56d 0%, #e7c779 100%);
 }
 
 .submit-btn:disabled {
@@ -523,6 +761,12 @@ function formatPhone(e) {
   .register-side,
   .register-card {
     padding: 24px 20px;
+  }
+
+  .progress-box__top,
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .form-grid {

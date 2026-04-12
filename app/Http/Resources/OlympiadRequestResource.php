@@ -11,6 +11,8 @@ class OlympiadRequestResource extends JsonResource
     {
         return [
             'id' => $this->public_id,
+            'payment_reference' => $this->public_id,
+            'payment_comment' => trim('Заявка ' . $this->public_id . ($this->subject?->name ? ' · ' . $this->subject->name : '')),
             'status' => $this->status,
             'payment_status' => $this->payment_status,
             'paid_at' => optional($this->paid_at)->toISOString(),

@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@example.com',
             'phone' => '9000000000',
             'is_admin' => true,
+            'admin_role' => User::ADMIN_ROLE_ADMIN,
         ]);
     }
 }

@@ -316,6 +316,7 @@ import api from '../js/api'
 import StatePanel from '../components/StatePanel.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import CountdownBadge from '../components/CountdownBadge.vue'
+import { hasAdminAccess } from '../js/adminAccess'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -333,7 +334,7 @@ const currentTask = ref(null)
 const editingChildId = ref(null)
 const savingChild = ref(false)
 
-const canReturnToAdminPanel = computed(() => Boolean(user.value?.is_admin && userStore.sessionType === 'admin'))
+const canReturnToAdminPanel = computed(() => Boolean(hasAdminAccess(user.value) && userStore.sessionType === 'admin'))
 
 const childForm = reactive({
   first_name: '',

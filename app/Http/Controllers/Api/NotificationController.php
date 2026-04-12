@@ -14,7 +14,7 @@ class NotificationController extends Controller
 
         $notifications = PlatformNotification::query()
             ->when(
-                $user->is_admin,
+                $user->hasAdminAccess(),
                 fn ($query) => $query->where(function ($inner) use ($user) {
                     $inner->where('for_admin', true)->orWhere('user_id', $user->id);
                 }),
@@ -23,6 +23,13 @@ class NotificationController extends Controller
             ->latest()
             ->limit((int) $request->integer('limit', 20))
             ->get()
+            ->filter(function (PlatformNotification $notification) use ($user) {
+                if (!$notification->for_admin) {
+                    return true;
+                }
+
+                return $user->canAccessAdminPath($notification->action_url);
+            })
             ->map(fn (PlatformNotification $notification) => $this->mapNotification($notification));
 
         return response()->json([
@@ -39,7 +46,7 @@ class NotificationController extends Controller
             abort(403);
         }
 
-        if ($notification->for_admin && !$user->is_admin) {
+        if ($notification->for_admin && !$user->canAccessAdminPath($notification->action_url)) {
             abort(403);
         }
 

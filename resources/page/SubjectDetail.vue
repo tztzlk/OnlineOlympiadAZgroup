@@ -29,7 +29,15 @@
 
           <div class="hero-actions">
             <RouterLink class="cta primary" :to="subject.registration_url || `/subject?subject=${subject.id}`">Зарегистрироваться на олимпиаду</RouterLink>
-            <RouterLink class="cta secondary" to="/rules">Смотреть правила</RouterLink>
+            <RouterLink class="cta secondary" :to="`/subject?subject=${subject.id}&openRules=1`">Смотреть правила</RouterLink>
+          </div>
+
+          <div v-if="countdownStatusLabel" class="deadline-banner">
+            <div>
+              <p class="eyebrow">Регистрация</p>
+              <strong>{{ countdownStatusLabel }}</strong>
+            </div>
+            <span v-if="countdownParts">{{ countdownParts }}</span>
           </div>
         </div>
 
@@ -83,9 +91,12 @@
         </div>
 
         <div class="faq-list">
-          <article v-for="item in subject.faq || []" :key="item.question" class="faq-item">
-            <h3>{{ item.question }}</h3>
-            <p>{{ item.answer }}</p>
+          <article v-for="(item, index) in faqItems" :key="item.question" class="faq-item">
+            <button class="faq-question" type="button" @click="toggleFaq(index)">
+              <h3>{{ item.question }}</h3>
+              <span>{{ openFaqIndex === index ? '−' : '+' }}</span>
+            </button>
+            <p v-if="openFaqIndex === index">{{ item.answer }}</p>
           </article>
         </div>
       </section>
@@ -119,6 +130,8 @@ const route = useRoute()
 const loading = ref(true)
 const error = ref('')
 const subject = ref(null)
+const openFaqIndex = ref(0)
+const nowTs = ref(Date.now())
 
 const gradeRangesLabel = computed(() =>
   subject.value?.grade_ranges?.length ? subject.value.grade_ranges.join(', ') : '3-11 классы'
@@ -127,6 +140,70 @@ const gradeRangesLabel = computed(() =>
 const timeLimitLabel = computed(() =>
   subject.value?.time_limit ? `${subject.value.time_limit} минут` : 'По правилам олимпиады'
 )
+
+const registrationDeadline = computed(() => {
+  const raw = subject.value?.start_date
+  if (!raw) return null
+  const parsed = new Date(raw)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+})
+
+const countdownMs = computed(() => {
+  if (!registrationDeadline.value) return null
+  return registrationDeadline.value.getTime() - nowTs.value
+})
+
+const countdownStatusLabel = computed(() => {
+  if (!registrationDeadline.value) return ''
+  if ((countdownMs.value ?? 0) <= 0) return 'Регистрация обновляется'
+  return 'До закрытия регистрации'
+})
+
+const countdownParts = computed(() => {
+  if ((countdownMs.value ?? 0) <= 0) return ''
+  const totalHours = Math.floor((countdownMs.value || 0) / 3600000)
+  const days = Math.floor(totalHours / 24)
+  const hours = totalHours % 24
+  if (days > 0) return `${days} дн. ${hours} ч.`
+  return `${Math.max(hours, 1)} ч.`
+})
+
+const faqItems = computed(() => {
+  if (subject.value?.faq?.length) return subject.value.faq
+
+  const gradeLabel = subject.value?.grade_ranges?.length ? subject.value.grade_ranges.join(', ') : '3-11 классы'
+
+  return [
+    {
+      question: 'Для какого возраста подходит олимпиада?',
+      answer: `Олимпиада рассчитана на школьников, которым подходит диапазон ${gradeLabel}.`,
+    },
+    {
+      question: 'На каком языке проходит олимпиада?',
+      answer: 'Язык выбирается при оформлении участия. Обычно доступны русский, казахский и при необходимости английский.',
+    },
+    {
+      question: 'Получу ли я сертификат?',
+      answer: 'Да, после завершения олимпиады результат и сертификат появляются в личном кабинете участника.',
+    },
+    {
+      question: 'Когда открывается доступ к тесту?',
+      answer: 'Доступ открывается после оформления заявки и подтверждения оплаты администратором.',
+    },
+    {
+      question: 'Сколько времени даётся на выполнение?',
+      answer: `Для этой олимпиады ориентир по времени: ${timeLimitLabel.value}.`,
+    },
+    {
+      question: 'Можно ли пройти олимпиаду дома?',
+      answer: 'Да, формат полностью онлайн. Ребёнок проходит задания на платформе из любого удобного места.',
+    },
+  ]
+})
+
+const toggleFaq = (index) => {
+  openFaqIndex.value = openFaqIndex.value === index ? -1 : index
+}
 
 const loadSubject = async () => {
   loading.value = true
@@ -143,7 +220,12 @@ const loadSubject = async () => {
   }
 }
 
-onMounted(loadSubject)
+onMounted(() => {
+  loadSubject()
+  setInterval(() => {
+    nowTs.value = Date.now()
+  }, 60000)
+})
 </script>
 
 <style scoped>
@@ -206,6 +288,35 @@ onMounted(loadSubject)
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 22px;
+}
+
+.deadline-banner {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(201, 171, 99, 0.24);
+  background: linear-gradient(135deg, rgba(210, 178, 97, 0.14), rgba(255, 248, 232, 0.86));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.deadline-banner strong {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.deadline-banner span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--accent-strong);
+  font-weight: 800;
 }
 
 .cta {
@@ -288,8 +399,37 @@ onMounted(loadSubject)
   background: rgba(255, 252, 244, 0.82);
 }
 
+.faq-question {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
 .faq-item h3 {
-  margin: 0 0 8px;
+  margin: 0;
+}
+
+.faq-question span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(201, 171, 99, 0.16);
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.faq-item p {
+  margin: 12px 0 0;
 }
 
 .link-grid {
@@ -316,6 +456,11 @@ onMounted(loadSubject)
   .content-grid,
   .link-grid {
     grid-template-columns: 1fr;
+  }
+
+  .deadline-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

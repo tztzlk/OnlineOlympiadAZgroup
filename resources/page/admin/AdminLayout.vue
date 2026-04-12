@@ -11,16 +11,19 @@
 
       <div class="sidebar-intro">
         <p class="sidebar-eyebrow">Admin</p>
-        <p>Проверка заявок, оплаты, результатов и обратной связи в одном рабочем пространстве.</p>
+        <p>{{ introText }}</p>
       </div>
 
       <nav class="nav">
-        <router-link to="/admin" class="nav-link" exact-active-class="nav-link-exact-active">Панель</router-link>
-        <router-link to="/admin/requests" class="nav-link" exact-active-class="nav-link-exact-active">Заявки</router-link>
-        <router-link to="/admin/quizzes" class="nav-link" exact-active-class="nav-link-exact-active">Олимпиады</router-link>
-        <router-link to="/admin/results" class="nav-link" exact-active-class="nav-link-exact-active">Результаты</router-link>
-        <router-link to="/admin/payments" class="nav-link" exact-active-class="nav-link-exact-active">Оплаты</router-link>
-        <router-link to="/admin/callbacks" class="nav-link" exact-active-class="nav-link-exact-active">Обращения</router-link>
+        <router-link
+          v-for="section in allowedSections"
+          :key="section.key"
+          :to="section.to"
+          class="nav-link"
+          exact-active-class="nav-link-exact-active"
+        >
+          {{ section.label }}
+        </router-link>
       </nav>
 
       <div class="notification-panel">
@@ -46,13 +49,13 @@
             <span>{{ item.date }}</span>
           </button>
         </div>
-        <p v-else class="notification-empty">Новых событий нет. Когда появятся заявки, оплаты или обращения, они будут видны здесь.</p>
+        <p v-else class="notification-empty">Новых событий нет. Когда появятся заявки, оплаты или результаты, они будут видны здесь.</p>
       </div>
 
       <div class="sidebar-footer">
         <div class="support-card">
-          <span class="support-label">Приоритет</span>
-          <strong>Сначала проверяйте новые заявки и оплаты, затем выдавайте доступ к олимпиадам и закрывайте обращения.</strong>
+          <span class="support-label">Роль</span>
+          <strong>{{ roleLabel }}</strong>
         </div>
         <router-link to="/" class="back-link">Вернуться на сайт</router-link>
       </div>
@@ -68,33 +71,52 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
+import { adminSections, firstAdminRoute, hasAdminCapability } from '../../js/adminAccess'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const notifications = computed(() => userStore.notifications.slice(0, 6))
 const unreadCount = computed(() => userStore.notificationsUnread)
+const allowedSections = computed(() => adminSections.filter((section) => hasAdminCapability(userStore.user, section.key)))
+const roleLabel = computed(() => ({
+  admin: 'Полный доступ ко всем разделам',
+  operator: 'Оператор: заявки и оплаты',
+  content: 'Контент: только конструктор олимпиад',
+  analyst: 'Аналитик: только результаты',
+}[userStore.user?.admin_role || 'admin'] ?? 'Ограниченный доступ'))
+
+const introText = computed(() => {
+  if (hasAdminCapability(userStore.user, 'dashboard')) {
+    return 'Проверка заявок, оплат, результатов и обратной связи в одном рабочем пространстве.'
+  }
+
+  return 'В боковом меню показаны только те разделы, которые доступны для вашей роли.'
+})
 
 const normalizeActionUrl = (value) => {
-  if (!value) return '/admin'
+  if (!value) return firstAdminRoute(userStore.user)
 
   if (value.startsWith('http')) {
     try {
-      return new URL(value).pathname || '/admin'
+      return new URL(value).pathname || firstAdminRoute(userStore.user)
     } catch {
-      return '/admin'
+      return firstAdminRoute(userStore.user)
     }
   }
 
   return value
 }
 
+const canOpenTarget = (target) => allowedSections.value.some((section) => target === section.to || target.startsWith(`${section.to}/`))
+
 const handleNotification = async (item) => {
   if (!item.read_at) {
     await userStore.markNotificationRead(item.id)
   }
 
-  router.push(normalizeActionUrl(item.action_url))
+  const target = normalizeActionUrl(item.action_url)
+  router.push(canOpenTarget(target) ? target : firstAdminRoute(userStore.user))
 }
 
 onMounted(async () => {
@@ -180,11 +202,16 @@ onMounted(async () => {
 }
 
 .sidebar-eyebrow {
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 12px;
   font-weight: 800;
   color: var(--accent-strong);
+}
+
+.sidebar-intro p {
+  margin: 0;
 }
 
 .nav {

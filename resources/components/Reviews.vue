@@ -35,6 +35,41 @@
     </div>
 
     <div class="reviews__wrapper">
+      <div class="reviews__grid">
+        <article
+          class="review review--grid"
+          v-for="(review, index) in featuredReviews"
+          :key="`featured-${index}`"
+        >
+          <div class="review__quote">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+            </svg>
+          </div>
+
+          <p class="review__text">{{ review.text }}</p>
+
+          <div class="review__stars">
+            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+
+          <div class="review__footer">
+            <div class="review__avatar">{{ review.name.charAt(0) }}</div>
+            <div>
+              <div class="review__name">{{ review.name }}</div>
+              <div class="review__role">{{ review.role }}</div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="reviews__carousel-head">
+        <strong>Ещё отзывы</strong>
+        <span>Карусель остаётся для тех, кто хочет посмотреть больше отзывов.</span>
+      </div>
+
       <button class="scroll-btn left" @click="scrollLeft" aria-label="Назад">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="15 18 9 12 15 6"/>
@@ -112,6 +147,8 @@ const reviews = ref([
   { name: "Алина Т.", role: "родитель", text: "Удобно отслеживать результаты и прогресс ребёнка в личном кабинете. Спасибо за такой продукт.", rating: 5 },
   { name: "Сергей Л.", role: "8 класс", text: "Интересные задания, уже советую друзьям. Буду участвовать снова в следующем году!", rating: 4 },
 ])
+
+const featuredReviews = reviews.value.slice(0, 3)
 
 const scrollLeft = () => {
   scrollContainer.value.scrollBy({ left: -380, behavior: 'smooth' })
@@ -208,6 +245,27 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   position: relative;
 }
 
+.reviews__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.reviews__carousel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+}
+
+.reviews__carousel-head strong {
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
 .reviews__scroll-container {
   display: flex;
   gap: 20px;
@@ -236,6 +294,10 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
+}
+
+.review--grid {
+  min-height: 100%;
 }
 .review::before {
   content: '';
@@ -356,6 +418,7 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 @media (max-width: 900px) {
   .reviews { padding: 60px 20px; }
   .reviews__title { font-size: 28px; }
+  .reviews__grid { grid-template-columns: 1fr; }
   .review { flex: 0 0 300px; }
   .scroll-btn { display: none; }
   .reviews__stats { gap: 18px; padding: 14px 22px; flex-wrap: wrap; justify-content: center; }
@@ -364,6 +427,7 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 @media (max-width: 600px) {
   .reviews { padding: 48px 16px; }
   .reviews__title { font-size: 24px; }
+  .reviews__carousel-head { flex-direction: column; align-items: flex-start; }
   .review { flex: 0 0 82vw; padding: 24px; }
   .reviews__stats { gap: 14px; }
   .stat-divider { display: none; }

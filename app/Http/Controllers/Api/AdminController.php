@@ -279,11 +279,13 @@ class AdminController extends Controller
 
     public function payments()
     {
-        $rows = PaymentRecord::with(['parent', 'childProfile', 'subject'])
+        $rows = PaymentRecord::with(['parent', 'childProfile', 'subject', 'olympiadRequest'])
             ->latest()
             ->get()
             ->map(fn (PaymentRecord $payment) => [
                 'id' => $payment->id,
+                'public_id' => $payment->public_id,
+                'request_reference' => $payment->olympiadRequest?->public_id,
                 'parent_name' => $payment->parent?->name,
                 'child_name' => $payment->childProfile?->full_name,
                 'subject' => $payment->subject?->name,
@@ -304,9 +306,11 @@ class AdminController extends Controller
         $rows = $this->payments()->getData(true);
 
         return $this->downloadWorksheet('Payments', 'payments', [
-            ['ID', 'Родитель', 'Ребенок', 'Предмет', 'Сумма', 'Валюта', 'Статус', 'Внешний номер', 'Комментарий', 'Создан', 'Оплачен'],
+            ['ID', 'Payment ID', 'Request ID', 'Родитель', 'Ребенок', 'Предмет', 'Сумма', 'Валюта', 'Статус', 'Внешний номер', 'Комментарий', 'Создан', 'Оплачен'],
             ...collect($rows)->map(fn ($row) => [
                 (string) $row['id'],
+                $row['public_id'],
+                $row['request_reference'],
                 $row['parent_name'],
                 $row['child_name'],
                 $row['subject'],

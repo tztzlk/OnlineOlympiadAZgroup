@@ -14,7 +14,7 @@
     <section class="setup-card">
       <div class="setup-copy">
         <h2>Настройка оплаты</h2>
-        <p>Для всех олимпиад используется ссылка Kaspi. Участники переходят по ней со страницы оформления заявки.</p>
+        <p>Ссылка Kaspi пока общая, но для каждой заявки формируется уникальный комментарий оплаты. По нему видно, за какую олимпиаду и какого участника пришёл платёж.</p>
         <code>{{ paymentUrl }}</code>
       </div>
       <div class="setup-actions">
@@ -22,7 +22,7 @@
         <button class="secondary-btn" @click="copyPaymentLink">Скопировать ссылку</button>
       </div>
       <p v-if="copyMessage" class="message">{{ copyMessage }}</p>
-      <p class="helper-text">Подтверждать оплату администратор может на странице «Заявки», меняя статус оплаты на `paid`.</p>
+      <p class="helper-text">Для сверки используйте `Request ID` и комментарий оплаты. Подтверждать оплату администратор может на странице «Заявки», меняя статус оплаты на `paid`.</p>
     </section>
 
     <section class="table-card">
@@ -32,8 +32,10 @@
             <th>Родитель</th>
             <th>Ребенок</th>
             <th>Предмет</th>
+            <th>Request ID</th>
             <th>Сумма</th>
             <th>Статус</th>
+            <th>Комментарий</th>
             <th>Дата</th>
           </tr>
         </thead>
@@ -42,8 +44,10 @@
             <td>{{ item.parent_name || '—' }}</td>
             <td>{{ item.child_name || '—' }}</td>
             <td>{{ item.subject || '—' }}</td>
+            <td><code>{{ item.request_reference || '—' }}</code></td>
             <td>{{ item.amount ? `${item.amount} ${item.currency}` : '—' }}</td>
             <td>{{ paymentStatusLabel(item.status) }}</td>
+            <td class="comment-cell">{{ item.comment || '—' }}</td>
             <td>{{ item.paid_at || item.date || '—' }}</td>
           </tr>
         </tbody>
@@ -208,6 +212,11 @@ td {
 code {
   word-break: break-word;
   color: var(--accent-strong);
+}
+
+.comment-cell {
+  min-width: 240px;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 760px) {
