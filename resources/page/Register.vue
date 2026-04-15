@@ -27,6 +27,15 @@
       </section>
 
       <section class="register-card">
+        <div class="funnel-progress" aria-label="Прогресс воронки">
+          <div class="funnel-progress__top">
+            <strong>Шаг 2 из 3</strong>
+            <span>Регистрация родителя</span>
+          </div>
+          <div class="funnel-progress__track">
+            <div class="funnel-progress__fill" style="width: 66.666%;"></div>
+          </div>
+        </div>
         <div class="form-header">
           <p class="eyebrow">Регистрация</p>
           <h2>Откройте личный кабинет</h2>
@@ -512,6 +521,45 @@ watch(school, () => {
   gap: 22px;
 }
 
+.funnel-progress {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(232, 223, 200, 0.48);
+  border: 1px solid rgba(26, 95, 168, 0.12);
+}
+
+.funnel-progress__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.funnel-progress__top strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.funnel-progress__top span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.funnel-progress__track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(26, 95, 168, 0.12);
+}
+
+.funnel-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--info) 0%, #4d8bc9 100%);
+}
+
 .form-header {
   display: grid;
   gap: 10px;
@@ -764,6 +812,7 @@ watch(school, () => {
   }
 
   .progress-box__top,
+  .funnel-progress__top,
   .form-actions {
     flex-direction: column;
     align-items: stretch;

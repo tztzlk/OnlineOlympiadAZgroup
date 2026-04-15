@@ -84,6 +84,7 @@ Route::middleware(['auth:sanctum', 'throttle:api-user'])->group(function () {
         Route::get('/recent-olympiads', [ProfileController::class, 'recentOlympiads']);
         Route::get('/olympiads', [ProfileController::class, 'olympiads']);
         Route::get('/results', [ProfileController::class, 'myResults']);
+        Route::get('/results/{result}/mistakes', [ProfileController::class, 'mistakes']);
         Route::get('/results/{result}/certificate-preview', [ProfileController::class, 'certificatePreview']);
         Route::get('/results/{result}/certificate', [ProfileController::class, 'certificate']);
         Route::get('/payments', [ProfileController::class, 'payments']);

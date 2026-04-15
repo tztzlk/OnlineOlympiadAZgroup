@@ -7,6 +7,7 @@ use App\Http\Resources\OlympiadRequestResource;
 use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
 use App\Models\PaymentRecord;
+use App\Models\Quiz;
 use App\Models\Subject;
 use App\Support\NotificationWorkflow;
 use App\Support\OnboardingProgress;
@@ -37,6 +38,7 @@ class OlympiadRequestController extends Controller
 
         $child = $this->resolveChildProfile($request, $user->id, $data);
         $subjectId = $this->resolveSubjectId($data['subject_id']);
+        $price = $this->resolveQuizPrice($subjectId);
         $birthDate = $data['birth_date'] ?? optional($child->birth_date)->toDateString() ?? now()->toDateString();
 
         $payload = [
@@ -111,6 +113,7 @@ class OlympiadRequestController extends Controller
                 'parent_id' => $user->id,
                 'child_profile_id' => $child->id,
                 'subject_id' => $requestModel->subject_id,
+                'amount' => $price,
                 'status' => $requestModel->payment_status,
                 'comment' => $this->buildPaymentComment($requestModel),
                 'paid_at' => $requestModel->payment_status === 'paid' ? $requestModel->paid_at : null,
@@ -459,5 +462,13 @@ class OlympiadRequestController extends Controller
         return Subject::query()
             ->where('public_id', $subjectKey)
             ->valueOrFail('id');
+    }
+
+    protected function resolveQuizPrice(int $subjectId): int
+    {
+        return (int) (Quiz::query()
+            ->where('subject_id', $subjectId)
+            ->latest('id')
+            ->value('price') ?? 0);
     }
 }

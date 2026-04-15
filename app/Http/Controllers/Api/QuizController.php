@@ -242,6 +242,7 @@ class QuizController extends Controller
             'quiz_category_id' => $category->id,
             'score' => $score,
             'total' => $total,
+            'answers' => $answers,
         ]);
 
         OlympiadRequest::query()
@@ -298,6 +299,7 @@ class QuizController extends Controller
                 'display_range' => $this->formatCategoryRange($category),
             ],
             'certificate_url' => '/api/profile/results/' . $quizResult->public_id . '/certificate',
+            'mistakes_url' => '/profile/results/' . $quizResult->public_id . '/mistakes',
         ]);
     }
 

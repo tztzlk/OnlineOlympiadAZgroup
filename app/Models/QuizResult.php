@@ -16,10 +16,15 @@ class QuizResult extends Model
         'quiz_id',
         'quiz_category_id',
         'score',
-        'total'
+        'total',
+        'answers',
     ];
 
     protected $hidden = ['id', 'user_id', 'child_profile_id', 'quiz_id', 'quiz_category_id'];
+
+    protected $casts = [
+        'answers' => 'array',
+    ];
 
     /*
     |--------------------------------------------------

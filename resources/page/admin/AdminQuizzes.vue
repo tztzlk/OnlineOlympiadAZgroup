@@ -35,6 +35,7 @@
 
         <div class="quiz-meta">
           <span>{{ quiz.questions_count || 0 }} вопросов</span>
+          <span>{{ formatPrice(quiz.price) }}</span>
           <span>{{ quiz.time_limit }} мин</span>
         </div>
 
@@ -73,6 +74,11 @@
           <label class="field full">
             <span>Описание</span>
             <textarea v-model="form.description" rows="3"></textarea>
+          </label>
+
+          <label class="field">
+            <span>Цена участия, ₸</span>
+            <input v-model.number="form.price" type="number" min="0" step="1" />
           </label>
 
           <label class="field">
@@ -323,6 +329,7 @@ const createForm = () => ({
   },
   title: '',
   description: '',
+  price: 2990,
   time_limit: 60,
   is_published: false,
   categories: CATEGORY_PRESETS.map((preset) => createCategory(preset)),
@@ -366,6 +373,9 @@ const normalizeAnswers = (answers = []) => {
   return normalized.length ? normalized : Array.from({ length: 4 }, (_, answerIndex) => createAnswerOption(answerIndex))
 }
 
+const getFilledCategories = (categories = form.value.categories) =>
+  categories.filter((category) => category.questions.length > 0)
+
 const mapCategoryFromResponse = (category, preset) => ({
   label: category.label || preset.label,
   grade_from: category.grade_from ?? preset.grade_from,
@@ -399,6 +409,7 @@ const editQuiz = async (quiz) => {
     },
     title: data.title,
     description: data.description ?? '',
+    price: data.price ?? 2990,
     time_limit: data.time_limit,
     is_published: data.is_published,
     categories: CATEGORY_PRESETS.map((preset) => {
@@ -504,9 +515,15 @@ const uploadQuestionImage = async (event, question) => {
 const validateForm = () => {
   if (!form.value.title.trim()) return 'Введите название олимпиады.'
   if (!form.value.subject_id && !form.value.subject.name.trim()) return 'Введите название предмета.'
+  if (!Number.isInteger(Number(form.value.price)) || Number(form.value.price) < 0) return 'Укажите корректную цену участия.'
 
-  for (const category of form.value.categories) {
-    if (!category.questions.length) return `Добавьте хотя бы один вопрос в категорию ${category.label}.`
+  const filledCategories = getFilledCategories()
+
+  if (!filledCategories.length) {
+    return 'Добавьте хотя бы одну категорию с вопросами.'
+  }
+
+  for (const category of filledCategories) {
 
     for (const [index, question] of category.questions.entries()) {
       if (!question.question.trim()) return `Заполните текст вопроса ${index + 1} в категории ${category.label}.`
@@ -544,11 +561,10 @@ const normalizePayload = () => ({
       },
   title: form.value.title.trim(),
   description: form.value.description.trim(),
+  price: Number(form.value.price) || 0,
   time_limit: Number(form.value.time_limit) || 60,
   is_published: !!form.value.is_published,
-  categories: form.value.categories
-    .filter((category) => category.questions.length > 0)
-    .map((category, categoryIndex) => ({
+  categories: getFilledCategories().map((category, categoryIndex) => ({
     label: category.label,
     grade_from: category.grade_from,
     grade_to: category.grade_to,
@@ -570,15 +586,10 @@ const normalizePayload = () => ({
 })
 
 const saveQuiz = async () => {
-  const filledCategories = form.value.categories.filter((category) => category.questions.length > 0)
+  const filledCategories = getFilledCategories()
   if (!filledCategories.length) {
     formError.value = 'Добавьте хотя бы одну категорию с вопросами.'
     return
-  }
-
-  form.value = {
-    ...form.value,
-    categories: filledCategories,
   }
 
   formError.value = validateForm()
@@ -607,6 +618,8 @@ const togglePublish = async (quiz) => {
   await api.post(endpoint)
   await loadData()
 }
+
+const formatPrice = (price) => new Intl.NumberFormat('ru-RU').format(Number(price) || 0) + ' ₸'
 
 const deleteQuiz = async (id) => {
   if (!window.confirm('Удалить олимпиаду?')) return

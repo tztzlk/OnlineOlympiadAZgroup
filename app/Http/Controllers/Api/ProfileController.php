@@ -146,6 +146,73 @@ class ProfileController extends Controller
         }));
     }
 
+    public function mistakes(Request $request, QuizResult $result)
+    {
+        $user = $request->user();
+
+        if (!$user || $result->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if (empty($result->answers)) {
+            return response()->json([
+                'message' => 'Разбор ошибок доступен только для новых попыток после обновления платформы.',
+            ], 422);
+        }
+
+        $result->loadMissing([
+            'quiz.subject',
+            'category.questions.answers',
+            'childProfile',
+        ]);
+
+        $savedAnswers = collect($result->answers ?? [])->mapWithKeys(
+            fn ($answerId, $questionId) => [(int) $questionId => $answerId !== null ? (int) $answerId : null]
+        );
+
+        $items = $result->category?->questions
+            ?->map(function ($question) use ($savedAnswers) {
+                $selectedId = $savedAnswers->get($question->id);
+                $correctAnswer = $question->answers->firstWhere('is_correct', true);
+                $selectedAnswer = $selectedId ? $question->answers->firstWhere('id', $selectedId) : null;
+
+                $status = $selectedId === null
+                    ? 'skipped'
+                    : (($correctAnswer && (int) $correctAnswer->id === (int) $selectedId) ? 'correct' : 'wrong');
+
+                return [
+                    'question_id' => $question->id,
+                    'question' => $question->question,
+                    'image' => $question->image,
+                    'image_source' => $question->image_source,
+                    'status' => $status,
+                    'selected_answer' => $selectedAnswer ? [
+                        'id' => $selectedAnswer->id,
+                        'label' => $selectedAnswer->label,
+                        'answer' => $selectedAnswer->answer,
+                    ] : null,
+                    'correct_answer' => $correctAnswer ? [
+                        'id' => $correctAnswer->id,
+                        'label' => $correctAnswer->label,
+                        'answer' => $correctAnswer->answer,
+                    ] : null,
+                ];
+            })
+            ?->filter(fn (array $item) => $item['status'] !== 'correct')
+            ?->values() ?? collect();
+
+        return response()->json([
+            'id' => $result->public_id,
+            'child_name' => $result->childProfile?->full_name ?? $user->name,
+            'subject' => $result->quiz?->subject?->name ?? 'Олимпиада',
+            'quiz_title' => $result->quiz?->title ?? 'Итоговый результат',
+            'score' => $result->score,
+            'total' => $result->total,
+            'mistakes_count' => $items->count(),
+            'items' => $items,
+        ]);
+    }
+
     public function payments(Request $request)
     {
         $user = $request->user();

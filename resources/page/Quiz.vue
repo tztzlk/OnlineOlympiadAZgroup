@@ -38,6 +38,7 @@
           <template #actions>
             <RouterLink v-if="result.id" class="action-btn secondary" :to="`/profile/results/${result.id}/certificate-preview`">Превью сертификата</RouterLink>
             <button class="action-btn secondary" @click="downloadCertificate">Скачать сертификат</button>
+            <RouterLink v-if="result.mistakes_url" class="action-btn secondary" :to="result.mistakes_url">Работа над ошибками</RouterLink>
             <RouterLink class="action-btn" to="/results">Перейти к результатам</RouterLink>
           </template>
         </StatePanel>
@@ -118,7 +119,8 @@
           description="Пожалуйста, не закрывайте страницу. Можно попробовать отправить ответы ещё раз."
         />
 
-        <div class="progress-card">
+        <div class="exam-body">
+        <aside class="progress-card">
           <div class="progress-top"><span>Прогресс</span><strong>{{ progressPercent }}%</strong></div>
           <div class="progress-track"><div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div></div>
           <div class="question-map">
@@ -133,8 +135,9 @@
               {{ index + 1 }}
             </button>
           </div>
-        </div>
+        </aside>
 
+        <div class="exam-main">
         <article class="question-card">
           <div class="question-header">
             <span class="question-index">{{ currentQuestionIndex + 1 }}</span>
@@ -169,9 +172,11 @@
         <footer class="sticky-footer">
           <button class="action-btn secondary" :disabled="currentQuestionIndex === 0" @click="goPrev">Назад</button>
           <button class="action-btn secondary" @click="skipQuestion">Пропустить</button>
-          <button class="action-btn secondary" :disabled="currentQuestionIndex === quiz.questions.length - 1" @click="goNext">Далее</button>
-          <button class="action-btn" :disabled="submitting" @click="submitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
+          <button v-if="!isLastQuestion" class="action-btn secondary" @click="goNext">Далее</button>
+          <button v-else class="action-btn" :disabled="submitting" @click="submitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
         </footer>
+        </div>
+        </div>
       </section>
     </template>
   </div>
@@ -217,6 +222,10 @@ let timerId = null
 let violated = false
 
 const currentQuestion = computed(() => quiz.value?.questions[currentQuestionIndex.value] || null)
+const isLastQuestion = computed(() => {
+  if (!quiz.value?.questions?.length) return false
+  return currentQuestionIndex.value === quiz.value.questions.length - 1
+})
 const answeredCount = computed(() => Object.keys(userAnswers.value).length)
 const skippedCount = computed(() => skippedQuestions.value.size)
 const progressPercent = computed(() => {
@@ -480,11 +489,13 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .stat-box span { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
 .stat-box.warn { outline: 2px solid rgba(198,90,90,0.24); }
 .fullscreen-btn { cursor: pointer; }
-.progress-card { padding: 20px 24px; }
+.exam-body { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 16px; align-items: start; }
+.exam-main { display: grid; gap: 16px; min-width: 0; }
+.progress-card { padding: 20px 20px 22px; position: sticky; top: 110px; align-self: start; }
 .progress-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-secondary); margin-bottom: 12px; }
 .progress-track { height: 10px; border-radius: 999px; background: rgba(100,83,41,0.12); overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success-soft), #56a36f); }
-.question-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 10px; margin-top: 18px; }
+.question-map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
 .question-dot { height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); background: rgba(255,252,244,0.8); color: var(--text); font-weight: 700; cursor: pointer; }
 .question-dot.current { background: var(--info-soft); border-color: rgba(26,95,168,0.32); color: var(--info); }
 .question-dot.answered { background: rgba(44,122,75,0.14); border-color: rgba(44,122,75,0.34); color: var(--success-soft); }
@@ -505,6 +516,7 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .action-btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 14px; padding: 12px 18px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--text); font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 12px 26px rgba(201,168,76,0.24); }
 .action-btn.secondary { background: var(--info-soft); color: var(--info); border: 1px solid rgba(26,95,168,0.18); box-shadow: none; }
 .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+@media (max-width: 980px) { .exam-body { grid-template-columns: 1fr; } .progress-card { position: static; } .question-map { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); } }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .sticky-footer { position: static; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions) { width: 100%; } }
+@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .sticky-footer { position: static; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
 </style>

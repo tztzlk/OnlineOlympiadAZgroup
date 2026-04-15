@@ -118,6 +118,105 @@ it('stores olympiad request and result for a selected child', function () {
         'quiz_id' => $quiz->id,
         'score' => 1,
     ]);
+
+    $result = \App\Models\QuizResult::query()->firstOrFail();
+
+    expect($result->answers)->toBeArray()
+        ->and($result->answers[$question->id])->toBe($correct->id);
+});
+
+it('returns only wrong and skipped answers for mistakes review', function () {
+    $parent = User::factory()->create();
+    $child = ChildProfile::create([
+        'parent_id' => $parent->id,
+        'first_name' => 'Amina',
+        'last_name' => 'Errors',
+        'grade' => 6,
+        'language_preference' => 'ru',
+    ]);
+    $subject = Subject::create(['name' => 'Math']);
+    $quiz = Quiz::create([
+        'subject_id' => $subject->id,
+        'title' => 'Mistakes Quiz',
+        'time_limit' => 30,
+        'is_published' => true,
+    ]);
+    $category = QuizCategory::create([
+        'quiz_id' => $quiz->id,
+        'label' => '6 класс',
+        'grade_from' => 6,
+        'grade_to' => 6,
+        'sort_order' => 1,
+    ]);
+
+    $questionOne = Question::create([
+        'quiz_id' => $quiz->id,
+        'quiz_category_id' => $category->id,
+        'question' => '2 + 2 = ?',
+        'position' => 1,
+    ]);
+    $q1Wrong = $questionOne->answers()->create([
+        'label' => 'A',
+        'position' => 1,
+        'answer' => '5',
+        'is_correct' => false,
+    ]);
+    $questionOne->answers()->create([
+        'label' => 'B',
+        'position' => 2,
+        'answer' => '4',
+        'is_correct' => true,
+    ]);
+
+    $questionTwo = Question::create([
+        'quiz_id' => $quiz->id,
+        'quiz_category_id' => $category->id,
+        'question' => '3 + 3 = ?',
+        'position' => 2,
+    ]);
+    $questionTwo->answers()->create([
+        'label' => 'A',
+        'position' => 1,
+        'answer' => '6',
+        'is_correct' => true,
+    ]);
+    $questionTwo->answers()->create([
+        'label' => 'B',
+        'position' => 2,
+        'answer' => '7',
+        'is_correct' => false,
+    ]);
+
+    Sanctum::actingAs($parent);
+
+    OlympiadRequest::create([
+        'user_id' => $parent->id,
+        'child_profile_id' => $child->id,
+        'subject_id' => $subject->id,
+        'status' => 'approved',
+        'payment_status' => 'paid',
+        'grade' => 6,
+        'language' => 'ru',
+        'parent_name' => $parent->name,
+        'parent_phone' => $parent->phone,
+        'parent_email' => $parent->email,
+    ]);
+
+    $submit = $this->postJson('/api/quiz/' . $quiz->public_id . '/submit', [
+        'child_profile_id' => $child->public_id,
+        'answers' => [
+            $questionOne->id => $q1Wrong->id,
+        ],
+    ])->assertOk();
+
+    $resultId = $submit->json('id');
+
+    $this->getJson('/api/profile/results/' . $resultId . '/mistakes')
+        ->assertOk()
+        ->assertJsonPath('mistakes_count', 2)
+        ->assertJsonCount(2, 'items')
+        ->assertJsonPath('items.0.status', 'wrong')
+        ->assertJsonPath('items.1.status', 'skipped');
 });
 
 it('creates training attempts without creating quiz results', function () {

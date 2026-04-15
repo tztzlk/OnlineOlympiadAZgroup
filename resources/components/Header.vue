@@ -133,11 +133,15 @@
         </div>
       </div>
     </transition>
+
+    <router-link v-if="showStickyOlympiadCta" to="/subject" class="sticky-cta">
+      Выбрать олимпиаду
+    </router-link>
   </header>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useTheme } from '../js/composables/useTheme'
@@ -174,10 +178,27 @@ const isScrolled = ref(false)
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
 const isTransparent = computed(() => isHome.value && !isScrolled.value)
+const showStickyOlympiadCta = computed(() => {
+  if (route.path === '/subject') return false
+  if (route.path === '/register') return false
+  if (route.path === '/login') return false
+  if (route.path === '/admin-login') return false
+  if (route.path.startsWith('/admin')) return false
+  if (route.path.startsWith('/quiz/')) return false
+  return true
+})
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 20
 }
+
+watch(menuOpen, (value) => {
+  document.body.style.overflow = value ? 'hidden' : ''
+})
+
+watch(() => route.fullPath, () => {
+  closeMenu()
+})
 
 onMounted(async () => {
   await userStore.fetchUser()
@@ -187,6 +208,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.body.style.overflow = ''
 })
 </script>
 
@@ -680,8 +702,56 @@ onUnmounted(() => {
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .header__nav, .header__user { display: none; }
   .burger { display: flex; }
+  .sticky-cta { display: inline-flex; }
+}
+
+.sticky-cta {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  min-height: 52px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: #18120a;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 18px 32px rgba(139, 103, 20, 0.28);
+  z-index: 1400;
+}
+
+.sticky-cta:hover {
+  transform: translateY(-1px);
+}
+
+@media (min-width: 768px) {
+  .burger,
+  .mobile-menu,
+  .overlay,
+  .sticky-cta {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .header__container {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .header__logo span {
+    font-size: 16px;
+  }
+
+  .mobile-menu {
+    width: min(320px, 86vw);
+  }
 }
 </style>

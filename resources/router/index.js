@@ -14,6 +14,7 @@ const routes = [
   { path: "/leaderboard", name: "Leaderboard", component: () => import("../page/Leaderboard.vue") },
   { path: "/certificate-check", name: "CertificateCheck", component: () => import("../page/CertificateCheck.vue") },
   { path: "/results", name: "Results", component: () => import("../page/Results.vue") },
+  { path: "/profile/results/:resultId/mistakes", name: "ResultMistakes", component: () => import("../page/ResultMistakes.vue") },
   { path: "/profile/results/:resultId/certificate-preview", name: "CertificatePreview", component: () => import("../page/CertificatePreview.vue") },
   { path: "/login", name: "Login", component: () => import("../page/Login.vue") },
   { path: "/register", name: "Register", component: () => import("../page/Register.vue") },

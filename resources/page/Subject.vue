@@ -2,12 +2,28 @@
   <div class="subject-page">
     <div class="container">
       <div class="page-header">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки">
+          <RouterLink to="/">Главная</RouterLink>
+          <span>/</span>
+          <span>Предметы</span>
+          <span>/</span>
+          <span>Регистрация</span>
+        </nav>
         <div class="page-badge">Предметы</div>
         <h1 class="page-title">Выберите олимпиаду и сразу переходите к оплате</h1>
         <p class="page-subtitle">
           Путь стал проще: выберите предмет, укажите участника, сохраните данные и оплатите участие.
           После подтверждения оплаты в админке доступ к олимпиаде откроется автоматически.
         </p>
+        <div class="funnel-progress" aria-label="Прогресс оформления">
+          <div class="funnel-progress__top">
+            <strong>Шаг 1 из 3</strong>
+            <span>Выбор предмета и участника</span>
+          </div>
+          <div class="funnel-progress__track">
+            <div class="funnel-progress__fill" style="width: 33.333%;"></div>
+          </div>
+        </div>
       </div>
 
       <div class="subjects-grid">
@@ -23,7 +39,7 @@
           </div>
           <h2 class="subject-card__name">{{ subject.name }}</h2>
           <p class="subject-card__desc">{{ subject.description }}</p>
-          <p class="subject-card__price">Участие: от 2 990 &#8376;</p>
+          <p class="subject-card__price">Участие: {{ formatPrice(subject.price) }}</p>
           <CountdownBadge :target="subject.start_date" label="До старта" />
           <RouterLink
             class="subject-card__link"
@@ -46,7 +62,7 @@
       <div v-if="selectedSubject" class="step-box">
         <div class="step-box__header">
           <div>
-            <p class="page-badge soft">Шаг 1</p>
+            <p class="page-badge soft">Шаг 1 из 3</p>
             <h2>Оформление участия</h2>
             <p class="chosen">Предмет: <strong>{{ selectedSubject.name }}</strong></p>
             <p v-if="registrationDeadlineLabel" class="deadline-copy">До закрытия регистрации: <strong>{{ registrationDeadlineLabel }}</strong></p>
@@ -548,11 +564,20 @@ watch(() => route.query.openRules, (value) => {
 * { box-sizing: border-box; }
 .subject-page { min-height: 100vh; background: var(--bg); padding: 100px 28px 70px; position: relative; }
 .container { max-width: 1100px; margin: 0 auto; display: grid; gap: 24px; }
-.page-header { text-align: center; }
+.page-header { text-align: center; display: grid; gap: 14px; justify-items: center; }
+.breadcrumbs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; font-size: 13px; color: var(--text-secondary); }
+.breadcrumbs a { color: var(--info); text-decoration: none; font-weight: 700; }
+.breadcrumbs a:hover { color: var(--info-hover); }
 .page-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6c5a2f; background: rgba(208,179,107,0.18); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(208,179,107,0.3); margin-bottom: 18px; }
 .page-badge.soft { margin-bottom: 10px; }
 .page-title { font-size: 34px; font-weight: 700; color: var(--text-primary); margin: 0 0 12px; }
 .page-subtitle { font-size: 16px; color: var(--text-secondary); margin: 0 auto; line-height: 1.7; max-width: 760px; }
+.funnel-progress { width: min(100%, 520px); padding: 16px 18px; border-radius: 20px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.82); box-shadow: var(--shadow-soft); text-align: left; }
+.funnel-progress__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.funnel-progress__top strong { color: var(--text); font-size: 15px; }
+.funnel-progress__top span { color: var(--text-secondary); font-size: 13px; }
+.funnel-progress__track { width: 100%; height: 8px; border-radius: 999px; background: rgba(26,95,168,.12); overflow: hidden; }
+.funnel-progress__fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--info) 0%, #4d8bc9 100%); }
 .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
 .subject-card { background: rgba(255,249,239,0.72); padding: 24px; border-radius: 24px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; text-align: center; box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09); backdrop-filter: blur(10px); display: grid; gap: 14px; justify-items: center; }
 .subject-card:hover, .subject-card.selected { transform: translateY(-4px); border-color: rgba(208,179,107,0.34); box-shadow: 0 18px 42px rgba(104,79,28,0.14); }
@@ -606,5 +631,5 @@ watch(() => route.query.openRules, (value) => {
 .step-link { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:12px 16px; border-radius:14px; text-decoration:none; border:0; font-weight:700; cursor:pointer; background: linear-gradient(135deg, #d2b261, #bea25a); color:#18120a; }
 .step-link.secondary { background: rgba(255,251,243,.86); color: var(--accent-strong); border: 1px solid rgba(201,171,99,.28); }
 @media (max-width: 900px) { .flow-grid { grid-template-columns: 1fr; } .step-box__header { flex-direction: column; } .rules-list { grid-template-columns: 1fr; } .deadline-banner { flex-direction: column; align-items: flex-start; } }
-@media (max-width: 768px) { .subject-page { padding: 90px 16px 60px; } .fields-row { grid-template-columns: 1fr; } .step-box { padding: 24px 18px; } .rules-card__toggle { padding: 18px; flex-direction: column; align-items: flex-start; } .rules-card__body { padding: 0 18px 18px; } }
+@media (max-width: 768px) { .subject-page { padding: 90px 16px 60px; } .breadcrumbs { font-size: 12px; gap: 6px; } .funnel-progress__top { flex-direction: column; align-items: flex-start; } .fields-row { grid-template-columns: 1fr; } .step-box { padding: 24px 18px; } .rules-card__toggle { padding: 18px; flex-direction: column; align-items: flex-start; } .rules-card__body { padding: 0 18px 18px; } }
 </style>

@@ -14,11 +14,13 @@ class Quiz extends Model
         'public_id',
         'title',
         'description',
+        'price',
         'time_limit',
         'is_published',
     ];
 
     protected $casts = [
+        'price' => 'integer',
         'is_published' => 'boolean',
     ];
 

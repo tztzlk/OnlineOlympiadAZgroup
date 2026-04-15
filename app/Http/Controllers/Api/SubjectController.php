@@ -86,6 +86,7 @@ class SubjectController extends Controller
             'description' => $subject->description,
             'start_date' => optional($subject->start_date)->toDateString(),
             'published_quizzes_count' => $subject->published_quizzes_count ?? 0,
+            'price' => $subject->quizzes()->where('is_published', true)->latest('id')->value('price'),
         ];
     }
 
@@ -113,6 +114,7 @@ class SubjectController extends Controller
         return [
             ...$this->mapSubject($subject),
             'time_limit' => $quiz?->time_limit,
+            'price' => $quiz?->price,
             'grade_ranges' => $gradeRanges,
             'registration_url' => '/subject?subject=' . $subject->public_id,
             'payment_url' => config('services.kaspi.payment_url'),

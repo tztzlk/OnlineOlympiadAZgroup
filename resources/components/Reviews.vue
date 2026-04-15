@@ -1,135 +1,63 @@
 <template>
   <section class="reviews">
-
     <div class="reviews__header">
-      <div class="reviews__badge">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Отзывы
+      <div class="reviews__copy">
+        <span class="reviews__eyebrow">Отзывы</span>
+        <h2>Что говорят родители и участники</h2>
+        <p>Короткие впечатления тех, кто уже прошёл олимпиаду и получил результат.</p>
       </div>
-      <h2 class="reviews__title">Что говорят участники<br/>и родители</h2>
-      <p class="reviews__subtitle">Реальные впечатления от олимпиады</p>
 
-      <div class="reviews__stats">
-        <div class="stat">
-          <span class="stat__num">4.9</span>
-          <div class="stat__stars">
-            <svg v-for="i in 5" :key="i" width="14" height="14" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
-          <span class="stat__label">средняя оценка</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat__num">1 200+</span>
-          <span class="stat__label">участников</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat__num">98%</span>
-          <span class="stat__label">рекомендуют</span>
-        </div>
+      <div class="reviews__controls">
+        <button class="scroll-btn" type="button" aria-label="Назад" @click="scrollLeft">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <button class="scroll-btn" type="button" aria-label="Вперёд" @click="scrollRight">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       </div>
     </div>
 
-    <div class="reviews__wrapper">
-      <div class="reviews__grid">
-        <article
-          class="review review--grid"
-          v-for="(review, index) in featuredReviews"
-          :key="`featured-${index}`"
-        >
-          <div class="review__quote">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-            </svg>
-          </div>
+    <div class="reviews__scroll-container" ref="scrollContainer">
+      <article class="review" v-for="(review, index) in reviews" :key="index">
+        <div class="review__quote">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+          </svg>
+        </div>
 
-          <p class="review__text">{{ review.text }}</p>
+        <p class="review__text">{{ review.text }}</p>
 
-          <div class="review__stars">
-            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
+        <div class="review__stars">
+          <svg v-for="i in review.rating" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </div>
 
-          <div class="review__footer">
-            <div class="review__avatar">{{ review.name.charAt(0) }}</div>
-            <div>
-              <div class="review__name">{{ review.name }}</div>
-              <div class="review__role">{{ review.role }}</div>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <div class="reviews__carousel-head">
-        <strong>Ещё отзывы</strong>
-        <span>Карусель остаётся для тех, кто хочет посмотреть больше отзывов.</span>
-      </div>
-
-      <button class="scroll-btn left" @click="scrollLeft" aria-label="Назад">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
-
-      <div class="reviews__scroll-container" ref="scrollContainer">
-        <div
-          class="review"
-          v-for="(review, index) in reviews"
-          :key="index"
-        >
-          <div class="review__quote">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-            </svg>
-          </div>
-
-          <p class="review__text">{{ review.text }}</p>
-
-          <div class="review__stars">
-            <svg v-for="i in (review.rating || 5)" :key="i" width="13" height="13" viewBox="0 0 24 24" fill="#49a86b" stroke="none">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
-
-          <div class="review__footer">
-            <div class="review__avatar">{{ review.name.charAt(0) }}</div>
-            <div>
-              <div class="review__name">{{ review.name }}</div>
-              <div class="review__role">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path v-if="review.role.includes('родитель')" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle v-if="review.role.includes('родитель')" cx="12" cy="7" r="4"/>
-                  <path v-else d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path v-if="!review.role.includes('родитель')" d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                </svg>
-                {{ review.role }}
-              </div>
-            </div>
+        <div class="review__footer">
+          <div class="review__avatar">{{ review.name.charAt(0) }}</div>
+          <div>
+            <div class="review__name">{{ review.name }}</div>
+            <div class="review__role">{{ review.role }}</div>
           </div>
         </div>
-      </div>
-
-      <button class="scroll-btn right" @click="scrollRight" aria-label="Вперёд">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
+      </article>
     </div>
 
-    <!-- Scroll indicator dots -->
     <div class="reviews__dots">
-      <div
+      <button
         v-for="(_, i) in reviews"
         :key="i"
+        type="button"
         class="dot"
         :class="{ active: activeDot === i }"
+        :aria-label="`Перейти к отзыву ${i + 1}`"
         @click="scrollToCard(i)"
-      ></div>
+      ></button>
     </div>
-
   </section>
 </template>
 
@@ -140,130 +68,117 @@ const scrollContainer = ref(null)
 const activeDot = ref(0)
 
 const reviews = ref([
-  { name: "Айгуль С.", role: "родитель", text: "Очень удобная платформа. Ребёнок прошёл олимпиаду с интересом — задания разнообразные и не утомляют. Однозначно рекомендую!", rating: 5 },
-  { name: "Илья К.", role: "7 класс", text: "Задания понятные и интересные. Хочу ещё такие олимпиады! Удобно, что можно видеть результаты сразу после завершения.", rating: 5 },
-  { name: "Мария П.", role: "родитель", text: "Современный дизайн и хорошая организация. Приятно, что всё работает без лагов. Дочь в восторге от участия.", rating: 5 },
-  { name: "Данияр А.", role: "9 класс", text: "Интерфейс простой и приятный. Проходить тест было легко и комфортно. Хотелось бы больше предметов!", rating: 4 },
-  { name: "Алина Т.", role: "родитель", text: "Удобно отслеживать результаты и прогресс ребёнка в личном кабинете. Спасибо за такой продукт.", rating: 5 },
-  { name: "Сергей Л.", role: "8 класс", text: "Интересные задания, уже советую друзьям. Буду участвовать снова в следующем году!", rating: 4 },
+  { name: 'Айгуль С.', role: 'родитель', text: 'Очень удобная платформа. Ребёнок прошёл олимпиаду с интересом, а результат увидели сразу после завершения.', rating: 5 },
+  { name: 'Илья К.', role: '7 класс', text: 'Задания понятные и интересные. Особенно понравилось, что потом можно вернуться к разбору и понять ошибки.', rating: 5 },
+  { name: 'Мария П.', role: 'родитель', text: 'Современный дизайн и хорошая организация. Всё прошло спокойно, без лишних шагов и путаницы.', rating: 5 },
+  { name: 'Данияр А.', role: '9 класс', text: 'Интерфейс простой и приятный. Проходить тест было удобно даже с телефона.', rating: 4 },
+  { name: 'Алина Т.', role: 'родитель', text: 'Удобно отслеживать результаты ребёнка в кабинете. После участия всё понятно: результат, сертификат и что делать дальше.', rating: 5 },
+  { name: 'Сергей Л.', role: '8 класс', text: 'Интересные задания, хороший темп и нормальная навигация по вопросам. Хочется участвовать ещё.', rating: 4 },
 ])
 
-const featuredReviews = reviews.value.slice(0, 3)
-
 const scrollLeft = () => {
-  scrollContainer.value.scrollBy({ left: -380, behavior: 'smooth' })
+  scrollContainer.value?.scrollBy({ left: -360, behavior: 'smooth' })
 }
+
 const scrollRight = () => {
-  scrollContainer.value.scrollBy({ left: 380, behavior: 'smooth' })
+  scrollContainer.value?.scrollBy({ left: 360, behavior: 'smooth' })
 }
-const scrollToCard = (i) => {
-  const card = scrollContainer.value.children[i]
+
+const scrollToCard = (index) => {
+  const card = scrollContainer.value?.children[index]
   card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
 }
 
 const updateDot = () => {
   if (!scrollContainer.value) return
-  const { scrollLeft, offsetWidth } = scrollContainer.value
-  const cardWidth = scrollContainer.value.children[0]?.offsetWidth + 24 || 380
-  activeDot.value = Math.round(scrollLeft / cardWidth)
+  const cardWidth = scrollContainer.value.children[0]?.offsetWidth + 20 || 360
+  activeDot.value = Math.round(scrollContainer.value.scrollLeft / cardWidth)
 }
 
-onMounted(() => scrollContainer.value?.addEventListener('scroll', updateDot))
-onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot))
+onMounted(() => {
+  scrollContainer.value?.addEventListener('scroll', updateDot, { passive: true })
+})
+
+onUnmounted(() => {
+  scrollContainer.value?.removeEventListener('scroll', updateDot)
+})
 </script>
 
 <style scoped>
 * { box-sizing: border-box; }
 
 .reviews {
-  padding: 90px 28px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 28px 28px 92px;
 }
 
-/* Header */
 .reviews__header {
-  text-align: center;
-  margin-bottom: 52px;
-}
-
-.reviews__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6c5a2f;
-  background: rgba(208, 179, 107, 0.18);
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(208, 179, 107, 0.28);
-  margin-bottom: 18px;
-}
-
-.reviews__title {
-  font-size: 38px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 12px;
-  line-height: 1.2;
-}
-
-.reviews__subtitle {
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin: 0 0 32px;
-}
-
-/* Stats */
-.reviews__stats {
-  display: inline-flex;
-  align-items: center;
-  gap: 28px;
-  background: rgba(255, 248, 235, 0.74);
-  border: 1px solid var(--surface-border);
-  border-radius: 20px;
-  padding: 16px 32px;
-  box-shadow: 0 14px 36px rgba(76, 61, 24, 0.1);
-  backdrop-filter: blur(10px);
-}
-.stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.stat__num {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-on-surface);
-  line-height: 1;
-}
-.stat__stars { display: flex; gap: 2px; }
-.stat__label { font-size: 12px; color: var(--text-muted-on-surface); font-weight: 600; }
-.stat-divider { width: 1px; height: 36px; background: var(--surface-border); }
-
-/* Scroll wrapper */
-.reviews__wrapper {
-  position: relative;
-}
-
-.reviews__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.reviews__carousel-head {
   display: flex;
-  align-items: baseline;
+  align-items: end;
   justify-content: space-between;
-  gap: 12px;
-  margin: 0 0 14px;
-  color: var(--text-secondary);
+  gap: 20px;
+  margin-bottom: 22px;
 }
 
-.reviews__carousel-head strong {
+.reviews__copy {
+  max-width: 640px;
+}
+
+.reviews__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(208, 179, 107, 0.14);
+  border: 1px solid rgba(208, 179, 107, 0.22);
+  color: #6c5a2f;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.reviews__copy h2 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.08;
   color: var(--text-primary);
-  font-size: 18px;
+}
+
+.reviews__copy p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.reviews__controls {
+  display: flex;
+  gap: 10px;
+}
+
+.scroll-btn {
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(84, 68, 30, 0.14);
+  border-radius: 50%;
+  background: rgba(255, 249, 239, 0.9);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(76, 61, 24, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.scroll-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(73, 168, 107, 0.26);
+  box-shadow: 0 16px 32px rgba(73, 168, 107, 0.14);
 }
 
 .reviews__scroll-container {
@@ -271,165 +186,147 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   gap: 20px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  padding: 12px 4px 20px;
   scroll-snap-type: x mandatory;
+  padding: 8px 4px 18px;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.reviews__scroll-container::-webkit-scrollbar { display: none; }
 
-/* Review card */
+.reviews__scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
 .review {
+  position: relative;
   flex: 0 0 340px;
-  background: rgba(255, 249, 239, 0.68);
-  border-radius: 24px;
-  padding: 30px;
-  border: 1px solid var(--surface-border);
-  box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09);
-  scroll-snap-align: start;
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(10px);
+  min-height: 280px;
+  padding: 30px;
+  border-radius: 28px;
+  border: 1px solid rgba(122, 100, 52, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 248, 236, 0.78)),
+    radial-gradient(circle at top right, rgba(208, 179, 107, 0.12), transparent 34%);
+  box-shadow: 0 20px 50px rgba(67, 55, 28, 0.09);
+  backdrop-filter: blur(12px);
+  scroll-snap-align: start;
 }
 
-.review--grid {
-  min-height: 100%;
-}
-.review::before {
+.review::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--success-soft);
-  opacity: 0;
-  transition: opacity 0.3s;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 48%);
 }
-.review:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 48px rgba(73, 168, 107, 0.14);
-  border-color: rgba(73, 168, 107, 0.26);
-}
-.review:hover::before { opacity: 1; }
 
 .review__quote {
-  color: rgba(73, 168, 107, 0.42);
+  color: rgba(73, 168, 107, 0.38);
   line-height: 0;
 }
 
 .review__text {
-  font-size: 15px;
-  color: rgba(19, 16, 12, 0.86);
-  line-height: 1.7;
   margin: 0;
   flex: 1;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(19, 16, 12, 0.86);
 }
 
-.review__stars { display: flex; gap: 3px; }
+.review__stars {
+  display: flex;
+  gap: 3px;
+}
 
 .review__footer {
   display: flex;
   align-items: center;
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid var(--surface-border);
+  border-top: 1px solid rgba(122, 100, 52, 0.12);
 }
 
 .review__avatar {
-  width: 40px; height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(135deg, var(--success-soft), #74c58d);
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 6px 14px rgba(73, 168, 107, 0.24);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(73, 168, 107, 0.24);
 }
 
 .review__name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text-on-surface);
-  margin-bottom: 3px;
+  color: var(--text-primary);
 }
 
 .review__role {
   display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: #22663b;
-  background: rgba(73, 168, 107, 0.16);
-  padding: 3px 9px;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
-/* Scroll buttons */
-.scroll-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 248, 235, 0.92);
-  color: var(--success-soft);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 12px 28px rgba(67, 55, 28, 0.12);
-  transition: all 0.2s;
-  z-index: 2;
-}
-.scroll-btn:hover {
+  margin-top: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
   background: rgba(73, 168, 107, 0.12);
-  border-color: rgba(73, 168, 107, 0.32);
-  transform: translateY(-50%) scale(1.08);
-  box-shadow: 0 16px 32px rgba(73, 168, 107, 0.18);
+  color: #3e8059;
+  font-size: 12px;
+  font-weight: 700;
 }
-.left { left: -22px; }
-.right { right: -22px; }
 
-/* Dots */
 .reviews__dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
 }
+
 .dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--text) 14%, transparent);
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(128, 112, 81, 0.22);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: width 0.2s ease, background 0.2s ease;
 }
+
 .dot.active {
   width: 24px;
-  border-radius: 4px;
-  background: var(--success-soft);
+  background: linear-gradient(90deg, #4ca36a, #d0b36b);
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .reviews { padding: 60px 20px; }
-  .reviews__title { font-size: 28px; }
-  .reviews__grid { grid-template-columns: 1fr; }
-  .review { flex: 0 0 300px; }
-  .scroll-btn { display: none; }
-  .reviews__stats { gap: 18px; padding: 14px 22px; flex-wrap: wrap; justify-content: center; }
+@media (max-width: 820px) {
+  .reviews {
+    padding: 20px 20px 76px;
+  }
+
+  .reviews__header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .review {
+    flex-basis: min(84vw, 340px);
+  }
 }
 
-@media (max-width: 600px) {
-  .reviews { padding: 48px 16px; }
-  .reviews__title { font-size: 24px; }
-  .reviews__carousel-head { flex-direction: column; align-items: flex-start; }
-  .review { flex: 0 0 82vw; padding: 24px; }
-  .reviews__stats { gap: 14px; }
-  .stat-divider { display: none; }
+@media (max-width: 560px) {
+  .reviews__copy p {
+    font-size: 15px;
+  }
+
+  .reviews__controls {
+    display: none;
+  }
+
+  .review {
+    min-height: 260px;
+    padding: 24px;
+  }
 }
 </style>

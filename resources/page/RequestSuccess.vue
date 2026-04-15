@@ -1,6 +1,15 @@
 <template>
   <div class="success-page">
     <div class="success-card">
+      <div class="funnel-progress" aria-label="Прогресс оформления">
+        <div class="funnel-progress__top">
+          <strong>Шаг 3 из 3</strong>
+          <span>Заявка принята и ожидает следующий шаг</span>
+        </div>
+        <div class="funnel-progress__track">
+          <div class="funnel-progress__fill" style="width: 100%;"></div>
+        </div>
+      </div>
       <p class="eyebrow">Заявка принята</p>
       <h1>Что дальше?</h1>
       <p class="lead">
@@ -99,6 +108,12 @@ onMounted(fetchStatus)
 * { box-sizing: border-box; }
 .success-page { min-height: 100vh; padding: 110px 18px 48px; background: radial-gradient(circle at top left, rgba(201,171,99,.14), transparent 24%), var(--bg); }
 .success-card { max-width: 860px; margin: 0 auto; background: var(--surface); border: 1px solid var(--surface-border); border-radius: 28px; box-shadow: var(--shadow-card); padding: 32px; display: grid; gap: 22px; }
+.funnel-progress { padding: 16px 18px; border-radius: 20px; background: rgba(232,223,200,.44); border: 1px solid rgba(26,95,168,.12); }
+.funnel-progress__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.funnel-progress__top strong { color: var(--text); font-size: 15px; }
+.funnel-progress__top span { color: var(--text-secondary); font-size: 13px; }
+.funnel-progress__track { width: 100%; height: 8px; border-radius: 999px; overflow: hidden; background: rgba(26,95,168,.12); }
+.funnel-progress__fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--info) 0%, #4d8bc9 100%); }
 .eyebrow { margin: 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: var(--accent-strong); }
 h1 { margin: 0; color: var(--text); font-size: 38px; }
 .lead { margin: 0; color: var(--text-secondary); line-height: 1.7; }
@@ -116,5 +131,5 @@ h1 { margin: 0; color: var(--text); font-size: 38px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 18px; border-radius: 14px; text-decoration: none; font-weight: 700; }
 .btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%); color: var(--text); }
 .btn-secondary { background: rgba(255,252,244,.82); color: var(--accent-strong); border: 1px solid var(--surface-border); }
-@media (max-width: 640px) { .success-card { padding: 24px 18px; } h1 { font-size: 30px; } .actions { flex-direction: column; } }
+@media (max-width: 640px) { .success-card { padding: 24px 18px; } .funnel-progress__top { flex-direction: column; align-items: flex-start; } h1 { font-size: 30px; } .actions { flex-direction: column; } }
 </style>

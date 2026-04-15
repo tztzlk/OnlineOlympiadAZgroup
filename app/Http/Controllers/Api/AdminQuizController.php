@@ -32,6 +32,7 @@ class AdminQuizController extends Controller
                 'subject_id' => $subject->id,
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
+                'price' => $data['price'],
                 'time_limit' => $data['time_limit'],
                 'is_published' => (bool) ($data['is_published'] ?? false),
             ]);
@@ -59,6 +60,7 @@ class AdminQuizController extends Controller
                 'subject_id' => $subject->id,
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
+                'price' => $data['price'],
                 'time_limit' => $data['time_limit'],
                 'is_published' => (bool) ($data['is_published'] ?? false),
             ]);
@@ -122,6 +124,7 @@ class AdminQuizController extends Controller
             'subject.start_date' => 'nullable|date',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'price' => 'required|integer|min:0|max:10000000',
             'time_limit' => 'required|integer|min:1|max:180',
             'is_published' => 'sometimes|boolean',
             'categories' => 'required|array|min:1|max:10',
@@ -141,6 +144,17 @@ class AdminQuizController extends Controller
             'categories.*.questions.*.answers.*.answer' => 'required|string',
             'categories.*.questions.*.answers.*.position' => 'nullable|integer|min:1|max:8',
         ]);
+
+        $data['categories'] = collect($data['categories'])
+            ->filter(fn (array $category) => !empty($category['questions']))
+            ->values()
+            ->all();
+
+        if (count($data['categories']) === 0) {
+            abort(response()->json([
+                'message' => 'At least one category with questions is required.',
+            ], 422));
+        }
 
         foreach ($data['categories'] as $category) {
             foreach ($category['questions'] as $questionIndex => $question) {
@@ -233,6 +247,7 @@ class AdminQuizController extends Controller
             'id' => $quiz->public_id,
             'title' => $quiz->title,
             'description' => $quiz->description,
+            'price' => $quiz->price,
             'time_limit' => $quiz->time_limit,
             'is_published' => $quiz->is_published,
             'questions_count' => $quiz->questions_count,
@@ -276,6 +291,7 @@ class AdminQuizController extends Controller
             'id' => $quiz->public_id,
             'title' => $quiz->title,
             'description' => $quiz->description,
+            'price' => $quiz->price,
             'time_limit' => $quiz->time_limit,
             'is_published' => $quiz->is_published,
             'questions_count' => $quiz->questions_count,
@@ -289,3 +305,5 @@ class AdminQuizController extends Controller
         ];
     }
 }
+
+
