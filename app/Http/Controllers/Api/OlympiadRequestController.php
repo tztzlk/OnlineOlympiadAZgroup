@@ -79,6 +79,7 @@ class OlympiadRequestController extends Controller
             ]);
             $requestModel->load(['subject', 'user', 'childProfile']);
 
+            try {
             NotificationWorkflow::createForUser(
                 user: $user,
                 type: 'olympiad_request_approved',
@@ -103,9 +104,16 @@ class OlympiadRequestController extends Controller
                 actionUrl: '/admin/payments',
                 statusKey: 'pending'
             );
+            } catch (\Throwable $notificationError) {
+                report($notificationError);
+            }
         }
 
-        OnboardingProgress::syncStep($user, 'choose_subject');
+        try {
+            OnboardingProgress::syncStep($user, 'choose_subject');
+        } catch (\Throwable $onboardingError) {
+            report($onboardingError);
+        }
 
         $payment = PaymentRecord::updateOrCreate(
             ['olympiad_request_id' => $requestModel->id],
