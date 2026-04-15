@@ -263,6 +263,13 @@
             <template #actions>
               <StatusBadge :label="requestStatusLabel" :tone="requestTone" />
               <StatusBadge :label="paymentStatusLabel" :tone="paymentTone" />
+              <KaspiPaymentAssist
+                v-if="showKaspiButton"
+                :payment-url="paymentUrl"
+                hint="Результат сразу после теста"
+                mobile-cta="Оплатить через Kaspi"
+                desktop-cta="Открыть ссылку оплаты"
+              />
               <div v-if="showKaspiButton" class="payment-action">
                 <a :href="paymentUrl" target="_blank" rel="noopener" class="step-link">Оплатить через Kaspi</a>
                 <span class="payment-action__hint">Результат сразу после теста</span>
@@ -285,6 +292,7 @@ import api from '../js/api'
 import StatePanel from '../components/StatePanel.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import CountdownBadge from '../components/CountdownBadge.vue'
+import KaspiPaymentAssist from '../components/KaspiPaymentAssist.vue'
 import { applySeo, getStaticSeoForPath } from '../js/composables/useSeo'
 
 const router = useRouter()
@@ -682,7 +690,7 @@ watch(() => route.query.openRules, (value) => {
 .single-action { display: grid; }
 .start-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 15px 24px; border: none; border-radius: 14px; color: #18120a; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none; background: linear-gradient(135deg, #d2b261, #bea25a); box-shadow: 0 10px 28px rgba(104,79,28,0.22); }
 .start-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.payment-action { display: grid; gap: 6px; }
+.payment-action { display: none; }
 .payment-action__hint { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .step-link { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:12px 16px; border-radius:14px; text-decoration:none; border:0; font-weight:700; cursor:pointer; background: linear-gradient(135deg, #d2b261, #bea25a); color:#18120a; }
 .step-link.secondary { background: rgba(255,251,243,.86); color: var(--accent-strong); border: 1px solid rgba(201,171,99,.28); }

@@ -46,6 +46,13 @@
       </div>
 
       <div class="actions">
+        <KaspiPaymentAssist
+          v-if="showPayButton"
+          :payment-url="paymentUrl"
+          hint="Результат сразу после теста"
+          mobile-cta="Оплатить через Kaspi"
+          desktop-cta="Открыть ссылку оплаты"
+        />
         <div v-if="showPayButton" class="payment-cta">
           <a :href="paymentUrl" target="_blank" rel="noopener" class="btn btn-primary">Оплатить через Kaspi</a>
           <span class="payment-cta__hint">Результат сразу после теста</span>
@@ -62,6 +69,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../js/api'
+import KaspiPaymentAssist from '../components/KaspiPaymentAssist.vue'
 
 const route = useRoute()
 const paymentStatus = ref('')
@@ -126,7 +134,7 @@ h1 { margin: 0; color: var(--text); font-size: 38px; }
 .status-box strong { display: block; margin-bottom: 6px; color: var(--text); }
 .status-box p { margin: 0; color: var(--text-secondary); line-height: 1.6; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.payment-cta { display: grid; gap: 6px; }
+.payment-cta { display: none; }
 .payment-cta__hint { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 18px; border-radius: 14px; text-decoration: none; font-weight: 700; }
 .btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%); color: var(--text); }

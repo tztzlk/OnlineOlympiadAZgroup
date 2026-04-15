@@ -15,6 +15,13 @@
       </p>
 
       <div class="actions">
+        <KaspiPaymentAssist
+          v-if="paymentStatus !== 'paid' && paymentUrl"
+          :payment-url="paymentUrl"
+          hint="После оплаты статус обновится автоматически"
+          mobile-cta="Оплатить через Kaspi"
+          desktop-cta="Открыть ссылку оплаты"
+        />
         <a v-if="paymentStatus !== 'paid' && paymentUrl" :href="paymentUrl" target="_blank" rel="noopener">Оплатить через Kaspi</a>
         <button v-if="paymentStatus === 'paid'" @click="goToQuiz">Начать олимпиаду</button>
       </div>
@@ -29,6 +36,7 @@
 import { onMounted, ref } from 'vue'
 import api from '../js/api'
 import { useRouter } from 'vue-router'
+import KaspiPaymentAssist from '../components/KaspiPaymentAssist.vue'
 
 const router = useRouter()
 const status = ref('')
@@ -74,6 +82,10 @@ onMounted(() => {
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
+}
+
+.actions > a {
+  display: none;
 }
 
 button,
