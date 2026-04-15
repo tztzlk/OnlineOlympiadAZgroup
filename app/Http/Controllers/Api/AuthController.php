@@ -18,6 +18,7 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        try {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -47,6 +48,7 @@ class AuthController extends Controller
             ],
         ]);
 
+        try {
         OnboardingProgress::syncStep($user, 'welcome');
 
         NotificationWorkflow::createForUser(
@@ -79,12 +81,22 @@ class AuthController extends Controller
             'email' => $user->email,
             'ip' => $request->ip(),
         ]);
+        } catch (Throwable $sideEffectError) {
+            report($sideEffectError);
+        }
 
         return response()->json([
             'message' => 'Пользователь успешно зарегистрирован.',
             'user' => $user,
             'token' => $user->createToken('auth_token')->plainTextToken,
         ], 201);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => 'Не удалось завершить регистрацию. Попробуйте ещё раз через минуту.',
+            ], 500);
+        }
     }
 
     public function login(Request $request)
