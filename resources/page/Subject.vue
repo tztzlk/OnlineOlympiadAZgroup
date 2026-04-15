@@ -330,6 +330,8 @@ const participationRules = [
   },
 ]
 
+const formatPrice = (price) => `${new Intl.NumberFormat('ru-RU').format(Number(price) || 0)} ₸`
+
 const form = reactive({
   first_name: '',
   last_name: '',
