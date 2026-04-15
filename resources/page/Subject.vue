@@ -26,6 +26,27 @@
         </div>
       </div>
 
+      <StatePanel
+        v-if="pageLoading"
+        tone="info"
+        eyebrow="Загрузка"
+        title="Загружаем предметы"
+        description="Подождите немного, собираем доступные олимпиады и статус участия."
+      />
+
+      <StatePanel
+        v-else-if="pageError"
+        tone="error"
+        eyebrow="Не удалось открыть страницу"
+        title="Предметы пока не загрузились"
+        :description="pageError"
+      >
+        <template #actions>
+          <button type="button" class="step-link" @click="initializePage">Повторить загрузку</button>
+        </template>
+      </StatePanel>
+
+      <template v-else>
       <div class="subjects-grid">
         <div
           v-for="subject in subjects"
@@ -251,6 +272,7 @@
           </StatePanel>
         </template>
       </div>
+      </template>
     </div>
   </div>
 </template>
@@ -277,6 +299,8 @@ const paymentStatus = ref('')
 const paymentUrl = ref('')
 const submitting = ref(false)
 const rulesExpanded = ref(false)
+const pageLoading = ref(true)
+const pageError = ref('')
 const nowTs = ref(Date.now())
 const gradeOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11]
 const participationRules = [
@@ -318,6 +342,8 @@ const form = reactive({
   parent_phone: '',
   parent_email: '',
 })
+
+let clockTimer = null
 
 const canProceed = computed(() =>
   selectedSubject.value &&
@@ -441,7 +467,7 @@ const applyChildSelection = () => {
 
 const fetchSubjects = async () => {
   const { data } = await api.get('/subjects')
-  subjects.value = data
+  subjects.value = Array.isArray(data) ? data : []
 }
 
 const syncSubjectFromQuery = async () => {
@@ -462,10 +488,17 @@ const fetchRequestStatus = async () => {
     ...(selectedChildId.value ? { child_profile_id: selectedChildId.value } : {}),
   }
 
-  const { data } = await api.get('/olympiad/request/status', { params })
-  requestStatus.value = data.status || ''
-  paymentStatus.value = data.payment_status || ''
-  paymentUrl.value = data.payment_url || ''
+  try {
+    const { data } = await api.get('/olympiad/request/status', { params })
+    requestStatus.value = data.status || ''
+    paymentStatus.value = data.payment_status || ''
+    paymentUrl.value = data.payment_url || ''
+  } catch (error) {
+    requestStatus.value = ''
+    paymentStatus.value = ''
+    paymentUrl.value = ''
+    console.warn('Unable to fetch olympiad request status', error)
+  }
 }
 
 const selectSubject = async (subject) => {
@@ -537,18 +570,39 @@ const goToQuiz = () => {
   })
 }
 
+const getErrorMessage = (error, fallback) =>
+  error?.response?.data?.message || error?.message || fallback
+
+const initializePage = async () => {
+  pageLoading.value = true
+  pageError.value = ''
+
+  try {
+    await userStore.fetchUser()
+    hydrateParentDefaults()
+    applySeo(getStaticSeoForPath('/subject'))
+    rulesExpanded.value = route.query.openRules === '1'
+    selectedChildId.value = userStore.selectedChildId ? String(userStore.selectedChildId) : ''
+
+    if (selectedChildId.value) {
+      applyChildSelection()
+    }
+
+    await fetchSubjects()
+    await syncSubjectFromQuery()
+  } catch (error) {
+    pageError.value = getErrorMessage(error, 'Попробуйте обновить страницу или зайти снова чуть позже.')
+  } finally {
+    pageLoading.value = false
+  }
+}
+
 onMounted(async () => {
-  await userStore.fetchUser()
-  hydrateParentDefaults()
-  applySeo(getStaticSeoForPath('/subject'))
-  rulesExpanded.value = route.query.openRules === '1'
-  setInterval(() => {
+  clockTimer = window.setInterval(() => {
     nowTs.value = Date.now()
   }, 60000)
-  selectedChildId.value = userStore.selectedChildId ? String(userStore.selectedChildId) : ''
-  if (selectedChildId.value) applyChildSelection()
-  await fetchSubjects()
-  await syncSubjectFromQuery()
+
+  await initializePage()
 })
 
 watch(() => route.query.subject, async () => {
