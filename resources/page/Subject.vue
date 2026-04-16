@@ -263,6 +263,11 @@
             <template #actions>
               <StatusBadge :label="requestStatusLabel" :tone="requestTone" />
               <StatusBadge :label="paymentStatusLabel" :tone="paymentTone" />
+              <StatusBadge
+                v-if="requestStatus === 'approved'"
+                :label="reconciliationStatusLabel"
+                :tone="reconciliationTone"
+              />
               <KaspiPaymentAssist
                 v-if="showKaspiButton"
                 :payment-url="paymentUrl"
@@ -277,6 +282,39 @@
               <button v-if="canStartOlympiad" class="step-link secondary" @click="goToQuiz">Начать олимпиаду</button>
             </template>
           </StatePanel>
+          <div
+            v-if="requestStatus && (paymentReference || paymentComment || showReportPaymentButton || paymentReportMessage)"
+            class="payment-followup"
+          >
+            <div v-if="paymentReference || paymentComment" class="payment-meta">
+              <div class="payment-meta__item">
+                <span>Request ID</span>
+                <strong>{{ paymentReference || '—' }}</strong>
+              </div>
+              <div class="payment-meta__item">
+                <span>Комментарий к оплате</span>
+                <strong>{{ paymentComment || paymentReference || '—' }}</strong>
+              </div>
+              <div class="payment-meta__item">
+                <span>Сверка</span>
+                <strong>{{ reconciliationDescription }}</strong>
+              </div>
+            </div>
+
+            <div v-if="showReportPaymentButton" class="payment-followup__actions">
+              <button
+                type="button"
+                class="step-link secondary"
+                :disabled="reportingPayment"
+                @click="reportPayment"
+              >
+                {{ reportingPayment ? 'Отмечаем оплату...' : 'Я оплатил' }}
+              </button>
+              <span class="payment-action__hint">{{ reconciliationDescription }}</span>
+            </div>
+
+            <p v-if="paymentReportMessage" class="payment-feedback">{{ paymentReportMessage }}</p>
+          </div>
         </template>
       </div>
       </template>
@@ -285,7 +323,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import api from '../js/api'
@@ -305,6 +343,11 @@ const selectedChildId = ref('')
 const requestStatus = ref('')
 const paymentStatus = ref('')
 const paymentUrl = ref('')
+const paymentReference = ref('')
+const paymentComment = ref('')
+const reconciliationStatus = ref('awaiting_payment')
+const paymentReportMessage = ref('')
+const reportingPayment = ref(false)
 const submitting = ref(false)
 const rulesExpanded = ref(false)
 const pageLoading = ref(true)
@@ -354,6 +397,7 @@ const form = reactive({
 })
 
 let clockTimer = null
+let paymentPollTimer = null
 
 const canProceed = computed(() =>
   selectedSubject.value &&
@@ -390,15 +434,51 @@ const paymentTone = computed(() => ({
   failed: 'danger',
 }[paymentStatus.value] || 'neutral'))
 
+const reconciliationStatusLabel = computed(() => ({
+  awaiting_payment: 'Ожидаем оплату',
+  reported: 'Платёж на сверке',
+  matched: 'Сверка завершена',
+  needs_review: 'Нужна проверка',
+}[reconciliationStatus.value] || 'Ожидаем оплату'))
+
+const reconciliationTone = computed(() => ({
+  awaiting_payment: 'warning',
+  reported: 'info',
+  matched: 'success',
+  needs_review: 'warning',
+}[reconciliationStatus.value] || 'neutral'))
+
 const showKaspiButton = computed(() =>
   Boolean(paymentUrl.value) &&
   requestStatus.value !== 'rejected' &&
   paymentStatus.value !== 'paid'
 )
 
+const showReportPaymentButton = computed(() =>
+  Boolean(paymentReference.value) &&
+  requestStatus.value === 'approved' &&
+  paymentStatus.value !== 'paid'
+)
+
 const canStartOlympiad = computed(() =>
   requestStatus.value === 'approved' && paymentStatus.value === 'paid'
 )
+
+const reconciliationDescription = computed(() => {
+  if (paymentStatus.value === 'paid') {
+    return 'Оплата подтверждена, доступ к олимпиаде уже открыт.'
+  }
+
+  if (reconciliationStatus.value === 'reported') {
+    return 'Платёж отмечен пользователем и сейчас проходит автоматическую сверку.'
+  }
+
+  if (reconciliationStatus.value === 'needs_review') {
+    return 'Автосверка не смогла однозначно найти платёж. Запись ждёт проверки.'
+  }
+
+  return 'После оплаты нажмите «Я оплатил», и система будет проверять сверку автоматически.'
+})
 
 const registrationDeadline = computed(() => {
   const raw = selectedSubject.value?.start_date
@@ -490,8 +570,72 @@ const syncSubjectFromQuery = async () => {
   await selectSubject(matched)
 }
 
+const applyRequestStatusPayload = (data = {}) => {
+  requestStatus.value = data.status || ''
+  paymentStatus.value = data.payment_status || ''
+  paymentUrl.value = data.payment_url || ''
+  paymentReference.value = data.payment_reference || data.request?.id || ''
+  paymentComment.value = data.payment_comment || ''
+  reconciliationStatus.value = data.reconciliation_status || 'awaiting_payment'
+}
+
+const clearPaymentPolling = () => {
+  if (paymentPollTimer) {
+    window.clearInterval(paymentPollTimer)
+    paymentPollTimer = null
+  }
+}
+
+const syncPaymentPolling = () => {
+  clearPaymentPolling()
+
+  if (
+    !userStore.isAuthenticated ||
+    !selectedSubject.value ||
+    !requestStatus.value ||
+    paymentStatus.value === 'paid' ||
+    requestStatus.value === 'rejected'
+  ) {
+    return
+  }
+
+  paymentPollTimer = window.setInterval(() => {
+    fetchRequestStatus()
+  }, 15000)
+}
+
+const reportPayment = async () => {
+  if (!paymentReference.value || reportingPayment.value) return
+
+  reportingPayment.value = true
+  paymentReportMessage.value = ''
+
+  try {
+    const { data } = await api.post(`/olympiad/request/${paymentReference.value}/payment-report`, {
+      paid_at: new Date().toISOString(),
+    })
+
+    applyRequestStatusPayload({
+      ...data,
+      payment_status: data.payment_status || data.request?.payment_status,
+      payment_reference: paymentReference.value,
+      payment_comment: paymentComment.value,
+    })
+    paymentReportMessage.value = data.message || 'Платёж отмечен и отправлен на сверку.'
+    syncPaymentPolling()
+  } catch (error) {
+    paymentReportMessage.value = getErrorMessage(error, 'Не удалось отметить платёж. Попробуйте ещё раз.')
+  } finally {
+    reportingPayment.value = false
+  }
+}
+
 const fetchRequestStatus = async () => {
-  if (!selectedSubject.value || !userStore.isAuthenticated) return
+  if (!selectedSubject.value || !userStore.isAuthenticated) {
+    applyRequestStatusPayload()
+    clearPaymentPolling()
+    return
+  }
 
   const params = {
     subject_id: selectedSubject.value.id,
@@ -500,22 +644,19 @@ const fetchRequestStatus = async () => {
 
   try {
     const { data } = await api.get('/olympiad/request/status', { params })
-    requestStatus.value = data.status || ''
-    paymentStatus.value = data.payment_status || ''
-    paymentUrl.value = data.payment_url || ''
+    applyRequestStatusPayload(data)
+    syncPaymentPolling()
   } catch (error) {
-    requestStatus.value = ''
-    paymentStatus.value = ''
-    paymentUrl.value = ''
+    applyRequestStatusPayload()
+    clearPaymentPolling()
     console.warn('Unable to fetch olympiad request status', error)
   }
 }
 
 const selectSubject = async (subject) => {
   selectedSubject.value = subject
-  requestStatus.value = ''
-  paymentStatus.value = ''
-  paymentUrl.value = ''
+  paymentReportMessage.value = ''
+  applyRequestStatusPayload()
   await fetchRequestStatus()
 }
 
@@ -542,9 +683,16 @@ const startOlympiad = async () => {
     }
 
     const { data } = await api.post('/olympiad/request', payload)
-    requestStatus.value = data.request?.status || 'approved'
-    paymentStatus.value = data.request?.payment_status || 'pending'
-    paymentUrl.value = data.payment_url || ''
+    applyRequestStatusPayload({
+      ...data,
+      status: data.request?.status || 'approved',
+      payment_status: data.request?.payment_status || 'pending',
+      payment_reference: data.payment_reference || data.request?.id,
+      payment_comment: data.payment_comment,
+      reconciliation_status: data.request?.reconciliation_status || 'awaiting_payment',
+    })
+    paymentReportMessage.value = ''
+    syncPaymentPolling()
 
     await userStore.fetchUser()
     await userStore.fetchNotifications(10)
@@ -559,6 +707,7 @@ const startOlympiad = async () => {
       query: {
         subject: selectedSubject.value.id,
         subjectName: selectedSubject.value.name,
+        request: data.payment_reference || data.request?.id || '',
         ...(selectedChildId.value ? { child: selectedChildId.value } : {}),
       },
     })
@@ -615,12 +764,26 @@ onMounted(async () => {
   await initializePage()
 })
 
+onBeforeUnmount(() => {
+  if (clockTimer) {
+    window.clearInterval(clockTimer)
+    clockTimer = null
+  }
+
+  clearPaymentPolling()
+})
+
 watch(() => route.query.subject, async () => {
   await syncSubjectFromQuery()
 })
 
 watch(() => route.query.openRules, (value) => {
   rulesExpanded.value = value === '1'
+})
+
+watch(selectedChildId, async () => {
+  if (!selectedSubject.value) return
+  await fetchRequestStatus()
 })
 </script>
 
@@ -690,6 +853,13 @@ watch(() => route.query.openRules, (value) => {
 .single-action { display: grid; }
 .start-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 15px 24px; border: none; border-radius: 14px; color: #18120a; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none; background: linear-gradient(135deg, #d2b261, #bea25a); box-shadow: 0 10px 28px rgba(104,79,28,0.22); }
 .start-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.payment-followup { display: grid; gap: 12px; padding: 18px; border-radius: 20px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.72); }
+.payment-followup__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.payment-meta { display: grid; gap: 10px; }
+.payment-meta__item { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--surface-border); background: rgba(255,255,255,.78); }
+.payment-meta__item span { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.payment-meta__item strong { color: var(--text-on-surface); word-break: break-word; }
+.payment-feedback { margin: 0; font-size: 14px; color: var(--text-secondary); }
 .payment-action { display: none; }
 .payment-action__hint { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .step-link { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:12px 16px; border-radius:14px; text-decoration:none; border:0; font-weight:700; cursor:pointer; background: linear-gradient(135deg, #d2b261, #bea25a); color:#18120a; }

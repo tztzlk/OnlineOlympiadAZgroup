@@ -52,6 +52,7 @@ Route::middleware(['auth:sanctum', 'throttle:api-user', 'admin'])
         Route::get('/users-results/export', [AdminController::class, 'exportUsersResults'])->middleware('admin:results');
         Route::get('/payments', [AdminController::class, 'payments'])->middleware('admin:payments');
         Route::get('/payments/export', [AdminController::class, 'exportPayments'])->middleware('admin:payments');
+        Route::post('/payments/import', [AdminController::class, 'importPayments'])->middleware('admin:payments');
         Route::get('/callbacks', [AdminController::class, 'callbacks'])->middleware('admin:callbacks');
         Route::get('/callbacks/export', [AdminController::class, 'exportCallbacks'])->middleware('admin:callbacks');
 
@@ -98,6 +99,7 @@ Route::middleware(['auth:sanctum', 'throttle:api-user'])->group(function () {
     Route::prefix('olympiad')->group(function () {
         Route::post('/request', [OlympiadRequestController::class, 'store']);
         Route::get('/request/status', [OlympiadRequestController::class, 'status']);
+        Route::post('/request/{olympiadRequest}/payment-report', [OlympiadRequestController::class, 'paymentReport']);
         Route::patch('/request/{olympiadRequest}/status', [OlympiadRequestController::class, 'approveReject']);
     });
 

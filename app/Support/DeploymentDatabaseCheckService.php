@@ -20,6 +20,7 @@ class DeploymentDatabaseCheckService
         'subjects',
         'olympiad_requests',
         'payment_records',
+        'payment_import_rows',
         'quiz_results',
     ];
 

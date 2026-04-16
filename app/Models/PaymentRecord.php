@@ -17,15 +17,21 @@ class PaymentRecord extends Model
         'olympiad_request_id',
         'amount',
         'currency',
+        'provider',
         'status',
+        'reconciliation_status',
         'external_reference',
         'comment',
         'paid_at',
+        'customer_reported_at',
+        'customer_paid_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'customer_reported_at' => 'datetime',
+        'customer_paid_at' => 'datetime',
     ];
 
     protected $hidden = ['id', 'parent_id', 'child_profile_id', 'subject_id', 'olympiad_request_id'];
@@ -48,5 +54,10 @@ class PaymentRecord extends Model
     public function olympiadRequest()
     {
         return $this->belongsTo(OlympiadRequest::class);
+    }
+
+    public function importRows()
+    {
+        return $this->hasMany(PaymentImportRow::class, 'matched_payment_record_id');
     }
 }

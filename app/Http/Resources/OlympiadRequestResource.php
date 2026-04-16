@@ -9,12 +9,15 @@ class OlympiadRequestResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $paymentRecord = $this->paymentRecord;
+
         return [
             'id' => $this->public_id,
             'payment_reference' => $this->public_id,
             'payment_comment' => trim('Заявка ' . $this->public_id . ($this->subject?->name ? ' · ' . $this->subject->name : '')),
             'status' => $this->status,
             'payment_status' => $this->payment_status,
+            'reconciliation_status' => $paymentRecord?->reconciliation_status ?? 'awaiting_payment',
             'paid_at' => optional($this->paid_at)->toISOString(),
             'completed' => (bool) $this->completed,
             'first_name' => $this->first_name,
@@ -26,6 +29,7 @@ class OlympiadRequestResource extends JsonResource
             'parent_email' => $this->parent_email,
             'created_at' => $this->created_at,
             'child_profile_id' => $this->childProfile?->public_id,
+            'payment_url' => config('services.kaspi.payment_url'),
             'subject' => $this->whenLoaded('subject', function () {
                 return [
                     'id' => $this->subject?->public_id,

@@ -3,10 +3,9 @@
     <header class="page-head">
       <div>
         <p class="eyebrow">Участники</p>
-        <h1>Участники и подтверждение оплат</h1>
+        <h1>Заявки и подтверждение оплаты</h1>
         <p class="subtext">
-          Здесь видно, кто оформил участие, кто уже оплатил олимпиаду и кому ещё не подтверждён платёж.
-          После подтверждения оплаты участник сразу получает доступ к олимпиаде.
+          Здесь видно, кто уже оплатил олимпиаду, у кого платёж только на сверке и где всё ещё нужна ручная проверка.
         </p>
       </div>
 
@@ -39,20 +38,20 @@
 
     <div class="stats-row" v-if="!loading">
       <div class="stat-card">
-        <span>Всего участников</span>
+        <span>Всего заявок</span>
         <strong>{{ requests.length }}</strong>
       </div>
       <div class="stat-card pending">
         <span>Ждут оплату</span>
         <strong>{{ requestsByPayment.pending }}</strong>
       </div>
+      <div class="stat-card review">
+        <span>На сверке / проверке</span>
+        <strong>{{ requestsByReconciliation.review }}</strong>
+      </div>
       <div class="stat-card paid">
         <span>Оплата подтверждена</span>
         <strong>{{ requestsByPayment.paid }}</strong>
-      </div>
-      <div class="stat-card failed">
-        <span>Оплата не прошла</span>
-        <strong>{{ requestsByPayment.failed }}</strong>
       </div>
     </div>
 
@@ -71,6 +70,7 @@
           <div class="pill-stack">
             <span class="status-pill" :class="request.status">{{ statusLabel(request.status) }}</span>
             <span class="payment-pill" :class="request.payment_status">{{ paymentLabel(request.payment_status) }}</span>
+            <span class="reconciliation-pill" :class="request.reconciliation_status">{{ reconciliationLabel(request.reconciliation_status) }}</span>
           </div>
         </div>
 
@@ -100,8 +100,8 @@
             <strong>{{ request.paid_at ? formatDate(request.paid_at) : 'Ещё не подтверждена' }}</strong>
           </div>
           <div class="detail">
-            <span>Ссылка на оплату</span>
-            <a :href="request.payment_url" target="_blank" rel="noopener">Открыть Kaspi</a>
+            <span>Request ID</span>
+            <strong>{{ request.payment_reference || 'Не указан' }}</strong>
           </div>
           <div class="detail">
             <span>Комментарий к оплате</span>
@@ -113,6 +113,7 @@
 
         <div class="actions">
           <button type="button" class="ghost-btn" @click="viewRequest(request)">Подробнее</button>
+          <a class="ghost-btn link-btn" :href="request.payment_url" target="_blank" rel="noopener">Открыть Kaspi</a>
           <button
             v-if="request.payment_status !== 'paid'"
             type="button"
@@ -135,7 +136,7 @@
             class="ghost-btn"
             @click="updatePaymentStatus(request, 'pending')"
           >
-            Вернуть в ожидание оплаты
+            Вернуть в ожидание
           </button>
         </div>
       </article>
@@ -162,6 +163,10 @@
             <strong>{{ paymentLabel(selectedRequest.payment_status) }}</strong>
           </div>
           <div class="modal-field">
+            <span>Сверка платежа</span>
+            <strong>{{ reconciliationLabel(selectedRequest.reconciliation_status) }}</strong>
+          </div>
+          <div class="modal-field">
             <span>Почта родителя</span>
             <strong>{{ selectedRequest.email }}</strong>
           </div>
@@ -178,14 +183,6 @@
             <strong>{{ selectedRequest.name }}</strong>
           </div>
           <div class="modal-field">
-            <span>Класс</span>
-            <strong>{{ selectedRequest.grade || 'Не указан' }}</strong>
-          </div>
-          <div class="modal-field">
-            <span>Язык</span>
-            <strong>{{ languageLabel(selectedRequest.language) }}</strong>
-          </div>
-          <div class="modal-field">
             <span>Дата оформления</span>
             <strong>{{ formatDate(selectedRequest.created_at) }}</strong>
           </div>
@@ -198,6 +195,10 @@
         <div class="payment-link-card">
           <span>Ссылка Kaspi</span>
           <a :href="selectedRequest.payment_url" target="_blank" rel="noopener">Открыть оплату</a>
+        </div>
+        <div class="payment-link-card">
+          <span>Request ID</span>
+          <strong>{{ selectedRequest.payment_reference || 'Не указан' }}</strong>
         </div>
         <div class="payment-link-card">
           <span>Комментарий к оплате</span>
@@ -240,6 +241,13 @@ const paymentLabel = (status) => ({
   failed: 'Оплата не прошла',
 }[status] ?? 'Оплата ожидается')
 
+const reconciliationLabel = (status) => ({
+  awaiting_payment: 'Ожидаем оплату',
+  reported: 'Платёж на сверке',
+  matched: 'Сверка завершена',
+  needs_review: 'Нужна проверка',
+}[status] ?? 'Ожидаем оплату')
+
 const languageLabel = (language) => ({
   ru: 'Русский',
   kk: 'Қазақша',
@@ -264,6 +272,10 @@ const requestsByPayment = computed(() => ({
   failed: requests.value.filter((item) => item.payment_status === 'failed').length,
 }))
 
+const requestsByReconciliation = computed(() => ({
+  review: requests.value.filter((item) => ['reported', 'needs_review'].includes(item.reconciliation_status)).length,
+}))
+
 const filteredRequests = computed(() => {
   const query = search.value.trim().toLowerCase()
 
@@ -273,7 +285,8 @@ const filteredRequests = computed(() => {
       !query ||
       request.name.toLowerCase().includes(query) ||
       request.email.toLowerCase().includes(query) ||
-      request.subjectName.toLowerCase().includes(query)
+      request.subjectName.toLowerCase().includes(query) ||
+      (request.payment_reference || '').toLowerCase().includes(query)
 
     return paymentFilterMatch && searchMatch
   })
@@ -285,23 +298,28 @@ const mapRequest = (item) => ({
   email: item.parent_email || item.user?.email || 'Не указан',
   subjectName: item.subject?.name || 'Без предмета',
   payment_status: item.payment_status || 'pending',
+  reconciliation_status: item.reconciliation_status || 'awaiting_payment',
   payment_url: item.payment_url || fallbackPaymentUrl,
 })
 
 const requestActionHint = (request) => {
-  if (request.payment_status === 'pending') {
-    return 'Участие уже оформлено. Осталось дождаться оплаты или подтвердить её вручную после проверки.'
-  }
-
   if (request.payment_status === 'paid') {
     return 'Оплата подтверждена. Участник уже может начать олимпиаду.'
   }
 
-  if (request.payment_status === 'failed') {
-    return 'Платёж не был подтверждён. После повторной оплаты можно вернуть запись в ожидание.'
+  if (request.reconciliation_status === 'reported') {
+    return 'Пользователь отметил оплату. Заявка ждёт автоматической сверки с импортом Kaspi.'
   }
 
-  return 'Проверьте данные участника и статус оплаты.'
+  if (request.reconciliation_status === 'needs_review') {
+    return 'Автосверка не нашла однозначного совпадения. Здесь может понадобиться ручное подтверждение.'
+  }
+
+  if (request.payment_status === 'failed') {
+    return 'Платёж не был подтверждён. После повторной оплаты запись можно вернуть в ожидание.'
+  }
+
+  return 'Участие оформлено. Осталось дождаться оплаты или подтвердить её вручную после проверки.'
 }
 
 const syncRequest = (target, payload) => {
@@ -429,10 +447,6 @@ h1 {
   font-size: 15px;
 }
 
-.search-box input::placeholder {
-  color: color-mix(in srgb, var(--text-secondary) 78%, white 22%);
-}
-
 .filter-panel {
   display: grid;
   gap: 10px;
@@ -494,8 +508,8 @@ h1 {
 }
 
 .stat-card.pending { background: linear-gradient(180deg, var(--warning-bg) 0%, rgba(255, 249, 238, 0.95) 100%); }
+.stat-card.review { background: linear-gradient(180deg, rgba(234,179,8,.08) 0%, rgba(255, 249, 238, 0.95) 100%); }
 .stat-card.paid { background: linear-gradient(180deg, rgba(201, 171, 99, 0.14) 0%, rgba(255, 249, 238, 0.95) 100%); }
-.stat-card.failed { background: linear-gradient(180deg, var(--danger-bg) 0%, rgba(255, 249, 238, 0.95) 100%); }
 
 .state-card {
   border-radius: var(--radius-lg);
@@ -546,7 +560,8 @@ h1 {
 }
 
 .status-pill,
-.payment-pill {
+.payment-pill,
+.reconciliation-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -560,9 +575,13 @@ h1 {
 .status-pill.pending { background: var(--warning-bg); color: var(--accent-strong); }
 .status-pill.approved { background: var(--success-bg); color: #2f6f4b; }
 .status-pill.rejected { background: var(--danger-bg); color: #8f3b3b; }
-.payment-pill.pending { background: rgba(201, 171, 99, 0.14); color: var(--accent-strong); }
-.payment-pill.paid { background: var(--success-bg); color: #2f6f4b; }
-.payment-pill.failed { background: var(--danger-bg); color: #8f3b3b; }
+.payment-pill.pending,
+.reconciliation-pill.awaiting_payment,
+.reconciliation-pill.reported { background: rgba(201, 171, 99, 0.14); color: var(--accent-strong); }
+.payment-pill.paid,
+.reconciliation-pill.matched { background: var(--success-bg); color: #2f6f4b; }
+.payment-pill.failed,
+.reconciliation-pill.needs_review { background: var(--danger-bg); color: #8f3b3b; }
 
 .request-details {
   display: grid;
@@ -594,13 +613,6 @@ h1 {
   word-break: break-word;
 }
 
-.detail a,
-.payment-link-card a {
-  color: var(--accent-strong);
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .request-note {
   margin: 16px 0 0;
   color: var(--text-secondary);
@@ -617,15 +629,18 @@ h1 {
 .ghost-btn,
 .success-btn,
 .warning-btn,
-.close-btn {
+.close-btn,
+.link-btn {
   border: 0;
   border-radius: var(--radius-sm);
   padding: 12px 16px;
   font-weight: 800;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.ghost-btn {
+.ghost-btn,
+.link-btn {
   background: rgba(201, 171, 99, 0.12);
   color: var(--accent-strong);
 }
@@ -679,6 +694,12 @@ h1 {
 
 .payment-link-card {
   margin-top: 14px;
+}
+
+.payment-link-card a {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 @media (max-width: 1100px) {

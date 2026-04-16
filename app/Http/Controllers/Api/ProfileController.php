@@ -217,17 +217,19 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $payments = PaymentRecord::with(['childProfile', 'subject'])
+        $payments = PaymentRecord::with(['childProfile', 'subject', 'olympiadRequest'])
             ->where('parent_id', $user->id)
             ->latest()
             ->get()
             ->map(fn (PaymentRecord $payment) => [
                 'id' => $payment->public_id,
+                'payment_reference' => $payment->olympiadRequest?->public_id,
                 'child_name' => $payment->childProfile?->full_name,
                 'subject' => $payment->subject?->name,
                 'amount' => $payment->amount,
                 'currency' => $payment->currency,
                 'status' => $payment->status,
+                'reconciliation_status' => $payment->reconciliation_status,
                 'status_meta' => StatusPresenter::payment($payment->status),
                 'external_reference' => $payment->external_reference,
                 'comment' => $payment->comment,
@@ -391,7 +393,7 @@ SVG;
         }
 
         $query = $user->olympiadRequests()
-            ->with(['subject', 'childProfile'])
+            ->with(['subject', 'childProfile', 'paymentRecord'])
             ->latest();
 
         if ($limit) {
@@ -422,7 +424,10 @@ SVG;
             'status' => $item->status,
             'status_meta' => $requestMeta,
             'payment_status' => $item->payment_status,
+            'reconciliation_status' => $item->paymentRecord?->reconciliation_status ?? 'awaiting_payment',
             'payment_status_meta' => $paymentMeta,
+            'payment_reference' => $item->public_id,
+            'payment_comment' => $item->paymentRecord?->comment ?? trim("Р—Р°СЏРІРєР° {$item->public_id}"),
             'completed' => $completed,
             'disqualified' => (bool) $item->disqualified_at,
             'disqualified_at' => optional($item->disqualified_at)->toISOString(),

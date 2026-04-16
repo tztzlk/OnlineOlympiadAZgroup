@@ -59,4 +59,9 @@ class OlympiadRequest extends Model
     {
         return $this->hasMany(PaymentRecord::class);
     }
+
+    public function paymentRecord()
+    {
+        return $this->hasOne(PaymentRecord::class);
+    }
 }

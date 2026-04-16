@@ -65,6 +65,7 @@ class QuizController extends Controller
                 'message' => 'Оплата ещё не подтверждена. После проверки оплаты доступ к олимпиаде откроется.',
                 'payment_required' => true,
                 'payment_status' => $requestRecord->payment_status,
+                'reconciliation_status' => $requestRecord->paymentRecord?->reconciliation_status ?? 'awaiting_payment',
                 'payment_url' => config('services.kaspi.payment_url'),
             ], 402);
         }
@@ -151,6 +152,7 @@ class QuizController extends Controller
         $resolvedSubjectId = $this->resolveSubjectId($subjectId);
 
         $requestRecord = OlympiadRequest::query()
+            ->with(['childProfile', 'paymentRecord'])
             ->where('user_id', $user->id)
             ->where('subject_id', $resolvedSubjectId)
             ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))
@@ -160,6 +162,7 @@ class QuizController extends Controller
         return response()->json([
             'status' => $requestRecord?->status,
             'payment_status' => $requestRecord?->payment_status,
+            'reconciliation_status' => $requestRecord?->paymentRecord?->reconciliation_status ?? 'awaiting_payment',
             'payment_url' => config('services.kaspi.payment_url'),
             'disqualified' => (bool) $requestRecord?->disqualified_at,
             'child_profile_id' => $requestRecord?->childProfile?->public_id,
@@ -326,7 +329,7 @@ class QuizController extends Controller
 
     protected function resolveRequest(int $userId, int $subjectId, ?int $childId = null): ?OlympiadRequest
     {
-        return OlympiadRequest::with('childProfile')
+        return OlympiadRequest::with(['childProfile', 'paymentRecord'])
             ->where('user_id', $userId)
             ->where('subject_id', $subjectId)
             ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))

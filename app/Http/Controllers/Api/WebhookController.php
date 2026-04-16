@@ -97,7 +97,9 @@ class WebhookController extends Controller
 
         if ($paymentRecord) {
             $paymentRecord->forceFill([
+                'provider' => $normalized['provider'],
                 'status' => $normalized['payment_status'],
+                'reconciliation_status' => $normalized['payment_status'] === 'paid' ? 'matched' : 'needs_review',
                 'external_reference' => $normalized['external_reference'],
                 'comment' => $normalized['event_type'],
                 'paid_at' => $paidAt,

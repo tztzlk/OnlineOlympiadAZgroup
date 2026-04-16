@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\CallbackRequest;
 use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
+use App\Models\PaymentImportRow;
 use App\Models\PaymentRecord;
 use App\Models\PlatformNotification;
 use App\Models\Quiz;
 use App\Models\QuizResult;
 use App\Models\User;
+use App\Support\KaspiCsvImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +32,7 @@ class AdminController extends Controller
         $weekEnd = now()->endOfWeek();
 
         return response()->json([
-            'message' => 'Добро пожаловать в админ-панель',
+            'message' => 'Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ Р°РґРјРёРЅ-РїР°РЅРµР»СЊ',
             'users' => User::count(),
             'children' => ChildProfile::count(),
             'quizzes' => Quiz::count(),
@@ -67,6 +69,7 @@ class AdminController extends Controller
                         'child_name' => $payment->childProfile?->full_name,
                         'subject' => $payment->subject?->name,
                         'status' => $payment->status,
+                        'reconciliation_status' => $payment->reconciliation_status,
                         'created_at' => optional($payment->created_at)->format('d.m.Y H:i'),
                     ]),
                 'callbacks' => CallbackRequest::where('status', 'pending')
@@ -133,7 +136,7 @@ class AdminController extends Controller
     public function exportUsersResults(Request $request): StreamedResponse
     {
         return $this->downloadWorksheet('Results', 'results', [
-            ['Ребенок', 'Родитель', 'Школа', 'Город', 'Предмет', 'Категория', 'Олимпиада', 'Баллы', 'Процент', 'Статус', 'Дата'],
+            ['Р РµР±РµРЅРѕРє', 'Р РѕРґРёС‚РµР»СЊ', 'РЁРєРѕР»Р°', 'Р“РѕСЂРѕРґ', 'РџСЂРµРґРјРµС‚', 'РљР°С‚РµРіРѕСЂРёСЏ', 'РћР»РёРјРїРёР°РґР°', 'Р‘Р°Р»Р»С‹', 'РџСЂРѕС†РµРЅС‚', 'РЎС‚Р°С‚СѓСЃ', 'Р”Р°С‚Р°'],
             ...$this->buildResults($request)->map(fn ($result) => [
                 $result['child_name'],
                 $result['parent_name'],
@@ -144,7 +147,7 @@ class AdminController extends Controller
                 $result['quiz_title'],
                 $result['score'] . '/' . $result['total'],
                 $result['percent'] . '%',
-                $result['status'] === 'passed' ? 'Пройден' : 'Не пройден',
+                $result['status'] === 'passed' ? 'РџСЂРѕР№РґРµРЅ' : 'РќРµ РїСЂРѕР№РґРµРЅ',
                 $result['date'],
             ]),
         ]);
@@ -176,7 +179,7 @@ class AdminController extends Controller
         $rows = $this->participants()->getData(true);
 
         return $this->downloadWorksheet('Participants', 'participants', [
-            ['ID', 'Ребенок', 'Класс', 'Школа', 'Город', 'Язык', 'Родитель', 'Email', 'Телефон', 'Создан'],
+            ['ID', 'Р РµР±РµРЅРѕРє', 'РљР»Р°СЃСЃ', 'РЁРєРѕР»Р°', 'Р“РѕСЂРѕРґ', 'РЇР·С‹Рє', 'Р РѕРґРёС‚РµР»СЊ', 'Email', 'РўРµР»РµС„РѕРЅ', 'РЎРѕР·РґР°РЅ'],
             ...collect($rows)->map(fn ($row) => [
                 (string) $row['id'],
                 $row['child_name'],
@@ -225,7 +228,7 @@ class AdminController extends Controller
             if ($email === '' || $childFirst === '' || $childLast === '') {
                 $errors[] = [
                     'line' => $lineNumber + 1,
-                    'message' => 'Не заполнены обязательные поля parent_email / child_first_name / child_last_name',
+                    'message' => 'РќРµ Р·Р°РїРѕР»РЅРµРЅС‹ РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ parent_email / child_first_name / child_last_name',
                 ];
                 continue;
             }
@@ -265,7 +268,7 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'message' => 'Импорт завершен',
+            'message' => 'РРјРїРѕСЂС‚ Р·Р°РІРµСЂС€РµРЅ',
             'imported' => $imported,
             'created_parent_accounts' => $createdParents,
             'created_parent_emails' => $createdParentEmails,
@@ -279,35 +282,14 @@ class AdminController extends Controller
 
     public function payments()
     {
-        $rows = PaymentRecord::with(['parent', 'childProfile', 'subject', 'olympiadRequest'])
-            ->latest()
-            ->get()
-            ->map(fn (PaymentRecord $payment) => [
-                'id' => $payment->id,
-                'public_id' => $payment->public_id,
-                'request_reference' => $payment->olympiadRequest?->public_id,
-                'parent_name' => $payment->parent?->name,
-                'child_name' => $payment->childProfile?->full_name,
-                'subject' => $payment->subject?->name,
-                'amount' => $payment->amount,
-                'currency' => $payment->currency,
-                'status' => $payment->status,
-                'external_reference' => $payment->external_reference,
-                'comment' => $payment->comment,
-                'date' => optional($payment->created_at)->format('d.m.Y H:i'),
-                'paid_at' => optional($payment->paid_at)->format('d.m.Y H:i'),
-            ]);
-
-        return response()->json($rows);
+        return response()->json($this->buildPaymentsPayload());
     }
 
     public function exportPayments(): StreamedResponse
     {
-        $rows = $this->payments()->getData(true);
-
         return $this->downloadWorksheet('Payments', 'payments', [
-            ['ID', 'Payment ID', 'Request ID', 'Родитель', 'Ребенок', 'Предмет', 'Сумма', 'Валюта', 'Статус', 'Внешний номер', 'Комментарий', 'Создан', 'Оплачен'],
-            ...collect($rows)->map(fn ($row) => [
+            ['ID', 'Payment ID', 'Request ID', 'Р РѕРґРёС‚РµР»СЊ', 'Р РµР±РµРЅРѕРє', 'РџСЂРµРґРјРµС‚', 'РЎСѓРјРјР°', 'Р’Р°Р»СЋС‚Р°', 'РЎС‚Р°С‚СѓСЃ', 'РЎРІРµСЂРєР°', 'Р’РЅРµС€РЅРёР№ РЅРѕРјРµСЂ', 'РљРѕРјРјРµРЅС‚Р°СЂРёР№', 'РЎРѕР·РґР°РЅ', 'РћРїР»Р°С‡РµРЅ'],
+            ...$this->buildPaymentRows()->map(fn ($row) => [
                 (string) $row['id'],
                 $row['public_id'],
                 $row['request_reference'],
@@ -317,11 +299,27 @@ class AdminController extends Controller
                 (string) $row['amount'],
                 $row['currency'],
                 $row['status'],
+                $row['reconciliation_status'],
                 $row['external_reference'],
                 $row['comment'],
                 $row['date'],
                 $row['paid_at'],
             ]),
+        ]);
+    }
+
+    public function importPayments(Request $request, KaspiCsvImportService $importService)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $stats = $importService->import($request->file('file'));
+
+        return response()->json([
+            'message' => 'РРјРїРѕСЂС‚ РїР»Р°С‚РµР¶РµР№ Р·Р°РІРµСЂС€РµРЅ.',
+            'stats' => $stats,
+            ...$this->buildPaymentsPayload(),
         ]);
     }
 
@@ -349,7 +347,7 @@ class AdminController extends Controller
         $rows = $this->callbacks()->getData(true);
 
         return $this->downloadWorksheet('Callbacks', 'callbacks', [
-            ['ID', 'Имя', 'Телефон', 'Email', 'Сообщение', 'Статус', 'Дата'],
+            ['ID', 'РРјСЏ', 'РўРµР»РµС„РѕРЅ', 'Email', 'РЎРѕРѕР±С‰РµРЅРёРµ', 'РЎС‚Р°С‚СѓСЃ', 'Р”Р°С‚Р°'],
             ...collect($rows)->map(fn ($row) => [
                 (string) $row['id'],
                 $row['name'],
@@ -380,11 +378,11 @@ class AdminController extends Controller
                     'id' => $result->id,
                     'child_name' => $result->childProfile?->full_name ?? ($result->user?->name ?? 'Unknown child'),
                     'parent_name' => $result->user?->name ?? 'Unknown parent',
-                    'school' => $result->childProfile?->school ?? ($result->user?->school ?? 'Не указана'),
-                    'city' => $result->childProfile?->city ?? ($result->user?->city ?? 'Не указан'),
+                    'school' => $result->childProfile?->school ?? ($result->user?->school ?? 'РќРµ СѓРєР°Р·Р°РЅР°'),
+                    'city' => $result->childProfile?->city ?? ($result->user?->city ?? 'РќРµ СѓРєР°Р·Р°РЅ'),
                     'quiz_title' => $result->quiz?->title ?? 'Untitled quiz',
                     'subject' => $result->quiz?->subject?->name ?? 'Unknown subject',
-                    'category' => $result->category?->label ?? 'Общая',
+                    'category' => $result->category?->label ?? 'РћР±С‰Р°СЏ',
                     'score' => $result->score,
                     'total' => $result->total,
                     'percent' => $percent,
@@ -409,6 +407,63 @@ class AdminController extends Controller
                 return $matchesStatus && $matchesSubject && ($search === '' || str_contains($haystack, $search));
             })
             ->values();
+    }
+
+    protected function buildPaymentsPayload(): array
+    {
+        return [
+            'payments' => $this->buildPaymentRows()->values()->all(),
+            'imports' => $this->buildImportRows()->values()->all(),
+            'summary' => [
+                'new' => PaymentImportRow::where('status', 'new')->count(),
+                'matched' => PaymentImportRow::where('status', 'matched')->count(),
+                'needs_review' => PaymentImportRow::where('status', 'needs_review')->count(),
+            ],
+        ];
+    }
+
+    protected function buildPaymentRows(): Collection
+    {
+        return PaymentRecord::with(['parent', 'childProfile', 'subject', 'olympiadRequest'])
+            ->latest()
+            ->get()
+            ->map(fn (PaymentRecord $payment) => [
+                'id' => $payment->id,
+                'public_id' => $payment->public_id,
+                'request_reference' => $payment->olympiadRequest?->public_id,
+                'parent_name' => $payment->parent?->name,
+                'child_name' => $payment->childProfile?->full_name,
+                'subject' => $payment->subject?->name,
+                'amount' => $payment->amount,
+                'currency' => $payment->currency,
+                'status' => $payment->status,
+                'reconciliation_status' => $payment->reconciliation_status,
+                'external_reference' => $payment->external_reference,
+                'comment' => $payment->comment,
+                'date' => optional($payment->created_at)->format('d.m.Y H:i'),
+                'paid_at' => optional($payment->paid_at)->format('d.m.Y H:i'),
+            ]);
+    }
+
+    protected function buildImportRows(): Collection
+    {
+        return PaymentImportRow::with(['matchedPaymentRecord.olympiadRequest', 'matchedPaymentRecord.childProfile'])
+            ->latest()
+            ->limit(200)
+            ->get()
+            ->map(fn (PaymentImportRow $row) => [
+                'id' => $row->id,
+                'provider' => $row->provider,
+                'status' => $row->status,
+                'external_reference' => $row->external_reference,
+                'amount' => $row->amount,
+                'comment' => $row->comment,
+                'paid_at' => optional($row->paid_at)->format('d.m.Y H:i'),
+                'payment_public_id' => $row->matchedPaymentRecord?->public_id,
+                'request_reference' => $row->matchedPaymentRecord?->olympiadRequest?->public_id,
+                'child_name' => $row->matchedPaymentRecord?->childProfile?->full_name,
+                'date' => optional($row->created_at)->format('d.m.Y H:i'),
+            ]);
     }
 
     protected function downloadWorksheet(string $sheetName, string $prefix, array $rows): StreamedResponse

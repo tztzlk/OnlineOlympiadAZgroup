@@ -9,8 +9,10 @@ use App\Models\OlympiadRequest;
 use App\Models\PaymentRecord;
 use App\Models\Quiz;
 use App\Models\Subject;
+use App\Support\KaspiPaymentReconciler;
 use App\Support\NotificationWorkflow;
 use App\Support\OnboardingProgress;
+use App\Support\OlympiadStatusNotifier;
 use Illuminate\Http\Request;
 
 class OlympiadRequestController extends Controller
@@ -20,7 +22,7 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'Требуется авторизация.'], 401);
+            return response()->json(['message' => 'РўСЂРµР±СѓРµС‚СЃСЏ Р°РІС‚РѕСЂРёР·Р°С†РёСЏ.'], 401);
         }
 
         $data = $request->validate([
@@ -70,40 +72,40 @@ class OlympiadRequestController extends Controller
                 'paid_at' => $existing->payment_status === 'paid' ? $existing->paid_at : null,
             ]);
 
-            $requestModel = $existing->fresh(['subject', 'user', 'childProfile']);
+            $requestModel = $existing->fresh(['subject', 'user', 'childProfile', 'paymentRecord']);
         } else {
             $requestModel = OlympiadRequest::create([
                 ...$payload,
                 'status' => 'approved',
                 'payment_status' => 'pending',
             ]);
-            $requestModel->load(['subject', 'user', 'childProfile']);
+            $requestModel->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
             try {
-            NotificationWorkflow::createForUser(
-                user: $user,
-                type: 'olympiad_request_approved',
-                title: 'Участие оформлено',
-                body: "Участие в олимпиаде по предмету {$requestModel->subject?->name} оформлено. Можно переходить к оплате.",
-                actionUrl: rtrim(config('app.url'), '/') . '/profile',
-                statusKey: 'approved',
-                payload: [
-                    'action_label' => 'Открыть кабинет',
-                    'context' => [
-                        'Участник' => $child->full_name,
-                        'Предмет' => $requestModel->subject?->name ?? 'Олимпиада',
+                NotificationWorkflow::createForUser(
+                    user: $user,
+                    type: 'olympiad_request_approved',
+                    title: 'РЈС‡Р°СЃС‚РёРµ РѕС„РѕСЂРјР»РµРЅРѕ',
+                    body: "РЈС‡Р°СЃС‚РёРµ РІ РѕР»РёРјРїРёР°РґРµ РїРѕ РїСЂРµРґРјРµС‚Сѓ {$requestModel->subject?->name} РѕС„РѕСЂРјР»РµРЅРѕ. РњРѕР¶РЅРѕ РїРµСЂРµС…РѕРґРёС‚СЊ Рє РѕРїР»Р°С‚Рµ.",
+                    actionUrl: rtrim(config('app.url'), '/') . '/profile',
+                    statusKey: 'approved',
+                    payload: [
+                        'action_label' => 'РћС‚РєСЂС‹С‚СЊ РєР°Р±РёРЅРµС‚',
+                        'context' => [
+                            'РЈС‡Р°СЃС‚РЅРёРє' => $child->full_name,
+                            'РџСЂРµРґРјРµС‚' => $requestModel->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
+                        ],
                     ],
-                ],
-                sendEmail: true
-            );
+                    sendEmail: true
+                );
 
-            NotificationWorkflow::createForAdmins(
-                type: 'new_payment_pending',
-                title: 'Новый участник ждёт оплату',
-                body: "Оформлено участие {$user->name} по предмету {$requestModel->subject?->name}. Ожидается оплата.",
-                actionUrl: '/admin/payments',
-                statusKey: 'pending'
-            );
+                NotificationWorkflow::createForAdmins(
+                    type: 'new_payment_pending',
+                    title: 'РќРѕРІС‹Р№ СѓС‡Р°СЃС‚РЅРёРє Р¶РґС‘С‚ РѕРїР»Р°С‚Сѓ',
+                    body: "РћС„РѕСЂРјР»РµРЅРѕ СѓС‡Р°СЃС‚РёРµ {$user->name} РїРѕ РїСЂРµРґРјРµС‚Сѓ {$requestModel->subject?->name}. РћР¶РёРґР°РµС‚СЃСЏ РѕРїР»Р°С‚Р°.",
+                    actionUrl: '/admin/payments',
+                    statusKey: 'pending'
+                );
             } catch (\Throwable $notificationError) {
                 report($notificationError);
             }
@@ -115,23 +117,12 @@ class OlympiadRequestController extends Controller
             report($onboardingError);
         }
 
-        $payment = PaymentRecord::updateOrCreate(
-            ['olympiad_request_id' => $requestModel->id],
-            [
-                'parent_id' => $user->id,
-                'child_profile_id' => $child->id,
-                'subject_id' => $requestModel->subject_id,
-                'amount' => $price,
-                'status' => $requestModel->payment_status,
-                'comment' => $this->buildPaymentComment($requestModel),
-                'paid_at' => $requestModel->payment_status === 'paid' ? $requestModel->paid_at : null,
-            ]
-        );
+        $payment = $this->syncPaymentRecordForRequest($requestModel, $user->id, $child->id, $price);
 
         return response()->json([
             'message' => $existing
-                ? 'Участие обновлено. Можно переходить к оплате.'
-                : 'Участие оформлено. Переходите к оплате.',
+                ? 'РЈС‡Р°СЃС‚РёРµ РѕР±РЅРѕРІР»РµРЅРѕ. РњРѕР¶РЅРѕ РїРµСЂРµС…РѕРґРёС‚СЊ Рє РѕРїР»Р°С‚Рµ.'
+                : 'РЈС‡Р°СЃС‚РёРµ РѕС„РѕСЂРјР»РµРЅРѕ. РџРµСЂРµС…РѕРґРёС‚Рµ Рє РѕРїР»Р°С‚Рµ.',
             'request' => new OlympiadRequestResource($requestModel),
             'payment' => $this->mapPayment($payment),
             'payment_reference' => $requestModel->public_id,
@@ -155,6 +146,7 @@ class OlympiadRequestController extends Controller
             : null;
 
         $requestModel = OlympiadRequest::query()
+            ->with(['childProfile', 'paymentRecord'])
             ->where('user_id', $user->id)
             ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))
             ->when($subjectId, fn ($query) => $query->where('subject_id', $subjectId))
@@ -164,6 +156,8 @@ class OlympiadRequestController extends Controller
         return response()->json([
             'status' => $requestModel?->status,
             'payment_status' => $requestModel?->payment_status,
+            'reconciliation_status' => $requestModel?->paymentRecord?->reconciliation_status ?? 'awaiting_payment',
+            'subject_id' => $requestModel?->subject?->public_id,
             'payment_reference' => $requestModel?->public_id,
             'payment_comment' => $requestModel ? $this->buildPaymentComment($requestModel) : null,
             'payment_url' => config('services.kaspi.payment_url'),
@@ -172,11 +166,36 @@ class OlympiadRequestController extends Controller
         ]);
     }
 
+    public function paymentReport(Request $request, OlympiadRequest $olympiadRequest, KaspiPaymentReconciler $reconciler)
+    {
+        $user = $request->user();
+
+        if (!$user || $olympiadRequest->user_id !== $user->id) {
+            return response()->json(['message' => 'РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ.'], 403);
+        }
+
+        $validated = $request->validate([
+            'paid_at' => 'nullable|string|max:255',
+        ]);
+
+        $payment = $reconciler->reportPayment($olympiadRequest, $validated['paid_at'] ?? null);
+        $olympiadRequest = $olympiadRequest->fresh(['subject', 'user', 'childProfile', 'paymentRecord']);
+
+        return response()->json([
+            'message' => 'РџР»Р°С‚С‘Р¶ РѕС‚РјРµС‡РµРЅ Рё РѕС‚РїСЂР°РІР»РµРЅ РЅР° СЃРІРµСЂРєСѓ.',
+            'request' => new OlympiadRequestResource($olympiadRequest),
+            'payment' => $this->mapPayment($payment),
+            'payment_status' => $olympiadRequest->payment_status,
+            'reconciliation_status' => $payment->reconciliation_status,
+            'paid_at' => optional($olympiadRequest->paid_at)->toISOString(),
+        ]);
+    }
+
     public function index()
     {
         $requests = OlympiadRequest::query()
             ->whereIn('id', $this->latestRequestIdsQuery())
-            ->with(['subject', 'user', 'childProfile'])
+            ->with(['subject', 'user', 'childProfile', 'paymentRecord'])
             ->latest()
             ->paginate(50);
 
@@ -185,12 +204,13 @@ class OlympiadRequestController extends Controller
 
     public function show(OlympiadRequest $olympiadRequest)
     {
-        $olympiadRequest->load(['subject', 'user', 'childProfile']);
+        $olympiadRequest->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
         return response()->json([
             'id' => $olympiadRequest->public_id,
             'status' => $olympiadRequest->status,
             'payment_status' => $olympiadRequest->payment_status,
+            'reconciliation_status' => $olympiadRequest->paymentRecord?->reconciliation_status ?? 'awaiting_payment',
             'paid_at' => optional($olympiadRequest->paid_at)->toISOString(),
             'completed' => $olympiadRequest->completed,
             'first_name' => $olympiadRequest->first_name,
@@ -247,7 +267,7 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user || !$user->hasAdminCapability('requests')) {
-            return response()->json(['message' => 'Недостаточно прав.'], 403);
+            return response()->json(['message' => 'РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ.'], 403);
         }
 
         $request->validate([
@@ -257,7 +277,7 @@ class OlympiadRequestController extends Controller
         $olympiadRequest->update([
             'status' => $request->string('status')->value(),
         ]);
-        $olympiadRequest->load(['subject', 'user', 'childProfile']);
+        $olympiadRequest->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
         if ($olympiadRequest->user) {
             $isApproved = $olympiadRequest->status === 'approved';
@@ -265,17 +285,17 @@ class OlympiadRequestController extends Controller
             NotificationWorkflow::createForUser(
                 user: $olympiadRequest->user,
                 type: $isApproved ? 'olympiad_request_approved' : 'olympiad_request_rejected',
-                title: $isApproved ? 'Участие подтверждено' : 'Участие отклонено',
+                title: $isApproved ? 'РЈС‡Р°СЃС‚РёРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅРѕ' : 'РЈС‡Р°СЃС‚РёРµ РѕС‚РєР»РѕРЅРµРЅРѕ',
                 body: $isApproved
-                    ? "Участие по предмету {$olympiadRequest->subject?->name} подтверждено. Следующий шаг — оплата."
-                    : "Участие по предмету {$olympiadRequest->subject?->name} отклонено. Проверьте данные участника или свяжитесь с поддержкой.",
+                    ? "РЈС‡Р°СЃС‚РёРµ РїРѕ РїСЂРµРґРјРµС‚Сѓ {$olympiadRequest->subject?->name} РїРѕРґС‚РІРµСЂР¶РґРµРЅРѕ. РЎР»РµРґСѓСЋС‰РёР№ С€Р°Рі вЂ” РѕРїР»Р°С‚Р°."
+                    : "РЈС‡Р°СЃС‚РёРµ РїРѕ РїСЂРµРґРјРµС‚Сѓ {$olympiadRequest->subject?->name} РѕС‚РєР»РѕРЅРµРЅРѕ. РџСЂРѕРІРµСЂСЊС‚Рµ РґР°РЅРЅС‹Рµ СѓС‡Р°СЃС‚РЅРёРєР° РёР»Рё СЃРІСЏР¶РёС‚РµСЃСЊ СЃ РїРѕРґРґРµСЂР¶РєРѕР№.",
                 actionUrl: rtrim(config('app.url'), '/') . '/profile',
                 statusKey: $olympiadRequest->status,
                 payload: [
-                    'action_label' => 'Открыть кабинет',
+                    'action_label' => 'РћС‚РєСЂС‹С‚СЊ РєР°Р±РёРЅРµС‚',
                     'context' => [
-                        'Участник' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
-                        'Предмет' => $olympiadRequest->subject?->name ?? 'Олимпиада',
+                        'РЈС‡Р°СЃС‚РЅРёРє' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
+                        'РџСЂРµРґРјРµС‚' => $olympiadRequest->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
                     ],
                 ],
                 sendEmail: true
@@ -283,17 +303,17 @@ class OlympiadRequestController extends Controller
         }
 
         return response()->json([
-            'message' => 'Статус участия обновлён.',
+            'message' => 'РЎС‚Р°С‚СѓСЃ СѓС‡Р°СЃС‚РёСЏ РѕР±РЅРѕРІР»С‘РЅ.',
             'request' => new OlympiadRequestResource($olympiadRequest),
         ]);
     }
 
-    public function updatePaymentStatus(Request $request, OlympiadRequest $olympiadRequest)
+    public function updatePaymentStatus(Request $request, OlympiadRequest $olympiadRequest, OlympiadStatusNotifier $statusNotifier)
     {
         $user = $request->user();
 
         if (!$user || !$user->hasAdminCapability('payments')) {
-            return response()->json(['message' => 'Недостаточно прав.'], 403);
+            return response()->json(['message' => 'РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ.'], 403);
         }
 
         $request->validate([
@@ -305,78 +325,55 @@ class OlympiadRequestController extends Controller
 
         $status = $request->string('payment_status')->value();
         $paidAt = $status === 'paid' ? now() : null;
+        $previousStatus = $olympiadRequest->payment_status;
 
         $olympiadRequest->update([
             'payment_status' => $status,
             'paid_at' => $paidAt,
         ]);
 
-        $payment = PaymentRecord::updateOrCreate(
-            ['olympiad_request_id' => $olympiadRequest->id],
-            [
-                'parent_id' => $olympiadRequest->user_id,
-                'child_profile_id' => $olympiadRequest->child_profile_id,
-                'subject_id' => $olympiadRequest->subject_id,
-                'status' => $status,
-                'amount' => $request->input('amount'),
-                'external_reference' => $request->input('external_reference'),
-                'comment' => $request->input('comment'),
-                'paid_at' => $paidAt,
-            ]
-        );
+        $payment = PaymentRecord::firstOrNew(['olympiad_request_id' => $olympiadRequest->id]);
+        $payment->fill([
+            'parent_id' => $olympiadRequest->user_id,
+            'child_profile_id' => $olympiadRequest->child_profile_id,
+            'subject_id' => $olympiadRequest->subject_id,
+            'provider' => 'kaspi',
+            'status' => $status,
+            'amount' => $request->filled('amount') ? $request->input('amount') : ($payment->amount ?? $this->resolveQuizPrice($olympiadRequest->subject_id)),
+            'reconciliation_status' => $this->manualReconciliationStatus($status),
+            'external_reference' => $request->input('external_reference', $status === 'paid' ? $payment->external_reference : null),
+            'comment' => $request->input('comment', $payment->comment ?: $this->buildPaymentComment($olympiadRequest)),
+            'paid_at' => $paidAt,
+            'customer_reported_at' => $status === 'pending' ? null : $payment->customer_reported_at,
+            'customer_paid_at' => $status === 'pending' ? null : $payment->customer_paid_at,
+        ]);
+        $payment->save();
 
-        $olympiadRequest->load(['subject', 'user', 'childProfile']);
+        $olympiadRequest->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
         if ($olympiadRequest->user) {
             if ($status === 'paid') {
-                OnboardingProgress::syncStep($olympiadRequest->user, 'approval_payment');
+                try {
+                    OnboardingProgress::syncStep($olympiadRequest->user, 'approval_payment');
+                } catch (\Throwable $onboardingError) {
+                    report($onboardingError);
+                }
             }
 
-            NotificationWorkflow::createForUser(
-                user: $olympiadRequest->user,
-                type: match ($status) {
-                    'paid' => 'payment_confirmed',
-                    'failed' => 'payment_failed',
-                    default => 'payment_pending',
-                },
-                title: match ($status) {
-                    'paid' => 'Оплата подтверждена',
-                    'failed' => 'Оплата не подтверждена',
-                    default => 'Оплата ожидает подтверждения',
-                },
-                body: match ($status) {
-                    'paid' => "Оплата за {$olympiadRequest->subject?->name} подтверждена. Доступ к олимпиаде открыт.",
-                    'failed' => "Платёж по олимпиаде {$olympiadRequest->subject?->name} не был подтверждён.",
-                    default => "Оплата по олимпиаде {$olympiadRequest->subject?->name} ожидает подтверждения.",
-                },
-                actionUrl: rtrim(config('app.url'), '/') . '/profile',
-                statusKey: $status,
-                payload: [
-                    'action_label' => 'Проверить статус',
-                    'context' => [
-                        'Участник' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
-                        'Предмет' => $olympiadRequest->subject?->name ?? 'Олимпиада',
-                    ],
-                ],
-                sendEmail: in_array($status, ['paid', 'failed'], true)
-            );
-        }
-
-        if ($status !== 'paid') {
-            NotificationWorkflow::createForAdmins(
-                type: 'payment_review_needed',
-                title: 'Требуется проверка оплаты',
-                body: "Статус платежа по предмету {$olympiadRequest->subject?->name} обновлён: {$status}.",
-                actionUrl: '/admin/payments',
-                statusKey: $status
+            $statusNotifier->paymentStatusChanged(
+                $olympiadRequest,
+                $status,
+                $previousStatus,
+                $status !== 'paid'
             );
         }
 
         return response()->json([
-            'message' => 'Статус оплаты обновлён.',
+            'message' => 'РЎС‚Р°С‚СѓСЃ РѕРїР»Р°С‚С‹ РѕР±РЅРѕРІР»С‘РЅ.',
             'request' => new OlympiadRequestResource($olympiadRequest),
             'payment' => $this->mapPayment($payment),
             'payment_status' => $olympiadRequest->payment_status,
+            'reconciliation_status' => $payment->reconciliation_status,
             'paid_at' => optional($olympiadRequest->paid_at)->toISOString(),
         ]);
     }
@@ -386,7 +383,7 @@ class OlympiadRequestController extends Controller
         $olympiadRequest->delete();
 
         return response()->json([
-            'message' => 'Запись участия удалена.',
+            'message' => 'Р—Р°РїРёСЃСЊ СѓС‡Р°СЃС‚РёСЏ СѓРґР°Р»РµРЅР°.',
         ]);
     }
 
@@ -429,10 +426,13 @@ class OlympiadRequestController extends Controller
     {
         return [
             'id' => $payment->public_id,
+            'provider' => $payment->provider,
             'status' => $payment->status,
+            'reconciliation_status' => $payment->reconciliation_status,
             'amount' => $payment->amount,
             'currency' => $payment->currency,
             'paid_at' => optional($payment->paid_at)->toISOString(),
+            'customer_paid_at' => optional($payment->customer_paid_at)->toISOString(),
             'external_reference' => $payment->external_reference,
             'comment' => $payment->comment,
         ];
@@ -440,10 +440,10 @@ class OlympiadRequestController extends Controller
 
     protected function buildPaymentComment(OlympiadRequest $request): string
     {
-        $subject = $request->subject?->name ?? 'Олимпиада';
+        $subject = $request->subject?->name ?? 'РћР»РёРјРїРёР°РґР°';
         $child = $request->childProfile?->full_name ?? trim($request->first_name . ' ' . $request->last_name);
 
-        return trim("Заявка {$request->public_id} · {$subject} · {$child}");
+        return trim("Р—Р°СЏРІРєР° {$request->public_id} В· {$subject} В· {$child}");
     }
 
     protected function latestRequestIdsQuery()
@@ -478,5 +478,39 @@ class OlympiadRequestController extends Controller
             ->where('subject_id', $subjectId)
             ->latest('id')
             ->value('price') ?? 0);
+    }
+
+    protected function syncPaymentRecordForRequest(OlympiadRequest $requestModel, int $parentId, int $childId, int $price): PaymentRecord
+    {
+        $payment = PaymentRecord::firstOrNew(['olympiad_request_id' => $requestModel->id]);
+        $isPaid = $requestModel->payment_status === 'paid';
+
+        $payment->fill([
+            'parent_id' => $parentId,
+            'child_profile_id' => $childId,
+            'subject_id' => $requestModel->subject_id,
+            'amount' => $price,
+            'currency' => $payment->currency ?: 'KZT',
+            'provider' => 'kaspi',
+            'status' => $isPaid ? 'paid' : 'pending',
+            'reconciliation_status' => $isPaid ? 'matched' : 'awaiting_payment',
+            'external_reference' => $isPaid ? $payment->external_reference : null,
+            'comment' => $this->buildPaymentComment($requestModel),
+            'paid_at' => $isPaid ? $requestModel->paid_at : null,
+            'customer_reported_at' => $isPaid ? $payment->customer_reported_at : null,
+            'customer_paid_at' => $isPaid ? ($payment->customer_paid_at ?: $requestModel->paid_at) : null,
+        ]);
+        $payment->save();
+
+        return $payment->fresh();
+    }
+
+    protected function manualReconciliationStatus(string $status): string
+    {
+        return match ($status) {
+            'paid' => 'matched',
+            'failed' => 'needs_review',
+            default => 'awaiting_payment',
+        };
     }
 }
