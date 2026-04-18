@@ -29,6 +29,8 @@ class OlympiadRequest extends Model
         'completed',
         'disqualified_at',
         'disqualification_reason',
+        'attempt_started_at',
+        'attempt_last_activity_at',
     ];
 
     protected $casts = [
@@ -36,6 +38,8 @@ class OlympiadRequest extends Model
         'birth_date' => 'date',
         'paid_at' => 'datetime',
         'disqualified_at' => 'datetime',
+        'attempt_started_at' => 'datetime',
+        'attempt_last_activity_at' => 'datetime',
     ];
 
     protected $hidden = ['id', 'user_id', 'child_profile_id', 'subject_id'];

@@ -37,13 +37,15 @@
             <th>Олимпиада</th>
             <th>Балл</th>
             <th>Процент</th>
+            <th>Время</th>
+            <th>Проверка</th>
             <th>Статус</th>
             <th>Дата</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="result in results" :key="result.id">
-            <td>{{ result.user_name }}</td>
+            <td>{{ result.child_name }}</td>
             <td>{{ result.school }}</td>
             <td>{{ result.city }}</td>
             <td>{{ result.subject }}</td>
@@ -51,6 +53,12 @@
             <td>{{ result.quiz_title }}</td>
             <td>{{ result.score }}/{{ result.total }}</td>
             <td>{{ result.percent }}%</td>
+            <td>{{ formatElapsed(result.elapsed_seconds) }}</td>
+            <td>
+              <span class="review-chip" :class="{ flagged: result.requires_review }">
+                {{ result.requires_review ? 'Нужна проверка' : 'OK' }}
+              </span>
+            </td>
             <td>
               <span class="status-chip" :class="result.status">
                 {{ result.status === 'passed' ? 'Пройден' : 'Не пройден' }}
@@ -81,6 +89,14 @@ const params = computed(() => ({
   status: statusFilter.value,
   subject: subjectFilter.value,
 }))
+
+const formatElapsed = (seconds) => {
+  if (seconds === null || seconds === undefined || Number.isNaN(Number(seconds))) return 'n/a'
+  const totalSeconds = Math.max(0, Number(seconds))
+  const minutes = Math.floor(totalSeconds / 60)
+  const remainder = totalSeconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`
+}
 
 const loadResults = async () => {
   loading.value = true
@@ -137,11 +153,13 @@ input:focus, select:focus { border-color: color-mix(in srgb, var(--accent) 75%, 
 .loading-card, .empty-card, .table-card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 24px; box-shadow: var(--shadow-card); }
 .loading-card, .empty-card { padding: 28px; }
 .table-card { overflow: auto; }
-.results-table { width: 100%; border-collapse: collapse; min-width: 1120px; }
+.results-table { width: 100%; border-collapse: collapse; min-width: 1280px; }
 .results-table th, .results-table td { padding: 16px 18px; border-bottom: 1px solid var(--surface-border); text-align: left; vertical-align: middle; }
 .results-table th { color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
 .status-chip { display: inline-flex; align-items: center; height: fit-content; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .status-chip.passed { background: var(--success-bg); color: #2f6f4b; }
 .status-chip.failed { background: var(--danger-bg); color: #8f3b3b; }
+.review-chip { display: inline-flex; align-items: center; height: fit-content; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(44,122,75,0.12); color: #2f6f4b; }
+.review-chip.flagged { background: rgba(201,171,99,0.22); color: #7b5d15; }
 @media (max-width: 860px) { .admin-page { padding: 16px; } .header { flex-direction: column; } .filters, .filters input, .filters select, .export-btn { width: 100%; } }
 </style>

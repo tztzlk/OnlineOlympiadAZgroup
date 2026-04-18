@@ -15,7 +15,7 @@
             <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/>
             <path d="M20 20L17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
           </svg>
-          <input v-model="search" type="text" placeholder="Поиск по имени, email или предмету" />
+          <input v-model="search" type="text" placeholder="Поиск по имени, предмету или ID заявки" />
         </label>
 
         <div class="filter-panel">
@@ -77,11 +77,11 @@
         <div class="request-details">
           <div class="detail">
             <span>Email родителя</span>
-            <strong>{{ request.email }}</strong>
+            <strong>{{ request.masked_email }}</strong>
           </div>
           <div class="detail">
             <span>Телефон родителя</span>
-            <strong>{{ request.parent_phone || 'Не указан' }}</strong>
+            <strong>{{ request.masked_phone }}</strong>
           </div>
           <div class="detail">
             <span>Класс</span>
@@ -168,11 +168,11 @@
           </div>
           <div class="modal-field">
             <span>Почта родителя</span>
-            <strong>{{ selectedRequest.email }}</strong>
+            <strong>{{ selectedRequest.masked_email }}</strong>
           </div>
           <div class="modal-field">
             <span>Телефон родителя</span>
-            <strong>{{ selectedRequest.parent_phone || 'Не указан' }}</strong>
+            <strong>{{ selectedRequest.masked_phone }}</strong>
           </div>
           <div class="modal-field">
             <span>Родитель</span>
@@ -284,13 +284,29 @@ const filteredRequests = computed(() => {
     const searchMatch =
       !query ||
       request.name.toLowerCase().includes(query) ||
-      request.email.toLowerCase().includes(query) ||
       request.subjectName.toLowerCase().includes(query) ||
       (request.payment_reference || '').toLowerCase().includes(query)
 
     return paymentFilterMatch && searchMatch
   })
 })
+
+const maskEmail = (value) => {
+  const normalized = String(value || '').trim()
+  if (!normalized.includes('@')) return 'Не указан'
+
+  const [local, domain] = normalized.split('@')
+  const [domainName, ...zoneParts] = domain.split('.')
+  const zone = zoneParts.length ? `.${zoneParts.join('.')}` : ''
+  return `${local.slice(0, 1)}${'*'.repeat(Math.max(local.length - 1, 2))}@${domainName.slice(0, 1)}${'*'.repeat(Math.max(domainName.length - 1, 1))}${zone}`
+}
+
+const maskPhone = (value) => {
+  const digits = String(value || '').replace(/\D+/g, '')
+  if (!digits) return 'Не указан'
+
+  return `+${digits.slice(0, 2)}${'*'.repeat(Math.max(digits.length - 4, 2))}${digits.slice(-2)}`
+}
 
 const mapRequest = (item) => ({
   ...item,
@@ -323,7 +339,12 @@ const requestActionHint = (request) => {
 }
 
 const syncRequest = (target, payload) => {
-  Object.assign(target, mapRequest(payload.request ?? payload))
+  const mapped = mapRequest(payload.request ?? payload)
+  Object.assign(target, {
+    ...mapped,
+    masked_email: maskEmail(mapped.email),
+    masked_phone: maskPhone(mapped.parent_phone),
+  })
 
   if (selectedRequest.value?.id === target.id) {
     selectedRequest.value = { ...target }
@@ -336,7 +357,14 @@ const loadRequests = async () => {
 
   try {
     const { data } = await api.get('/admin/requests')
-    requests.value = (data.data || []).map(mapRequest)
+    requests.value = (data.data || []).map((item) => {
+      const mapped = mapRequest(item)
+      return {
+        ...mapped,
+        masked_email: maskEmail(mapped.email),
+        masked_phone: maskPhone(mapped.parent_phone),
+      }
+    })
   } catch (error) {
     console.error(error)
     errorMessage.value = error.response?.data?.message || 'Не удалось загрузить участников.'

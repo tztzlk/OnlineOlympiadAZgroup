@@ -18,12 +18,21 @@ class QuizResult extends Model
         'score',
         'total',
         'answers',
+        'started_at',
+        'submitted_at',
+        'elapsed_seconds',
+        'requires_review',
+        'review_reasons',
     ];
 
     protected $hidden = ['id', 'user_id', 'child_profile_id', 'quiz_id', 'quiz_category_id'];
 
     protected $casts = [
         'answers' => 'array',
+        'started_at' => 'datetime',
+        'submitted_at' => 'datetime',
+        'requires_review' => 'boolean',
+        'review_reasons' => 'array',
     ];
 
     /*

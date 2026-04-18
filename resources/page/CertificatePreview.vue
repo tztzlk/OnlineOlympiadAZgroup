@@ -41,10 +41,10 @@
           tone="success"
           eyebrow="Готово"
           title="Сертификат можно сохранить"
-          description="Откройте SVG-сертификат в новом окне или скачайте его на устройство."
+          description="Откройте PDF-сертификат в новом окне или скачайте его на устройство."
         >
           <template #actions>
-            <a class="btn btn-primary" :href="certificate.download_url" target="_blank" rel="noopener">Открыть SVG</a>
+            <a class="btn btn-primary" :href="certificate.download_url" target="_blank" rel="noopener">Открыть PDF</a>
             <button class="btn btn-outline" @click="downloadCertificate">Скачать файл</button>
           </template>
         </StatePanel>
@@ -83,11 +83,11 @@ const downloadCertificate = async () => {
     responseType: 'blob',
   })
 
-  const blob = new Blob([data], { type: headers['content-type'] || 'image/svg+xml' })
+  const blob = new Blob([data], { type: headers['content-type'] || 'application/pdf' })
   const url = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `certificate-result-${route.params.resultId}.svg`
+  link.download = `certificate-result-${route.params.resultId}.pdf`
   link.click()
   window.URL.revokeObjectURL(url)
 }

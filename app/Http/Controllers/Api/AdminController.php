@@ -32,7 +32,7 @@ class AdminController extends Controller
         $weekEnd = now()->endOfWeek();
 
         return response()->json([
-            'message' => 'Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ Р°РґРјРёРЅ-РїР°РЅРµР»СЊ',
+            'message' => 'Добро пожаловать в админ-панель',
             'users' => User::count(),
             'children' => ChildProfile::count(),
             'quizzes' => Quiz::count(),
@@ -136,7 +136,7 @@ class AdminController extends Controller
     public function exportUsersResults(Request $request): StreamedResponse
     {
         return $this->downloadWorksheet('Results', 'results', [
-            ['Р РµР±РµРЅРѕРє', 'Р РѕРґРёС‚РµР»СЊ', 'РЁРєРѕР»Р°', 'Р“РѕСЂРѕРґ', 'РџСЂРµРґРјРµС‚', 'РљР°С‚РµРіРѕСЂРёСЏ', 'РћР»РёРјРїРёР°РґР°', 'Р‘Р°Р»Р»С‹', 'РџСЂРѕС†РµРЅС‚', 'РЎС‚Р°С‚СѓСЃ', 'Р”Р°С‚Р°'],
+            ['Ребенок', 'Родитель', 'Школа', 'Город', 'Предмет', 'Категория', 'Олимпиада', 'Баллы', 'Процент', 'Статус', 'Дата'],
             ...$this->buildResults($request)->map(fn ($result) => [
                 $result['child_name'],
                 $result['parent_name'],
@@ -147,7 +147,7 @@ class AdminController extends Controller
                 $result['quiz_title'],
                 $result['score'] . '/' . $result['total'],
                 $result['percent'] . '%',
-                $result['status'] === 'passed' ? 'РџСЂРѕР№РґРµРЅ' : 'РќРµ РїСЂРѕР№РґРµРЅ',
+                $result['status'] === 'passed' ? 'Пройден' : 'Не пройден',
                 $result['date'],
             ]),
         ]);
@@ -179,7 +179,7 @@ class AdminController extends Controller
         $rows = $this->participants()->getData(true);
 
         return $this->downloadWorksheet('Participants', 'participants', [
-            ['ID', 'Р РµР±РµРЅРѕРє', 'РљР»Р°СЃСЃ', 'РЁРєРѕР»Р°', 'Р“РѕСЂРѕРґ', 'РЇР·С‹Рє', 'Р РѕРґРёС‚РµР»СЊ', 'Email', 'РўРµР»РµС„РѕРЅ', 'РЎРѕР·РґР°РЅ'],
+            ['ID', 'Ребенок', 'Класс', 'Школа', 'Город', 'Язык', 'Родитель', 'Email', 'Телефон', 'Создан'],
             ...collect($rows)->map(fn ($row) => [
                 (string) $row['id'],
                 $row['child_name'],
@@ -228,7 +228,7 @@ class AdminController extends Controller
             if ($email === '' || $childFirst === '' || $childLast === '') {
                 $errors[] = [
                     'line' => $lineNumber + 1,
-                    'message' => 'РќРµ Р·Р°РїРѕР»РЅРµРЅС‹ РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ parent_email / child_first_name / child_last_name',
+                    'message' => 'Не заполнены обязательные поля parent_email / child_first_name / child_last_name',
                 ];
                 continue;
             }
@@ -268,7 +268,7 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'message' => 'РРјРїРѕСЂС‚ Р·Р°РІРµСЂС€РµРЅ',
+            'message' => 'Импорт завершен',
             'imported' => $imported,
             'created_parent_accounts' => $createdParents,
             'created_parent_emails' => $createdParentEmails,
@@ -288,7 +288,7 @@ class AdminController extends Controller
     public function exportPayments(): StreamedResponse
     {
         return $this->downloadWorksheet('Payments', 'payments', [
-            ['ID', 'Payment ID', 'Request ID', 'Р РѕРґРёС‚РµР»СЊ', 'Р РµР±РµРЅРѕРє', 'РџСЂРµРґРјРµС‚', 'РЎСѓРјРјР°', 'Р’Р°Р»СЋС‚Р°', 'РЎС‚Р°С‚СѓСЃ', 'РЎРІРµСЂРєР°', 'Р’РЅРµС€РЅРёР№ РЅРѕРјРµСЂ', 'РљРѕРјРјРµРЅС‚Р°СЂРёР№', 'РЎРѕР·РґР°РЅ', 'РћРїР»Р°С‡РµРЅ'],
+            ['ID', 'Payment ID', 'Request ID', 'Родитель', 'Ребенок', 'Предмет', 'Сумма', 'Валюта', 'Статус', 'Сверка', 'Внешний номер', 'Комментарий', 'Создан', 'Оплачен'],
             ...$this->buildPaymentRows()->map(fn ($row) => [
                 (string) $row['id'],
                 $row['public_id'],
@@ -317,7 +317,7 @@ class AdminController extends Controller
         $stats = $importService->import($request->file('file'));
 
         return response()->json([
-            'message' => 'РРјРїРѕСЂС‚ РїР»Р°С‚РµР¶РµР№ Р·Р°РІРµСЂС€РµРЅ.',
+            'message' => 'Импорт платежей завершен.',
             'stats' => $stats,
             ...$this->buildPaymentsPayload(),
         ]);
@@ -347,7 +347,7 @@ class AdminController extends Controller
         $rows = $this->callbacks()->getData(true);
 
         return $this->downloadWorksheet('Callbacks', 'callbacks', [
-            ['ID', 'РРјСЏ', 'РўРµР»РµС„РѕРЅ', 'Email', 'РЎРѕРѕР±С‰РµРЅРёРµ', 'РЎС‚Р°С‚СѓСЃ', 'Р”Р°С‚Р°'],
+            ['ID', 'Имя', 'Телефон', 'Email', 'Сообщение', 'Статус', 'Дата'],
             ...collect($rows)->map(fn ($row) => [
                 (string) $row['id'],
                 $row['name'],
@@ -378,15 +378,18 @@ class AdminController extends Controller
                     'id' => $result->id,
                     'child_name' => $result->childProfile?->full_name ?? ($result->user?->name ?? 'Unknown child'),
                     'parent_name' => $result->user?->name ?? 'Unknown parent',
-                    'school' => $result->childProfile?->school ?? ($result->user?->school ?? 'РќРµ СѓРєР°Р·Р°РЅР°'),
-                    'city' => $result->childProfile?->city ?? ($result->user?->city ?? 'РќРµ СѓРєР°Р·Р°РЅ'),
+                    'school' => $result->childProfile?->school ?? ($result->user?->school ?? 'Не указана'),
+                    'city' => $result->childProfile?->city ?? ($result->user?->city ?? 'Не указан'),
                     'quiz_title' => $result->quiz?->title ?? 'Untitled quiz',
                     'subject' => $result->quiz?->subject?->name ?? 'Unknown subject',
-                    'category' => $result->category?->label ?? 'РћР±С‰Р°СЏ',
+                    'category' => $result->category?->label ?? 'Общая',
                     'score' => $result->score,
                     'total' => $result->total,
                     'percent' => $percent,
                     'status' => $percent >= 60 ? 'passed' : 'failed',
+                    'elapsed_seconds' => $result->elapsed_seconds,
+                    'requires_review' => (bool) $result->requires_review,
+                    'review_reasons' => $result->review_reasons ?? [],
                     'submitted_at' => optional($result->created_at)->toISOString(),
                     'date' => optional($result->created_at)->format('d.m.Y H:i'),
                 ];

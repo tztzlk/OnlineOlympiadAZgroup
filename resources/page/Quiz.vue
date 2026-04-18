@@ -54,6 +54,7 @@
     >
       <template #actions>
         <RouterLink class="action-btn" to="/profile">Вернуться в профиль</RouterLink>
+        <RouterLink class="action-btn secondary" to="/help-desk">Подать апелляцию или написать в поддержку</RouterLink>
       </template>
     </StatePanel>
 
@@ -335,7 +336,7 @@ const registerViolation = async (reason = 'window_focus_lost') => {
   violated = true
   clearTimer()
   userAnswers.value = {}
-  violationMessage.value = 'Вы переключились на другое окно, вкладку или вышли из полноэкранного режима. По правилам олимпиады попытка аннулирована.'
+  violationMessage.value = 'Вы переключились на другое окно, вкладку или вышли из полноэкранного режима. По правилам олимпиады попытка аннулирована. Если это сработало ошибочно, можно сразу подать апелляцию через поддержку.'
 
   try {
     await api.post(`/quiz/${quiz.value.id}/violate`, {
@@ -387,6 +388,12 @@ const loadQuiz = async () => {
     }
 
     visitedQuestions.value = new Set([0])
+
+    if (data.attempt_started_at) {
+      examStarted.value = true
+      rulesAccepted.value = true
+      startTimerFromSeconds(data.remaining_seconds || 0)
+    }
   } catch (error) {
     loadError.value = true
     loadErrorMessage.value = error.response?.data?.message || 'Не удалось загрузить олимпиаду.'
@@ -399,10 +406,19 @@ const startExam = async () => {
   if (!rulesAccepted.value) return
   const fullscreenOk = await requestFullscreen()
   if (!fullscreenOk) return
-  examStarted.value = true
   submitError.value = ''
-  markVisited(0)
-  startTimerFromSeconds((quiz.value.time_limit || 60) * 60)
+
+  try {
+    const { data } = await api.post(`/quiz/${quiz.value.id}/start`, {
+      child_profile_id: activeChildId.value,
+    })
+
+    examStarted.value = true
+    markVisited(0)
+    startTimerFromSeconds(data.remaining_seconds || (quiz.value.time_limit || 60) * 60)
+  } catch (error) {
+    submitError.value = error.response?.data?.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РїСѓСЃС‚РёС‚СЊ РѕР»РёРјРїРёР°РґСѓ.'
+  }
 }
 
 const submitQuiz = async () => {
@@ -435,11 +451,11 @@ const downloadCertificate = async () => {
     responseType: 'blob',
   })
 
-  const blob = new Blob([data], { type: headers['content-type'] || 'image/svg+xml' })
+  const blob = new Blob([data], { type: headers['content-type'] || 'application/pdf' })
   const url = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `certificate-result-${result.value.id || 'latest'}.svg`
+  link.download = `certificate-result-${result.value.id || 'latest'}.pdf`
   link.click()
   window.URL.revokeObjectURL(url)
 }

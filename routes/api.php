@@ -107,6 +107,7 @@ Route::middleware(['auth:sanctum', 'throttle:api-user'])->group(function () {
         Route::get('/status/{subjectId}', [QuizController::class, 'getStatus']);
         Route::get('/subjects', [QuizController::class, 'getSubjects']);
         Route::get('/{subjectId}', [QuizController::class, 'getQuiz']);
+        Route::post('/{quizId}/start', [QuizController::class, 'startAttempt']);
         Route::post('/{quizId}/submit', [QuizController::class, 'submitQuiz']);
         Route::post('/{quizId}/violate', [QuizController::class, 'violateAttempt']);
     });

@@ -119,11 +119,11 @@ const downloadCertificate = async (result) => {
     responseType: 'blob',
   })
 
-  const blob = new Blob([data], { type: headers['content-type'] || 'image/svg+xml' })
+  const blob = new Blob([data], { type: headers['content-type'] || 'application/pdf' })
   const url = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `certificate-result-${result.id}.svg`
+  link.download = `certificate-result-${result.id}.pdf`
   link.click()
   window.URL.revokeObjectURL(url)
 }

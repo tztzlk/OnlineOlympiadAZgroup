@@ -53,7 +53,7 @@ class LeaderboardController extends Controller
             ->map(function ($item, int $index) {
                 return [
                     'rank' => $index + 1,
-                    'user_name' => $item->user_name,
+                    'user_name' => $this->maskParticipantName($item->user_name),
                     'school' => $item->school,
                     'city' => $item->city,
                     'subject' => $item->subject,
@@ -66,5 +66,17 @@ class LeaderboardController extends Controller
             });
 
         return response()->json($leaderboard);
+    }
+    protected function maskParticipantName(?string $value): string
+    {
+        $parts = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
+
+        if (!$parts) {
+            return 'Участник';
+        }
+
+        return collect($parts)
+            ->map(fn (string $part) => mb_strtoupper(mb_substr($part, 0, 1)) . str_repeat('*', max(mb_strlen($part) - 1, 1)))
+            ->implode(' ');
     }
 }

@@ -125,6 +125,8 @@ class QuizController extends Controller
                 'display_range' => $this->formatCategoryRange($category),
             ],
             'questions_count' => $category->questions->count(),
+            'attempt_started_at' => optional($requestRecord->attempt_started_at)->toISOString(),
+            'remaining_seconds' => $this->remainingSeconds($requestRecord->attempt_started_at, $quiz->time_limit),
             'questions' => $category->questions->values()->map(function ($question) {
                 return [
                     'id' => $question->id,
@@ -142,6 +144,56 @@ class QuizController extends Controller
                     )->values(),
                 ];
             })->values(),
+        ]);
+    }
+
+    public function startAttempt(Request $request, string $quizId)
+    {
+        $user = Auth::user();
+        $quiz = $this->resolveQuiz($quizId, ['categories.questions.answers']);
+        $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
+        $requestRecord = $this->resolveRequest($user->id, $quiz->subject_id, $childId);
+
+        if (!$requestRecord) {
+            return response()->json(['message' => 'Р—Р°СЏРІРєР° РЅР° СЌС‚Сѓ РѕР»РёРјРїРёР°РґСѓ РЅРµ РЅР°Р№РґРµРЅР°.'], 404);
+        }
+
+        if ($requestRecord->status !== 'approved') {
+            return response()->json(['message' => 'Р—Р°СЏРІРєР° РµС‰С‘ РЅРµ РѕРґРѕР±СЂРµРЅР°.'], 403);
+        }
+
+        if ($requestRecord->payment_status !== 'paid') {
+            return response()->json(['message' => 'РћРїР»Р°С‚Р° РµС‰С‘ РЅРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅР°.'], 402);
+        }
+
+        if ($requestRecord->disqualified_at) {
+            return response()->json(['message' => 'РџРѕРїС‹С‚РєР° СѓР¶Рµ Р°РЅРЅСѓР»РёСЂРѕРІР°РЅР°.'], 403);
+        }
+
+        $exists = QuizResult::query()
+            ->where('user_id', $user->id)
+            ->where('quiz_id', $quiz->id)
+            ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'РћР»РёРјРїРёР°РґР° СѓР¶Рµ Р±С‹Р»Р° РїСЂРѕР№РґРµРЅР°.'], 403);
+        }
+
+        if (!$requestRecord->attempt_started_at) {
+            $requestRecord->forceFill([
+                'attempt_started_at' => now(),
+                'attempt_last_activity_at' => now(),
+            ])->save();
+        } else {
+            $requestRecord->forceFill([
+                'attempt_last_activity_at' => now(),
+            ])->save();
+        }
+
+        return response()->json([
+            'started_at' => optional($requestRecord->attempt_started_at)->toISOString(),
+            'remaining_seconds' => $this->remainingSeconds($requestRecord->attempt_started_at, $quiz->time_limit),
         ]);
     }
 
@@ -225,6 +277,37 @@ class QuizController extends Controller
         $answers = $request->input('answers', []);
         $score = 0;
         $total = $category->questions->count();
+        $answeredCount = collect($answers)->filter(fn ($value) => filled($value))->count();
+        $startedAt = $requestRecord->attempt_started_at;
+        $submittedAt = now();
+
+        if (!$startedAt) {
+            return response()->json([
+                'message' => 'РџРѕРїС‹С‚РєР° РЅРµ Р±С‹Р»Р° Р·Р°РїСѓС‰РµРЅР° РЅР° СЃРµСЂРІРµСЂРµ. РќР°С‡РЅРёС‚Рµ РѕР»РёРјРїРёР°РґСѓ Р·Р°РЅРѕРІРѕ.',
+            ], 422);
+        }
+
+        $elapsedSeconds = max(0, $startedAt->diffInSeconds($submittedAt));
+        $timeLimitSeconds = max(60, ((int) $quiz->time_limit) * 60);
+
+        if ($elapsedSeconds > $timeLimitSeconds) {
+            $requestRecord->update([
+                'disqualified_at' => $requestRecord->disqualified_at ?: $submittedAt,
+                'disqualification_reason' => $requestRecord->disqualification_reason ?: 'time_limit_exceeded',
+                'attempt_last_activity_at' => $submittedAt,
+            ]);
+
+            return response()->json([
+                'message' => 'Р’СЂРµРјСЏ РЅР° РѕР»РёРјРїРёР°РґСѓ РёСЃС‚РµРєР»Рѕ. Р РµР·СѓР»СЊС‚Р°С‚ РЅРµ Р·Р°С‡С‚С‘РЅ.',
+            ], 403);
+        }
+
+        $reviewReasons = $this->buildReviewReasons(
+            elapsedSeconds: $elapsedSeconds,
+            answeredCount: $answeredCount,
+            totalQuestions: $total,
+            timeLimitSeconds: $timeLimitSeconds,
+        );
 
         foreach ($category->questions as $question) {
             if (!isset($answers[$question->id])) {
@@ -246,13 +329,21 @@ class QuizController extends Controller
             'score' => $score,
             'total' => $total,
             'answers' => $answers,
+            'started_at' => $startedAt,
+            'submitted_at' => $submittedAt,
+            'elapsed_seconds' => $elapsedSeconds,
+            'requires_review' => !empty($reviewReasons),
+            'review_reasons' => $reviewReasons ?: null,
         ]);
 
         OlympiadRequest::query()
             ->where('user_id', $user->id)
             ->where('subject_id', $quiz->subject_id)
             ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
-            ->update(['completed' => true]);
+            ->update([
+                'completed' => true,
+                'attempt_last_activity_at' => $submittedAt,
+            ]);
 
         $percent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
         $resultStatus = $percent >= 60 ? 'passed' : 'failed';
@@ -296,6 +387,9 @@ class QuizController extends Controller
             'total' => $total,
             'percent' => $percent,
             'status' => $resultStatus,
+            'elapsed_seconds' => $elapsedSeconds,
+            'requires_review' => !empty($reviewReasons),
+            'review_reasons' => $reviewReasons,
             'category' => [
                 'id' => $category->id,
                 'label' => $category->label,
@@ -321,6 +415,7 @@ class QuizController extends Controller
             $requestRecord->update([
                 'disqualified_at' => now(),
                 'disqualification_reason' => $request->input('reason', 'window_focus_lost'),
+                'attempt_last_activity_at' => now(),
             ]);
         }
 
@@ -414,5 +509,32 @@ class QuizController extends Controller
         return $query
             ->where('public_id', $quizKey)
             ->firstOrFail();
+    }
+
+    protected function remainingSeconds($startedAt, ?int $timeLimitMinutes): int
+    {
+        $timeLimitSeconds = max(60, ((int) $timeLimitMinutes) * 60);
+
+        if (!$startedAt) {
+            return $timeLimitSeconds;
+        }
+
+        return max(0, $timeLimitSeconds - $startedAt->diffInSeconds(now()));
+    }
+
+    protected function buildReviewReasons(int $elapsedSeconds, int $answeredCount, int $totalQuestions, int $timeLimitSeconds): array
+    {
+        $reasons = [];
+        $minimumReasonableElapsed = max(15, min(90, $answeredCount * 3));
+
+        if ($answeredCount >= 3 && $elapsedSeconds < $minimumReasonableElapsed) {
+            $reasons[] = 'answered_too_fast';
+        }
+
+        if ($elapsedSeconds < max(10, (int) floor($timeLimitSeconds * 0.05)) && $totalQuestions >= 10) {
+            $reasons[] = 'attempt_shorter_than_expected';
+        }
+
+        return array_values(array_unique($reasons));
     }
 }

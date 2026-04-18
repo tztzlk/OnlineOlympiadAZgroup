@@ -22,7 +22,7 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'РўСЂРµР±СѓРµС‚СЃСЏ Р°РІС‚РѕСЂРёР·Р°С†РёСЏ.'], 401);
+            return response()->json(['message' => 'Требуется авторизация.'], 401);
         }
 
         $data = $request->validate([
@@ -85,15 +85,15 @@ class OlympiadRequestController extends Controller
                 NotificationWorkflow::createForUser(
                     user: $user,
                     type: 'olympiad_request_approved',
-                    title: 'РЈС‡Р°СЃС‚РёРµ РѕС„РѕСЂРјР»РµРЅРѕ',
-                    body: "РЈС‡Р°СЃС‚РёРµ РІ РѕР»РёРјРїРёР°РґРµ РїРѕ РїСЂРµРґРјРµС‚Сѓ {$requestModel->subject?->name} РѕС„РѕСЂРјР»РµРЅРѕ. РњРѕР¶РЅРѕ РїРµСЂРµС…РѕРґРёС‚СЊ Рє РѕРїР»Р°С‚Рµ.",
+                    title: 'Участие оформлено',
+                    body: "Участие в олимпиаде по предмету {$requestModel->subject?->name} оформлено. Можно переходить к оплате.",
                     actionUrl: rtrim(config('app.url'), '/') . '/profile',
                     statusKey: 'approved',
                     payload: [
-                        'action_label' => 'РћС‚РєСЂС‹С‚СЊ РєР°Р±РёРЅРµС‚',
+                        'action_label' => 'Открыть кабинет',
                         'context' => [
-                            'РЈС‡Р°СЃС‚РЅРёРє' => $child->full_name,
-                            'РџСЂРµРґРјРµС‚' => $requestModel->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
+                            'Участник' => $child->full_name,
+                            'Предмет' => $requestModel->subject?->name ?? 'Олимпиада',
                         ],
                     ],
                     sendEmail: true
@@ -101,8 +101,8 @@ class OlympiadRequestController extends Controller
 
                 NotificationWorkflow::createForAdmins(
                     type: 'new_payment_pending',
-                    title: 'РќРѕРІС‹Р№ СѓС‡Р°СЃС‚РЅРёРє Р¶РґС‘С‚ РѕРїР»Р°С‚Сѓ',
-                    body: "РћС„РѕСЂРјР»РµРЅРѕ СѓС‡Р°СЃС‚РёРµ {$user->name} РїРѕ РїСЂРµРґРјРµС‚Сѓ {$requestModel->subject?->name}. РћР¶РёРґР°РµС‚СЃСЏ РѕРїР»Р°С‚Р°.",
+                    title: 'Новый участник ждёт оплату',
+                    body: "Оформлено участие {$user->name} по предмету {$requestModel->subject?->name}. Ожидается оплата.",
                     actionUrl: '/admin/payments',
                     statusKey: 'pending'
                 );
@@ -121,8 +121,8 @@ class OlympiadRequestController extends Controller
 
         return response()->json([
             'message' => $existing
-                ? 'РЈС‡Р°СЃС‚РёРµ РѕР±РЅРѕРІР»РµРЅРѕ. РњРѕР¶РЅРѕ РїРµСЂРµС…РѕРґРёС‚СЊ Рє РѕРїР»Р°С‚Рµ.'
-                : 'РЈС‡Р°СЃС‚РёРµ РѕС„РѕСЂРјР»РµРЅРѕ. РџРµСЂРµС…РѕРґРёС‚Рµ Рє РѕРїР»Р°С‚Рµ.',
+                ? 'Участие обновлено. Можно переходить к оплате.'
+                : 'Участие оформлено. Переходите к оплате.',
             'request' => new OlympiadRequestResource($requestModel),
             'payment' => $this->mapPayment($payment),
             'payment_reference' => $requestModel->public_id,
@@ -171,7 +171,7 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user || $olympiadRequest->user_id !== $user->id) {
-            return response()->json(['message' => 'РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ.'], 403);
+            return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
         $validated = $request->validate([
@@ -182,7 +182,7 @@ class OlympiadRequestController extends Controller
         $olympiadRequest = $olympiadRequest->fresh(['subject', 'user', 'childProfile', 'paymentRecord']);
 
         return response()->json([
-            'message' => 'РџР»Р°С‚С‘Р¶ РѕС‚РјРµС‡РµРЅ Рё РѕС‚РїСЂР°РІР»РµРЅ РЅР° СЃРІРµСЂРєСѓ.',
+            'message' => 'Платёж отмечен и отправлен на сверку.',
             'request' => new OlympiadRequestResource($olympiadRequest),
             'payment' => $this->mapPayment($payment),
             'payment_status' => $olympiadRequest->payment_status,
@@ -267,7 +267,7 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user || !$user->hasAdminCapability('requests')) {
-            return response()->json(['message' => 'РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ.'], 403);
+            return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
         $request->validate([
@@ -285,17 +285,17 @@ class OlympiadRequestController extends Controller
             NotificationWorkflow::createForUser(
                 user: $olympiadRequest->user,
                 type: $isApproved ? 'olympiad_request_approved' : 'olympiad_request_rejected',
-                title: $isApproved ? 'РЈС‡Р°СЃС‚РёРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅРѕ' : 'РЈС‡Р°СЃС‚РёРµ РѕС‚РєР»РѕРЅРµРЅРѕ',
+                title: $isApproved ? 'Участие подтверждено' : 'Участие отклонено',
                 body: $isApproved
-                    ? "РЈС‡Р°СЃС‚РёРµ РїРѕ РїСЂРµРґРјРµС‚Сѓ {$olympiadRequest->subject?->name} РїРѕРґС‚РІРµСЂР¶РґРµРЅРѕ. РЎР»РµРґСѓСЋС‰РёР№ С€Р°Рі вЂ” РѕРїР»Р°С‚Р°."
-                    : "РЈС‡Р°СЃС‚РёРµ РїРѕ РїСЂРµРґРјРµС‚Сѓ {$olympiadRequest->subject?->name} РѕС‚РєР»РѕРЅРµРЅРѕ. РџСЂРѕРІРµСЂСЊС‚Рµ РґР°РЅРЅС‹Рµ СѓС‡Р°СЃС‚РЅРёРєР° РёР»Рё СЃРІСЏР¶РёС‚РµСЃСЊ СЃ РїРѕРґРґРµСЂР¶РєРѕР№.",
+                    ? "Участие по предмету {$olympiadRequest->subject?->name} подтверждено. Следующий шаг — оплата."
+                    : "Участие по предмету {$olympiadRequest->subject?->name} отклонено. Проверьте данные участника или свяжитесь с поддержкой.",
                 actionUrl: rtrim(config('app.url'), '/') . '/profile',
                 statusKey: $olympiadRequest->status,
                 payload: [
-                    'action_label' => 'РћС‚РєСЂС‹С‚СЊ РєР°Р±РёРЅРµС‚',
+                    'action_label' => 'Открыть кабинет',
                     'context' => [
-                        'РЈС‡Р°СЃС‚РЅРёРє' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
-                        'РџСЂРµРґРјРµС‚' => $olympiadRequest->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
+                        'Участник' => $olympiadRequest->childProfile?->full_name ?? trim($olympiadRequest->first_name . ' ' . $olympiadRequest->last_name),
+                        'Предмет' => $olympiadRequest->subject?->name ?? 'Олимпиада',
                     ],
                 ],
                 sendEmail: true
@@ -303,7 +303,7 @@ class OlympiadRequestController extends Controller
         }
 
         return response()->json([
-            'message' => 'РЎС‚Р°С‚СѓСЃ СѓС‡Р°СЃС‚РёСЏ РѕР±РЅРѕРІР»С‘РЅ.',
+            'message' => 'Статус участия обновлён.',
             'request' => new OlympiadRequestResource($olympiadRequest),
         ]);
     }
@@ -313,7 +313,7 @@ class OlympiadRequestController extends Controller
         $user = $request->user();
 
         if (!$user || !$user->hasAdminCapability('payments')) {
-            return response()->json(['message' => 'РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ.'], 403);
+            return response()->json(['message' => 'Недостаточно прав.'], 403);
         }
 
         $request->validate([
@@ -369,7 +369,7 @@ class OlympiadRequestController extends Controller
         }
 
         return response()->json([
-            'message' => 'РЎС‚Р°С‚СѓСЃ РѕРїР»Р°С‚С‹ РѕР±РЅРѕРІР»С‘РЅ.',
+            'message' => 'Статус оплаты обновлён.',
             'request' => new OlympiadRequestResource($olympiadRequest),
             'payment' => $this->mapPayment($payment),
             'payment_status' => $olympiadRequest->payment_status,
@@ -383,7 +383,7 @@ class OlympiadRequestController extends Controller
         $olympiadRequest->delete();
 
         return response()->json([
-            'message' => 'Р—Р°РїРёСЃСЊ СѓС‡Р°СЃС‚РёСЏ СѓРґР°Р»РµРЅР°.',
+            'message' => 'Запись участия удалена.',
         ]);
     }
 
@@ -440,10 +440,10 @@ class OlympiadRequestController extends Controller
 
     protected function buildPaymentComment(OlympiadRequest $request): string
     {
-        $subject = $request->subject?->name ?? 'РћР»РёРјРїРёР°РґР°';
+        $subject = $request->subject?->name ?? 'Олимпиада';
         $child = $request->childProfile?->full_name ?? trim($request->first_name . ' ' . $request->last_name);
 
-        return trim("Р—Р°СЏРІРєР° {$request->public_id} В· {$subject} В· {$child}");
+        return trim("Заявка {$request->public_id} · {$subject} · {$child}");
     }
 
     protected function latestRequestIdsQuery()
