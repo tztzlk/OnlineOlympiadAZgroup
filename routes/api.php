@@ -15,7 +15,9 @@ use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SupportController;
 use App\Http\Controllers\Api\TrainingController;
 use App\Http\Controllers\Api\AiController;
+use App\Http\Controllers\Api\KaspiCallbackController;
 use App\Http\Controllers\Api\WebhookController;
+use App\Http\Middleware\VerifyKaspiIp;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -27,6 +29,12 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::post('/auth/admin/login', [AuthController::class, 'adminLogin'])->middleware('throttle:login');
+
+// Kaspi Pay callbacks — GET-based, no auth, IP-restricted + 60 req/min per IP
+Route::middleware([VerifyKaspiIp::class, 'throttle:60,1'])->prefix('kaspi')->group(function () {
+    Route::get('/check', [KaspiCallbackController::class, 'check']);
+    Route::get('/pay', [KaspiCallbackController::class, 'pay']);
+});
 
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/leaderboard', [LeaderboardController::class, 'index']);

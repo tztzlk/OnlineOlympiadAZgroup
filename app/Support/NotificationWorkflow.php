@@ -93,7 +93,7 @@ class NotificationWorkflow
         array $payload
     ): void {
         try {
-            Mail::to($email)->send(new ProductStatusMail(
+            Mail::to($email)->queue(new ProductStatusMail(
                 recipientName: $recipientName,
                 title: $title,
                 body: $body,

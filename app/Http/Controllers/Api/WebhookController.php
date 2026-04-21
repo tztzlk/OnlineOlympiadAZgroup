@@ -9,6 +9,7 @@ use App\Models\ProcessedWebhook;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
 {
@@ -29,48 +30,58 @@ class WebhookController extends Controller
 
     protected function handleWebhook(Request $request, string $provider): JsonResponse
     {
-        $payload = $request->json()->all();
-        $normalized = $this->normalizeWebhook($provider, $payload);
+        try {
+            $payload = $request->json()->all();
+            $normalized = $this->normalizeWebhook($provider, $payload);
 
-        $processed = DB::transaction(function () use ($normalized, $payload) {
-            $webhook = ProcessedWebhook::query()->firstOrCreate(
-                [
-                    'provider' => $normalized['provider'],
-                    'event_id' => $normalized['event_id'],
-                ],
-                [
-                    'event_type' => $normalized['event_type'],
-                    'payload_hash' => hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''),
-                    'status' => 'received',
-                    'received_at' => now(),
-                ]
-            );
+            $processed = DB::transaction(function () use ($normalized, $payload) {
+                $webhook = ProcessedWebhook::query()->firstOrCreate(
+                    [
+                        'provider' => $normalized['provider'],
+                        'event_id' => $normalized['event_id'],
+                    ],
+                    [
+                        'event_type' => $normalized['event_type'],
+                        'payload_hash' => hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''),
+                        'status' => 'received',
+                        'received_at' => now(),
+                    ]
+                );
 
-            if ($webhook->processed_at) {
-                return [$webhook, true, false];
-            }
+                if ($webhook->processed_at) {
+                    return [$webhook, true, false];
+                }
 
-            [$requestRecord, $paymentRecord] = $this->applyPaymentUpdate($normalized);
+                [$requestRecord, $paymentRecord] = $this->applyPaymentUpdate($normalized);
 
-            $webhook->forceFill([
-                'status' => $normalized['payment_status'] ? 'processed' : 'ignored',
-                'olympiad_request_id' => $requestRecord?->id,
-                'payment_record_id' => $paymentRecord?->id,
-                'processed_at' => now(),
-            ])->save();
+                $webhook->forceFill([
+                    'status' => $normalized['payment_status'] ? 'processed' : 'ignored',
+                    'olympiad_request_id' => $requestRecord?->id,
+                    'payment_record_id' => $paymentRecord?->id,
+                    'processed_at' => now(),
+                ])->save();
 
-            return [$webhook, false, (bool) $requestRecord || (bool) $paymentRecord];
-        });
+                return [$webhook, false, (bool) $requestRecord || (bool) $paymentRecord];
+            });
 
-        [$webhook, $duplicate, $applied] = $processed;
+            [$webhook, $duplicate, $applied] = $processed;
 
-        return response()->json([
-            'received' => true,
-            'provider' => $provider,
-            'duplicate' => $duplicate,
-            'applied' => $applied,
-            'event_id' => $webhook->event_id,
-        ]);
+            return response()->json([
+                'received' => true,
+                'provider' => $provider,
+                'duplicate' => $duplicate,
+                'applied' => $applied,
+                'event_id' => $webhook->event_id,
+            ]);
+        } catch (\Throwable $e) {
+            Log::channel('security')->error('webhook.processing_error', [
+                'provider' => $provider,
+                'error' => $e->getMessage(),
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['message' => 'Ошибка обработки webhook'], 500);
+        }
     }
 
     protected function applyPaymentUpdate(array $normalized): array
@@ -89,10 +100,19 @@ class WebhookController extends Controller
         $paidAt = $normalized['payment_status'] === 'paid' ? now() : null;
 
         if ($requestRecord) {
-            $requestRecord->forceFill([
-                'payment_status' => $normalized['payment_status'],
-                'paid_at' => $paidAt,
-            ])->save();
+            if (!$requestRecord->canTransitionPaymentTo($normalized['payment_status'])) {
+                Log::channel('security')->warning('webhook.blocked_payment_downgrade', [
+                    'request_id'   => $requestRecord->public_id,
+                    'current'      => $requestRecord->payment_status,
+                    'attempted'    => $normalized['payment_status'],
+                    'provider'     => $normalized['provider'] ?? 'unknown',
+                ]);
+            } else {
+                $requestRecord->forceFill([
+                    'payment_status' => $normalized['payment_status'],
+                    'paid_at' => $paidAt,
+                ])->save();
+            }
         }
 
         if ($paymentRecord) {

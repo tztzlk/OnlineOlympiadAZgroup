@@ -68,4 +68,44 @@ class OlympiadRequest extends Model
     {
         return $this->hasOne(PaymentRecord::class);
     }
+
+    public function isPaymentConfirmed(): bool
+    {
+        return $this->payment_status === 'paid'
+            && $this->paymentRecord?->reconciliation_status === 'matched';
+    }
+
+    // ── Status transition guards ──────────────────────────────────────────────
+
+    // Allowed request status transitions
+    protected const STATUS_TRANSITIONS = [
+        'pending'  => ['approved', 'rejected'],
+        'approved' => ['rejected'],
+        'rejected' => ['approved'],
+    ];
+
+    // Allowed payment status transitions (paid is a terminal state for users)
+    protected const PAYMENT_TRANSITIONS = [
+        'pending' => ['paid', 'failed'],
+        'failed'  => ['paid', 'pending'],
+        'paid'    => [],                   // paid is terminal — no downgrades
+    ];
+
+    public function canTransitionTo(string $newStatus): bool
+    {
+        $allowed = self::STATUS_TRANSITIONS[$this->status] ?? [];
+        return in_array($newStatus, $allowed, true);
+    }
+
+    public function canTransitionPaymentTo(string $newStatus): bool
+    {
+        $allowed = self::PAYMENT_TRANSITIONS[$this->payment_status] ?? [];
+        return in_array($newStatus, $allowed, true);
+    }
+
+    // Allowed violation reasons — client cannot invent arbitrary strings
+    public static function allowedViolationReasons(): array
+    {
+        return ['window_focus_lost', 'tab_switch', 'copy_paste', 'devtools_open', 'idle_timeout'];
+    }
 }

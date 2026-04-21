@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Concerns\ResolvesChildId;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OlympiadRequestResource;
 use App\Models\ChildProfile;
@@ -17,6 +18,7 @@ use Illuminate\Http\Request;
 
 class OlympiadRequestController extends Controller
 {
+    use ResolvesChildId;
     public function store(Request $request)
     {
         $user = $request->user();
@@ -41,7 +43,9 @@ class OlympiadRequestController extends Controller
         $child = $this->resolveChildProfile($request, $user->id, $data);
         $subjectId = $this->resolveSubjectId($data['subject_id']);
         $price = $this->resolveQuizPrice($subjectId);
-        $birthDate = $data['birth_date'] ?? optional($child->birth_date)->toDateString() ?? now()->toDateString();
+        $birthDate = $data['birth_date'] ?? optional($child->birth_date)->toDateString();
+
+        abort_if($birthDate === null, 422, 'Требуется дата рождения участника.');
 
         $payload = [
             'user_id' => $user->id,
@@ -65,9 +69,15 @@ class OlympiadRequestController extends Controller
             ->first();
 
         if ($existing) {
+            if ($existing->status === 'rejected') {
+                return response()->json([
+                    'message' => 'Заявка была отклонена администратором. Свяжитесь с поддержкой для повторной подачи.',
+                ], 403);
+            }
+
             $existing->update([
                 ...$payload,
-                'status' => 'approved',
+                'status' => $existing->status,
                 'payment_status' => $existing->payment_status === 'paid' ? 'paid' : 'pending',
                 'paid_at' => $existing->payment_status === 'paid' ? $existing->paid_at : null,
             ]);
@@ -128,7 +138,7 @@ class OlympiadRequestController extends Controller
             'payment_reference' => $requestModel->public_id,
             'payment_comment' => $this->buildPaymentComment($requestModel),
             'redirect_to_quiz' => $requestModel->payment_status === 'paid',
-            'payment_url' => config('services.kaspi.payment_url'),
+            'payment_url' => $this->buildKaspiPaymentUrl($requestModel),
         ]);
     }
 
@@ -160,7 +170,7 @@ class OlympiadRequestController extends Controller
             'subject_id' => $requestModel?->subject?->public_id,
             'payment_reference' => $requestModel?->public_id,
             'payment_comment' => $requestModel ? $this->buildPaymentComment($requestModel) : null,
-            'payment_url' => config('services.kaspi.payment_url'),
+            'payment_url' => $requestModel ? $this->buildKaspiPaymentUrl($requestModel) : null,
             'child_profile_id' => $requestModel?->childProfile?->public_id,
             'paid_at' => optional($requestModel?->paid_at)->toISOString(),
         ]);
@@ -238,7 +248,7 @@ class OlympiadRequestController extends Controller
             'created_at' => optional($olympiadRequest->created_at)->toISOString(),
             'payment_reference' => $olympiadRequest->public_id,
             'payment_comment' => $this->buildPaymentComment($olympiadRequest),
-            'payment_url' => config('services.kaspi.payment_url'),
+            'payment_url' => $this->buildKaspiPaymentUrl($olympiadRequest),
         ]);
     }
 
@@ -274,9 +284,15 @@ class OlympiadRequestController extends Controller
             'status' => 'required|in:pending,approved,rejected',
         ]);
 
-        $olympiadRequest->update([
-            'status' => $request->string('status')->value(),
-        ]);
+        $newStatus = $request->string('status')->value();
+
+        if (!$olympiadRequest->canTransitionTo($newStatus)) {
+            return response()->json([
+                'message' => "Смена статуса с «{$olympiadRequest->status}» на «{$newStatus}» недопустима.",
+            ], 422);
+        }
+
+        $olympiadRequest->update(['status' => $newStatus]);
         $olympiadRequest->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
         if ($olympiadRequest->user) {
@@ -324,8 +340,15 @@ class OlympiadRequestController extends Controller
         ]);
 
         $status = $request->string('payment_status')->value();
-        $paidAt = $status === 'paid' ? now() : null;
         $previousStatus = $olympiadRequest->payment_status;
+
+        if (!$olympiadRequest->canTransitionPaymentTo($status)) {
+            return response()->json([
+                'message' => "Смена статуса оплаты с «{$previousStatus}» на «{$status}» недопустима. Оплаченный статус нельзя отменить.",
+            ], 422);
+        }
+
+        $paidAt = $status === 'paid' ? ($olympiadRequest->paid_at ?? now()) : null;
 
         $olympiadRequest->update([
             'payment_status' => $status,
@@ -378,8 +401,14 @@ class OlympiadRequestController extends Controller
         ]);
     }
 
-    public function destroy(OlympiadRequest $olympiadRequest)
+    public function destroy(Request $request, OlympiadRequest $olympiadRequest)
     {
+        $user = $request->user();
+
+        if (!$user || !$user->hasAdminCapability('requests')) {
+            return response()->json(['message' => 'Недостаточно прав.'], 403);
+        }
+
         $olympiadRequest->delete();
 
         return response()->json([
@@ -438,6 +467,11 @@ class OlympiadRequestController extends Controller
         ];
     }
 
+    protected function buildKaspiPaymentUrl(OlympiadRequest $request): string
+    {
+        return config('services.kaspi.payment_url') . '&account=' . $request->public_id;
+    }
+
     protected function buildPaymentComment(OlympiadRequest $request): string
     {
         $subject = $request->subject?->name ?? 'Олимпиада';
@@ -451,18 +485,6 @@ class OlympiadRequestController extends Controller
         return OlympiadRequest::query()
             ->selectRaw('MAX(id)')
             ->groupBy('user_id', 'child_profile_id', 'subject_id');
-    }
-
-    protected function resolveChildId(int $userId, mixed $childPublicId): ?int
-    {
-        if (!$childPublicId) {
-            return null;
-        }
-
-        return ChildProfile::query()
-            ->where('parent_id', $userId)
-            ->where('public_id', (string) $childPublicId)
-            ->value('id');
     }
 
     protected function resolveSubjectId(string $subjectKey): int

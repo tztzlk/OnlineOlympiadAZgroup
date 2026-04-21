@@ -29,8 +29,8 @@ class ChildProfileController extends Controller
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'birth_date' => 'nullable|date',
-            'grade' => 'nullable|integer|in:3,4,5,6,7,8,9,10,11',
+            'birth_date' => 'required|date|before:today',
+            'grade' => 'required|integer|in:3,4,5,6,7,8,9,10,11',
             'school' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
             'language_preference' => 'nullable|string|max:10',

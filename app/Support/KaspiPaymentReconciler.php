@@ -240,6 +240,12 @@ class KaspiPaymentReconciler
             }
 
             $previousStatus = $request->payment_status;
+
+            // Never downgrade an already-confirmed payment
+            if (!$request->canTransitionPaymentTo('paid')) {
+                return;
+            }
+
             $paidAt = $row->paid_at ?? now();
 
             $row->forceFill([
