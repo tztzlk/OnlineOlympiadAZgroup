@@ -2,36 +2,34 @@
   <div class="register-page">
     <div class="register-shell">
       <aside class="register-side">
-        <div class="hero-card">
-          <p class="eyebrow">Parent Account</p>
-          <h1>Регистрация за пару минут</h1>
-          <p class="hero-copy">
-            Создайте аккаунт, добавьте ребёнка и переходите к участию без лишних шагов.
+        <div class="side-copy">
+          <p class="eyebrow">Регистрация</p>
+          <h1>Личный кабинет для родителя</h1>
+          <p class="lead">
+            Создайте аккаунт, добавьте ребёнка и переходите к олимпиаде без лишних шагов.
           </p>
+        </div>
 
-          <div class="journey-steps" aria-label="Как проходит регистрация">
-            <article
-              v-for="(step, index) in journeySteps"
-              :key="step.title"
-              class="journey-step"
-              :class="{ 'is-active': index === 0 }"
-            >
-              <div class="journey-step__icon" aria-hidden="true">{{ step.icon }}</div>
-              <div class="journey-step__body">
-                <span class="journey-step__meta">Шаг {{ index + 1 }}</span>
-                <strong>{{ step.title }}</strong>
-                <p>{{ step.text }}</p>
-              </div>
-            </article>
-          </div>
+        <div class="journey-steps" aria-label="Шаги регистрации">
+          <article
+            v-for="(step, index) in journeySteps"
+            :key="step.title"
+            class="journey-step"
+            :class="{ 'is-active': index === currentStep - 1 }"
+          >
+            <div class="journey-step__icon">{{ step.icon }}</div>
+            <div class="journey-step__body">
+              <span class="journey-step__meta">Шаг {{ index + 1 }}</span>
+              <strong>{{ step.title }}</strong>
+              <p>{{ step.text }}</p>
+            </div>
+          </article>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-card__head">
-            <strong>После входа вы сразу сможете</strong>
-          </div>
+          <strong>После регистрации вы сможете</strong>
           <ul class="benefit-list">
-            <li>Сохранить профиль ребёнка</li>
+            <li>Добавить профиль ребёнка</li>
             <li>Выбрать предмет и оплатить участие</li>
             <li>Отслеживать статус, результаты и сертификаты</li>
           </ul>
@@ -76,7 +74,7 @@
           <span class="message__icon" aria-hidden="true">✓</span>
           <div>
             <strong>Аккаунт создан</strong>
-            <p>Перенаправляем в личный кабинет…</p>
+            <p>Перенаправляем в личный кабинет...</p>
           </div>
         </div>
 
@@ -97,7 +95,9 @@
                   autocomplete="email"
                   required
                 />
-                <small class="field-message">{{ emailTouched && emailError ? emailError : 'На этот email придут уведомления и восстановление доступа.' }}</small>
+                <small class="field-message">
+                  {{ emailTouched && emailError ? emailError : 'На этот email придут уведомления и восстановление доступа.' }}
+                </small>
               </label>
 
               <label class="field" :class="fieldState(passwordTouched, passwordError)">
@@ -114,7 +114,9 @@
                     {{ showPassword ? 'Скрыть' : 'Показать' }}
                   </button>
                 </div>
-                <small class="field-message">{{ passwordTouched && passwordError ? passwordError : 'Используйте уникальный пароль для безопасного входа.' }}</small>
+                <small class="field-message">
+                  {{ passwordTouched && passwordError ? passwordError : 'Используйте уникальный пароль для безопасного входа.' }}
+                </small>
               </label>
 
               <label class="field" :class="fieldState(confirmPasswordTouched, confirmPasswordError)">
@@ -131,7 +133,9 @@
                     {{ showConfirm ? 'Скрыть' : 'Показать' }}
                   </button>
                 </div>
-                <small class="field-message">{{ confirmPasswordTouched && confirmPasswordError ? confirmPasswordError : 'Пароли должны совпадать.' }}</small>
+                <small class="field-message">
+                  {{ confirmPasswordTouched && confirmPasswordError ? confirmPasswordError : 'Пароли должны совпадать.' }}
+                </small>
               </label>
             </div>
 
@@ -159,7 +163,9 @@
               <label class="field field-wide" :class="fieldState(nameTouched, nameError)">
                 <span>Имя и фамилия</span>
                 <input v-model="name" type="text" placeholder="Алия Ержанова" autocomplete="name" required />
-                <small class="field-message">{{ nameTouched && nameError ? nameError : 'Укажите взрослого, который оформляет участие.' }}</small>
+                <small class="field-message">
+                  {{ nameTouched && nameError ? nameError : 'Укажите взрослого, который оформляет участие.' }}
+                </small>
               </label>
 
               <label class="field" :class="fieldState(phoneTouched, phoneError)">
@@ -173,19 +179,25 @@
                   @input="formatPhone"
                   required
                 />
-                <small class="field-message">{{ phoneTouched && phoneError ? phoneError : 'Номер нужен для быстрых уведомлений и уточнений.' }}</small>
+                <small class="field-message">
+                  {{ phoneTouched && phoneError ? phoneError : 'Номер нужен для быстрых уведомлений и уточнений.' }}
+                </small>
               </label>
 
               <label class="field" :class="fieldState(cityTouched, cityError)">
                 <span>Город</span>
                 <input v-model="city" type="text" placeholder="Астана" autocomplete="address-level2" required />
-                <small class="field-message">{{ cityTouched && cityError ? cityError : 'Город будет использоваться в профиле и сертификатах.' }}</small>
+                <small class="field-message">
+                  {{ cityTouched && cityError ? cityError : 'Город будет использоваться в профиле и сертификатах.' }}
+                </small>
               </label>
 
               <label class="field field-wide" :class="fieldState(schoolTouched, schoolError)">
                 <span>Школа</span>
                 <input v-model="school" type="text" placeholder="Лицей №12" autocomplete="organization" required />
-                <small class="field-message">{{ schoolTouched && schoolError ? schoolError : 'Название школы поможет заполнить профиль ребёнка быстрее.' }}</small>
+                <small class="field-message">
+                  {{ schoolTouched && schoolError ? schoolError : 'Название школы поможет заполнить профиль ребёнка быстрее.' }}
+                </small>
               </label>
             </div>
 
@@ -207,17 +219,12 @@
             <button v-if="currentStep === 2" type="button" class="secondary-btn" @click="goBack">
               Назад
             </button>
-            <button
-              v-if="currentStep === 1"
-              type="button"
-              class="submit-btn"
-              @click="goToStepTwo"
-            >
+            <button v-if="currentStep === 1" type="button" class="submit-btn" @click="goToStepTwo">
               Продолжить
             </button>
             <button v-else type="submit" class="submit-btn" :disabled="loading || success">
               <span v-if="loading" class="button-loader" aria-hidden="true"></span>
-              {{ loading ? 'Создаём аккаунт…' : 'Продолжить' }}
+              {{ loading ? 'Создаём аккаунт...' : 'Продолжить' }}
             </button>
           </div>
         </form>
@@ -264,7 +271,7 @@ const rulesTouched = ref(false)
 const rulesAccepted = ref(false)
 
 const journeySteps = [
-  { icon: '01', title: 'Регистрация', text: 'Укажите email и придумайте пароль для входа.' },
+  { icon: '01', title: 'Регистрация', text: 'Укажите email и пароль для входа в кабинет.' },
   { icon: '02', title: 'Добавление ребёнка', text: 'После входа заполните профиль участника за минуту.' },
   { icon: '03', title: 'Участие', text: 'Выберите олимпиаду, оплатите и следите за статусом.' },
 ]
@@ -314,10 +321,7 @@ const passwordChecklist = computed(() => [
   { label: 'Хотя бы один спецсимвол', met: passwordChecks.value.symbol },
 ])
 
-const strengthScore = computed(() => (
-  Object.values(passwordChecks.value).filter(Boolean).length
-))
-
+const strengthScore = computed(() => Object.values(passwordChecks.value).filter(Boolean).length)
 const strengthClass = computed(() => ['is-empty', 'is-weak', 'is-fair', 'is-good', 'is-strong'][strengthScore.value])
 const strengthLabel = computed(() => ['Заполните пароль', 'Слабый', 'Базовый', 'Хороший', 'Надёжный'][strengthScore.value])
 
@@ -492,38 +496,40 @@ watch(rulesAccepted, () => {
   min-height: 100vh;
   padding: 32px 20px;
   background:
-    radial-gradient(circle at top left, rgba(26, 95, 168, 0.08), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(201, 168, 76, 0.16), transparent 30%),
-    linear-gradient(180deg, #f8f6f1 0%, #f2ede4 100%);
+    radial-gradient(circle at top left, rgba(201, 168, 76, 0.14), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(79, 167, 116, 0.08), transparent 24%),
+    var(--bg);
 }
 
 .register-shell {
   width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
 .register-side,
 .register-card {
-  border: 1px solid rgba(30, 41, 59, 0.08);
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .register-side {
-  padding: 28px;
+  padding: 32px;
   display: grid;
-  gap: 18px;
+  gap: 20px;
+  background:
+    linear-gradient(160deg, rgba(255, 249, 238, 0.96), rgba(240, 232, 214, 0.84)),
+    var(--surface);
 }
 
-.hero-card {
+.side-copy {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .eyebrow {
@@ -532,22 +538,24 @@ watch(rulesAccepted, () => {
   letter-spacing: 0.14em;
   font-size: 12px;
   font-weight: 800;
-  color: var(--info);
+  color: var(--accent-strong);
 }
 
-.hero-copy,
+.lead,
 .register-copy,
-.form-section__head p,
+.field-message,
+.form-footer,
 .journey-step__body p,
 .benefit-list,
-.field-message,
-.form-footer {
-  color: #5f6b7a;
+.step-summary__label,
+.summary-copy,
+.form-section__head p {
+  color: var(--text-secondary);
 }
 
 .journey-steps {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .journey-step {
@@ -555,14 +563,14 @@ watch(rulesAccepted, () => {
   grid-template-columns: 52px 1fr;
   gap: 14px;
   padding: 16px;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(141, 111, 49, 0.14);
+  background: rgba(255, 252, 244, 0.78);
 }
 
 .journey-step.is-active {
-  border-color: rgba(26, 95, 168, 0.24);
-  box-shadow: 0 16px 40px rgba(26, 95, 168, 0.08);
+  border-color: rgba(201, 171, 99, 0.26);
+  box-shadow: 0 16px 38px rgba(141, 107, 25, 0.08);
 }
 
 .journey-step__icon {
@@ -571,8 +579,8 @@ watch(rulesAccepted, () => {
   display: grid;
   place-items: center;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(26, 95, 168, 0.12), rgba(26, 95, 168, 0.04));
-  color: var(--info);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   font-size: 14px;
   font-weight: 800;
 }
@@ -585,18 +593,20 @@ watch(rulesAccepted, () => {
 .journey-step__meta {
   font-size: 12px;
   font-weight: 700;
-  color: #7c8796;
+  color: var(--text-secondary);
 }
 
 .benefit-card {
-  padding: 18px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(243, 247, 252, 0.9), rgba(255, 255, 255, 0.95));
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  padding: 18px 20px;
+  border-radius: var(--radius-md);
+  background: rgba(79, 167, 116, 0.08);
+  border: 1px solid rgba(79, 167, 116, 0.16);
+  display: grid;
+  gap: 10px;
 }
 
 .benefit-list {
-  margin: 12px 0 0;
+  margin: 0;
   padding-left: 18px;
   display: grid;
   gap: 8px;
@@ -605,36 +615,31 @@ watch(rulesAccepted, () => {
 .register-card {
   padding: 32px;
   display: grid;
-  gap: 24px;
+  gap: 22px;
 }
 
 .register-header {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
   align-items: start;
+  gap: 16px;
 }
 
 .step-summary {
-  min-width: 110px;
+  min-width: 120px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 252, 244, 0.82);
+  border: 1px solid rgba(201, 171, 99, 0.18);
   display: grid;
   gap: 4px;
 }
 
-.step-summary__label {
-  font-size: 12px;
-  color: #7c8796;
-}
-
 .progress-card {
   padding: 18px 20px;
-  border-radius: 22px;
-  background: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: var(--radius-md);
+  background: rgba(255, 252, 244, 0.82);
+  border: 1px solid rgba(201, 171, 99, 0.18);
   display: grid;
   gap: 14px;
 }
@@ -649,14 +654,14 @@ watch(rulesAccepted, () => {
   width: 100%;
   height: 10px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.18);
+  background: rgba(100, 83, 41, 0.12);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #0f6cbd 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
   transition: width 0.25s ease;
 }
 
@@ -670,7 +675,7 @@ watch(rulesAccepted, () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #7c8796;
+  color: var(--text-secondary);
 }
 
 .progress-step span {
@@ -679,20 +684,20 @@ watch(rulesAccepted, () => {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.16);
+  background: rgba(141, 111, 49, 0.12);
   font-size: 13px;
   font-weight: 700;
 }
 
 .progress-step.is-current,
 .progress-step.is-done {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .progress-step.is-current span,
 .progress-step.is-done span {
-  background: #dbeafe;
-  color: #0f6cbd;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .register-form,
@@ -716,9 +721,9 @@ watch(rulesAccepted, () => {
   display: grid;
   gap: 8px;
   padding: 16px;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 245, 0.95);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -727,8 +732,8 @@ watch(rulesAccepted, () => {
 }
 
 .field.is-active {
-  border-color: rgba(15, 108, 189, 0.26);
-  box-shadow: 0 14px 36px rgba(15, 108, 189, 0.08);
+  border-color: rgba(201, 171, 99, 0.3);
+  box-shadow: 0 14px 36px rgba(201, 171, 99, 0.1);
 }
 
 .field.is-error {
@@ -743,11 +748,11 @@ watch(rulesAccepted, () => {
 .field input {
   width: 100%;
   min-height: 52px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid var(--surface-border);
   border-radius: 16px;
-  background: #f8fafc;
+  background: rgba(255, 252, 245, 0.95);
   padding: 0 16px;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .field-message {
@@ -774,7 +779,7 @@ watch(rulesAccepted, () => {
   transform: translateY(-50%);
   border: 0;
   background: transparent;
-  color: #0f6cbd;
+  color: var(--accent-strong);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -782,9 +787,9 @@ watch(rulesAccepted, () => {
 
 .password-helper {
   padding: 18px 20px;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: #f8fafc;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(201, 171, 99, 0.18);
+  background: rgba(255, 252, 244, 0.82);
   display: grid;
   gap: 14px;
 }
@@ -801,8 +806,8 @@ watch(rulesAccepted, () => {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  background: #e5e7eb;
-  color: #475569;
+  background: rgba(100, 83, 41, 0.12);
+  color: var(--text-secondary);
 }
 
 .strength-badge.is-weak {
@@ -816,8 +821,8 @@ watch(rulesAccepted, () => {
 }
 
 .strength-badge.is-good {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: rgba(201, 171, 99, 0.16);
+  color: var(--accent-strong);
 }
 
 .strength-badge.is-strong {
@@ -837,7 +842,7 @@ watch(rulesAccepted, () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -856,9 +861,9 @@ watch(rulesAccepted, () => {
   align-items: flex-start;
   padding: 16px 18px;
   border-radius: 20px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: #ffffff;
-  color: #475569;
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 245, 0.95);
+  color: var(--text-secondary);
 }
 
 .agreement-box.is-error {
@@ -869,7 +874,7 @@ watch(rulesAccepted, () => {
   margin-top: 3px;
   width: 16px;
   height: 16px;
-  accent-color: #0f6cbd;
+  accent-color: var(--success-soft);
 }
 
 .message {
@@ -928,9 +933,9 @@ watch(rulesAccepted, () => {
 .submit-btn {
   min-width: 180px;
   border: 0;
-  background: linear-gradient(135deg, #0f6cbd 0%, #2563eb 100%);
-  color: #ffffff;
-  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.24);
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
+  color: var(--text);
+  box-shadow: 0 18px 40px rgba(201, 171, 99, 0.24);
 }
 
 .submit-btn:hover:not(:disabled),
@@ -945,9 +950,9 @@ watch(rulesAccepted, () => {
 }
 
 .secondary-btn {
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 252, 245, 0.95);
+  color: var(--accent-strong);
 }
 
 .button-loader {
@@ -955,15 +960,15 @@ watch(rulesAccepted, () => {
   height: 16px;
   display: inline-block;
   margin-right: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.38);
-  border-top-color: #ffffff;
+  border: 2px solid rgba(44, 44, 42, 0.2);
+  border-top-color: var(--text);
   border-radius: 999px;
   animation: spin 0.8s linear infinite;
   vertical-align: -3px;
 }
 
 .form-footer a {
-  color: #0f6cbd;
+  color: var(--accent-strong);
   font-weight: 700;
   text-decoration: none;
 }
@@ -986,7 +991,6 @@ watch(rulesAccepted, () => {
   .register-side,
   .register-card {
     padding: 22px 18px;
-    border-radius: 24px;
   }
 
   .register-header,

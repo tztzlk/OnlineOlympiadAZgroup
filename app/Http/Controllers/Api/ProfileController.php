@@ -21,7 +21,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ.'], 401);
+            return response()->json(['message' => 'Пользователь не авторизован.'], 401);
         }
 
         $user->load('childProfiles');
@@ -73,7 +73,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ.'], 401);
+            return response()->json(['message' => 'Пользователь не авторизован.'], 401);
         }
 
         $validated = $request->validate([
@@ -87,7 +87,7 @@ class ProfileController extends Controller
         $user->update($validated);
 
         return response()->json([
-            'message' => 'РџСЂРѕС„РёР»СЊ РѕР±РЅРѕРІР»С‘РЅ.',
+            'message' => 'Профиль обновлён.',
             'user' => $user->fresh(),
         ]);
     }
@@ -107,7 +107,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['message' => 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ.'], 401);
+            return response()->json(['message' => 'Пользователь не авторизован.'], 401);
         }
 
         $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
@@ -128,13 +128,13 @@ class ProfileController extends Controller
                 'id' => $result->public_id,
                 'child_profile_id' => $result->childProfile?->public_id,
                 'child_name' => $result->childProfile?->full_name ?? $user->name,
-                'subject' => $result->quiz?->subject?->name ?? 'РќРµРёР·РІРµСЃС‚РЅРѕ',
-                'quiz_title' => $result->quiz?->title ?? 'РћР»РёРјРїРёР°РґР°',
+                'subject' => $result->quiz?->subject?->name ?? 'Неизвестно',
+                'quiz_title' => $result->quiz?->title ?? 'Олимпиада',
                 'date' => optional($result->created_at)->format('d.m.Y H:i'),
                 'submitted_at' => optional($result->created_at)->toISOString(),
                 'school' => $result->childProfile?->school ?: $user->school,
                 'city' => $result->childProfile?->city ?: $user->city,
-                'category_label' => $result->category?->label ?? 'РћР±С‰Р°СЏ',
+                'category_label' => $result->category?->label ?? 'Общая',
                 'score' => $result->score,
                 'total' => $result->total,
                 'percent' => $percent,
@@ -156,7 +156,7 @@ class ProfileController extends Controller
 
         if (empty($result->answers)) {
             return response()->json([
-                'message' => 'Р Р°Р·Р±РѕСЂ РѕС€РёР±РѕРє РґРѕСЃС‚СѓРїРµРЅ С‚РѕР»СЊРєРѕ РґР»СЏ РЅРѕРІС‹С… РїРѕРїС‹С‚РѕРє РїРѕСЃР»Рµ РѕР±РЅРѕРІР»РµРЅРёСЏ РїР»Р°С‚С„РѕСЂРјС‹.',
+                'message' => 'Разбор ошибок доступен только для новых попыток после обновления платформы.',
             ], 422);
         }
 
@@ -204,8 +204,8 @@ class ProfileController extends Controller
         return response()->json([
             'id' => $result->public_id,
             'child_name' => $result->childProfile?->full_name ?? $user->name,
-            'subject' => $result->quiz?->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
-            'quiz_title' => $result->quiz?->title ?? 'РС‚РѕРіРѕРІС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚',
+            'subject' => $result->quiz?->subject?->name ?? 'Олимпиада',
+            'quiz_title' => $result->quiz?->title ?? 'Итоговый результат',
             'score' => $result->score,
             'total' => $result->total,
             'mistakes_count' => $items->where('status', '!=', 'correct')->count(),
@@ -285,9 +285,9 @@ class ProfileController extends Controller
         return response()->json([
             'id' => $result->public_id,
             'participant_name' => $result->childProfile?->full_name ?? $result->user?->name,
-            'subject' => $result->quiz?->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
-            'quiz_title' => $result->quiz?->title ?? 'РС‚РѕРіРѕРІС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚',
-            'category' => $result->category?->label ?? 'РћР±С‰Р°СЏ',
+            'subject' => $result->quiz?->subject?->name ?? 'Олимпиада',
+            'quiz_title' => $result->quiz?->title ?? 'Итоговый результат',
+            'category' => $result->category?->label ?? 'Общая',
             'score' => $result->score,
             'total' => $result->total,
             'percent' => $percent,
@@ -310,19 +310,19 @@ class ProfileController extends Controller
 
         return response()->json([
             'id' => $result->public_id,
-            'participant_name' => $result->childProfile?->full_name ?? $result->user?->name ?? 'РЈС‡Р°СЃС‚РЅРёРє',
-            'subject' => $result->quiz?->subject?->name ?? 'РћР»РёРјРїРёР°РґР°',
-            'quiz_title' => $result->quiz?->title ?? 'РС‚РѕРіРѕРІС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚',
-            'category' => $result->category?->label ?? 'РћР±С‰Р°СЏ',
+            'participant_name' => $result->childProfile?->full_name ?? $result->user?->name ?? 'Участник',
+            'subject' => $result->quiz?->subject?->name ?? 'Олимпиада',
+            'quiz_title' => $result->quiz?->title ?? 'Итоговый результат',
+            'category' => $result->category?->label ?? 'Общая',
             'score' => $result->score,
             'total' => $result->total,
             'percent' => $percent,
             'date' => optional($result->created_at)->format('d.m.Y'),
-            'school' => $result->childProfile?->school ?: ($result->user?->school ?: 'РЁРєРѕР»Р° РЅРµ СѓРєР°Р·Р°РЅР°'),
-            'city' => $result->childProfile?->city ?: ($result->user?->city ?: 'Р“РѕСЂРѕРґ РЅРµ СѓРєР°Р·Р°РЅ'),
+            'school' => $result->childProfile?->school ?: ($result->user?->school ?: 'Школа не указана'),
+            'city' => $result->childProfile?->city ?: ($result->user?->city ?: 'Город не указан'),
             'status' => $status,
             'status_meta' => StatusPresenter::result($status),
-            'verification_note' => 'РЎРµСЂС‚РёС„РёРєР°С‚ РЅР°Р№РґРµРЅ РІ СЃРёСЃС‚РµРјРµ Online Olympiad Рё СЃРІСЏР·Р°РЅ СЃ Р·Р°РІРµСЂС€С‘РЅРЅС‹Рј СЂРµР·СѓР»СЊС‚Р°С‚РѕРј СѓС‡Р°СЃС‚РЅРёРєР°.',
+            'verification_note' => 'Сертификат найден в системе Online Olympiad и связан с завершённым результатом участника.',
         ]);
     }
 
@@ -407,14 +407,14 @@ class ProfileController extends Controller
             'reconciliation_status' => $item->paymentRecord?->reconciliation_status ?? 'awaiting_payment',
             'payment_status_meta' => $paymentMeta,
             'payment_reference' => $item->public_id,
-            'payment_comment' => $item->paymentRecord?->comment ?? trim("Р вЂ”Р В°РЎРЏР Р†Р С”Р В° {$item->public_id}"),
+            'payment_comment' => $item->paymentRecord?->comment ?? trim("Заявка {$item->public_id}"),
             'completed' => $completed,
             'disqualified' => (bool) $item->disqualified_at,
             'disqualified_at' => optional($item->disqualified_at)->toISOString(),
             'disqualification_reason' => $item->disqualification_reason,
             'countdown' => [
                 'target' => $countdownTarget,
-                'label' => $countdownTarget ? 'РЎС‚Р°СЂС‚ РѕР»РёРјРїРёР°РґС‹' : 'Р”Р°С‚Р° СЃС‚Р°СЂС‚Р° РїРѕСЏРІРёС‚СЃСЏ РїРѕР·Р¶Рµ',
+                'label' => $countdownTarget ? 'Старт олимпиады' : 'Дата старта появится позже',
             ],
             'next_action' => $this->resolveRequestNextAction($item->status, $item->payment_status, $completed),
             'child' => $item->childProfile ? $this->mapChild($item->childProfile) : null,

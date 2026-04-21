@@ -156,19 +156,19 @@ class QuizController extends Controller
         $requestRecord = $this->resolveRequest($user->id, $quiz->subject_id, $childId);
 
         if (!$requestRecord) {
-            return response()->json(['message' => 'Р—Р°СЏРІРєР° РЅР° СЌС‚Сѓ РѕР»РёРјРїРёР°РґСѓ РЅРµ РЅР°Р№РґРµРЅР°.'], 404);
+            return response()->json(['message' => 'Заявка на эту олимпиаду не найдена.'], 404);
         }
 
         if ($requestRecord->status !== 'approved') {
-            return response()->json(['message' => 'Р—Р°СЏРІРєР° РµС‰С‘ РЅРµ РѕРґРѕР±СЂРµРЅР°.'], 403);
+            return response()->json(['message' => 'Заявка ещё не одобрена.'], 403);
         }
 
         if ($requestRecord->payment_status !== 'paid') {
-            return response()->json(['message' => 'РћРїР»Р°С‚Р° РµС‰С‘ РЅРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅР°.'], 402);
+            return response()->json(['message' => 'Оплата ещё не подтверждена.'], 402);
         }
 
         if ($requestRecord->disqualified_at) {
-            return response()->json(['message' => 'РџРѕРїС‹С‚РєР° СѓР¶Рµ Р°РЅРЅСѓР»РёСЂРѕРІР°РЅР°.'], 403);
+            return response()->json(['message' => 'Попытка уже аннулирована.'], 403);
         }
 
         $exists = QuizResult::query()
@@ -178,7 +178,7 @@ class QuizController extends Controller
             ->exists();
 
         if ($exists) {
-            return response()->json(['message' => 'РћР»РёРјРїРёР°РґР° СѓР¶Рµ Р±С‹Р»Р° РїСЂРѕР№РґРµРЅР°.'], 403);
+            return response()->json(['message' => 'Олимпиада уже была пройдена.'], 403);
         }
 
         if (!$requestRecord->attempt_started_at) {
@@ -284,7 +284,7 @@ class QuizController extends Controller
 
         if (!$startedAt) {
             return response()->json([
-                'message' => 'РџРѕРїС‹С‚РєР° РЅРµ Р±С‹Р»Р° Р·Р°РїСѓС‰РµРЅР° РЅР° СЃРµСЂРІРµСЂРµ. РќР°С‡РЅРёС‚Рµ РѕР»РёРјРїРёР°РґСѓ Р·Р°РЅРѕРІРѕ.',
+                'message' => 'Попытка не была запущена на сервере. Начните олимпиаду заново.',
             ], 422);
         }
 
@@ -299,7 +299,7 @@ class QuizController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Р’СЂРµРјСЏ РЅР° РѕР»РёРјРїРёР°РґСѓ РёСЃС‚РµРєР»Рѕ. Р РµР·СѓР»СЊС‚Р°С‚ РЅРµ Р·Р°С‡С‚С‘РЅ.',
+                'message' => 'Время на олимпиаду истекло. Результат не зачтён.',
             ], 403);
         }
 

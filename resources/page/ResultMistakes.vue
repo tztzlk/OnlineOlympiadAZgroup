@@ -3,47 +3,47 @@
     <StatePanel
       v-if="loading"
       tone="neutral"
-      eyebrow="Р Р°Р±РѕС‚Р° РЅР°Рґ РѕС€РёР±РєР°РјРё"
-      title="Р“РѕС‚РѕРІРёРј СЂР°Р·Р±РѕСЂ"
-      description="РЎРѕР±РёСЂР°РµРј РІРѕРїСЂРѕСЃС‹, РѕС‚РІРµС‚С‹ Рё РѕР±СЉСЏСЃРЅРµРЅРёСЏ РїРѕ РєР°Р¶РґРѕРјСѓ Р·Р°РґР°РЅРёСЋ."
+      eyebrow="Работа над ошибками"
+      title="Готовим разбор"
+      description="Собираем вопросы, ответы и объяснения по каждому заданию."
     />
 
     <StatePanel
       v-else-if="errorMessage"
       tone="warning"
-      eyebrow="Р Р°Р±РѕС‚Р° РЅР°Рґ РѕС€РёР±РєР°РјРё"
-      title="Р Р°Р·Р±РѕСЂ РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРµРЅ"
+      eyebrow="Работа над ошибками"
+      title="Разбор пока недоступен"
       :description="errorMessage"
     >
       <template #actions>
-        <RouterLink class="action-btn secondary" to="/results">Рљ СЂРµР·СѓР»СЊС‚Р°С‚Р°Рј</RouterLink>
+        <RouterLink class="action-btn secondary" to="/results">К результатам</RouterLink>
       </template>
     </StatePanel>
 
     <StatePanel
       v-else-if="!payload?.items?.length"
       tone="success"
-      eyebrow="Р Р°Р±РѕС‚Р° РЅР°Рґ РѕС€РёР±РєР°РјРё"
-      title="Р Р°Р·Р±РѕСЂ РїРѕРєР° РїСѓСЃС‚"
-      description="Р’ СЌС‚РѕР№ РїРѕРїС‹С‚РєРµ РЅРµС‚ СЃРѕС…СЂР°РЅС‘РЅРЅС‹С… РІРѕРїСЂРѕСЃРѕРІ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ."
+      eyebrow="Работа над ошибками"
+      title="Разбор пока пуст"
+      description="В этой попытке нет сохранённых вопросов для отображения."
     >
       <template #actions>
-        <RouterLink class="action-btn" to="/results">РџРµСЂРµР№С‚Рё Рє СЂРµР·СѓР»СЊС‚Р°С‚Р°Рј</RouterLink>
+        <RouterLink class="action-btn" to="/results">Перейти к результатам</RouterLink>
       </template>
     </StatePanel>
 
     <template v-else>
       <header class="mistakes-header">
         <div>
-          <p class="eyebrow">Р Р°Р·Р±РѕСЂ РѕР»РёРјРїРёР°РґС‹</p>
+          <p class="eyebrow">Разбор олимпиады</p>
           <h1>{{ payload.quiz_title }}</h1>
-          <p class="description">{{ payload.subject }} В· {{ payload.child_name }}</p>
+          <p class="description">{{ payload.subject }} · {{ payload.child_name }}</p>
         </div>
 
         <div class="summary-card">
-          <span>РќСѓР¶РЅРѕ СЂР°Р·РѕР±СЂР°С‚СЊ</span>
+          <span>Нужно разобрать</span>
           <strong>{{ payload.mistakes_count }}</strong>
-          <small>РѕС€РёР±РѕРє РёР»Рё РїСЂРѕРїСѓСЃРєРѕРІ</small>
+          <small>ошибок или пропусков</small>
         </div>
       </header>
 
@@ -64,24 +64,24 @@
 
           <div class="mistake-answers">
             <div class="answer-block muted">
-              <span>Р’Р°С€ РѕС‚РІРµС‚</span>
-              <strong>{{ item.selected_answer ? `${item.selected_answer.label}. ${item.selected_answer.answer}` : 'РћС‚РІРµС‚ РЅРµ РІС‹Р±СЂР°РЅ' }}</strong>
+              <span>Ваш ответ</span>
+              <strong>{{ item.selected_answer ? `${item.selected_answer.label}. ${item.selected_answer.answer}` : 'Ответ не выбран' }}</strong>
             </div>
             <div class="answer-block correct">
-              <span>РџСЂР°РІРёР»СЊРЅС‹Р№ РѕС‚РІРµС‚</span>
-              <strong>{{ item.correct_answer ? `${item.correct_answer.label}. ${item.correct_answer.answer}` : 'РќРµ РЅР°Р№РґРµРЅ' }}</strong>
+              <span>Правильный ответ</span>
+              <strong>{{ item.correct_answer ? `${item.correct_answer.label}. ${item.correct_answer.answer}` : 'Не найден' }}</strong>
             </div>
           </div>
 
           <div v-if="item.explanation" class="explanation-block">
-            <span>Р Р°Р·Р±РѕСЂ</span>
+            <span>Разбор</span>
             <p>{{ item.explanation }}</p>
           </div>
         </article>
       </div>
 
       <div class="mistakes-actions">
-        <RouterLink class="action-btn secondary" to="/results">Рљ СЂРµР·СѓР»СЊС‚Р°С‚Р°Рј</RouterLink>
+        <RouterLink class="action-btn secondary" to="/results">К результатам</RouterLink>
       </div>
     </template>
   </div>
@@ -107,22 +107,22 @@ const loadMistakes = async () => {
     const { data } = await api.get(`/profile/results/${route.params.resultId}/mistakes`)
     payload.value = data
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РєСЂС‹С‚СЊ СЂР°Р±РѕС‚Сѓ РЅР°Рґ РѕС€РёР±РєР°РјРё.'
+    errorMessage.value = error.response?.data?.message || 'Не удалось открыть работу над ошибками.'
   } finally {
     loading.value = false
   }
 }
 
 const statusLabel = (status) => {
-  if (status === 'correct') return 'Р’РµСЂРЅС‹Р№ РѕС‚РІРµС‚'
-  if (status === 'skipped') return 'РџСЂРѕРїСѓС‰РµРЅРЅС‹Р№ РІРѕРїСЂРѕСЃ'
-  return 'РќРµРІРµСЂРЅС‹Р№ РѕС‚РІРµС‚'
+  if (status === 'correct') return 'Верный ответ'
+  if (status === 'skipped') return 'Пропущенный вопрос'
+  return 'Неверный ответ'
 }
 
 const statusBadge = (status) => {
-  if (status === 'correct') return 'Р’РµСЂРЅРѕ'
-  if (status === 'skipped') return 'РџСЂРѕРїСѓСЃРє'
-  return 'РћС€РёР±РєР°'
+  if (status === 'correct') return 'Верно'
+  if (status === 'skipped') return 'Пропуск'
+  return 'Ошибка'
 }
 
 onMounted(loadMistakes)

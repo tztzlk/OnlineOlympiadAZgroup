@@ -4,17 +4,18 @@
     <div class="hero__overlay"></div>
 
     <div class="hero__content">
-      <h1 class="hero__title">Р”РѕРєР°Р¶Рё, С‡С‚Рѕ С‚С‹ Р»СѓС‡С€РёР№</h1>
+      <p class="hero__eyebrow">Онлайн-олимпиада</p>
+      <h1 class="hero__title">Докажи, что ты лучший</h1>
 
       <p class="hero__subheadline">
-        РћРЅР»Р°Р№РЅ-РѕР»РёРјРїРёР°РґР° СЃ СЃРµСЂС‚РёС„РёРєР°С‚РѕРј
+        Безопасная онлайн-олимпиада с быстрым результатом, сертификатом и понятным маршрутом для родителя.
       </p>
 
-      <p class="hero__price">РЈС‡Р°СЃС‚РёРµ: РѕС‚ 2 990 &#8376;</p>
+      <p class="hero__price">Участие: от 2 990 &#8376;</p>
 
       <div class="hero__actions">
         <router-link to="/subject" class="btn-primary">
-          Р’С‹Р±СЂР°С‚СЊ РѕР»РёРјРїРёР°РґСѓ
+          Выбрать олимпиаду
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
@@ -27,36 +28,36 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          РџРѕР»РЅС‹Р№ РґРѕСЃС‚СѓРї Рє Р·Р°РґР°РЅРёСЏРј
+          Полный доступ к заданиям
         </div>
         <div class="feature-chip">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          РњРіРЅРѕРІРµРЅРЅС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚
+          Мгновенный результат
         </div>
         <div class="feature-chip">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          РРЅС‚РµСЂР°РєС‚РёРІРЅС‹Р№ С„РѕСЂРјР°С‚
+          Интерактивный формат
         </div>
       </div>
 
       <div class="hero__stats">
         <div class="hero-stat">
           <span class="hero-stat__num">1 200+</span>
-          <span class="hero-stat__label">СѓС‡Р°СЃС‚РЅРёРєРѕРІ</span>
+          <span class="hero-stat__label">участников</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
           <span class="hero-stat__num">98%</span>
-          <span class="hero-stat__label">СЂРµРєРѕРјРµРЅРґСѓСЋС‚</span>
+          <span class="hero-stat__label">рекомендуют</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
-          <span class="hero-stat__num">10 РјРёРЅСѓС‚</span>
-          <span class="hero-stat__label">РґРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р°</span>
+          <span class="hero-stat__num">10 минут</span>
+          <span class="hero-stat__label">до результата</span>
         </div>
       </div>
     </div>
@@ -92,13 +93,9 @@ export default { name: 'Hero' }
 .hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(22, 16, 10, 0.58) 0%,
-    rgba(28, 20, 12, 0.34) 36%,
-    rgba(22, 16, 10, 0.16) 62%,
-    rgba(18, 13, 7, 0.34) 100%
-  );
+  background:
+    linear-gradient(90deg, rgba(22, 16, 10, 0.6) 0%, rgba(28, 20, 12, 0.34) 36%, rgba(22, 16, 10, 0.16) 62%, rgba(18, 13, 7, 0.34) 100%),
+    radial-gradient(circle at center, rgba(214, 176, 77, 0.08), transparent 38%);
   z-index: 1;
 }
 
@@ -112,7 +109,19 @@ export default { name: 'Hero' }
   flex-direction: column;
   align-items: center;
   padding: 24px 0;
-  margin-left: 0;
+}
+
+.hero__eyebrow {
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 244, 219, 0.14);
+  border: 1px solid rgba(255, 231, 184, 0.18);
+  color: rgba(255, 244, 217, 0.96);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .hero__title {
@@ -130,7 +139,6 @@ export default { name: 'Hero' }
 .hero__subheadline {
   font-size: 20px;
   font-weight: 500;
-  font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
   line-height: 1.55;
   color: rgba(255, 249, 236, 0.92);
   margin: 18px 0 0;
@@ -240,7 +248,6 @@ export default { name: 'Hero' }
   }
   .hero__content {
     max-width: 100%;
-    margin-left: 0;
     padding: 28px 0;
     text-align: center;
     align-items: center;
@@ -258,12 +265,9 @@ export default { name: 'Hero' }
     background-size: auto 100%;
   }
   .hero__overlay {
-    background: linear-gradient(
-      180deg,
-      rgba(21, 15, 9, 0.5) 0%,
-      rgba(21, 15, 9, 0.56) 58%,
-      rgba(21, 15, 9, 0.7) 100%
-    );
+    background:
+      linear-gradient(180deg, rgba(21, 15, 9, 0.5) 0%, rgba(21, 15, 9, 0.56) 58%, rgba(21, 15, 9, 0.7) 100%),
+      radial-gradient(circle at center, rgba(214, 176, 77, 0.08), transparent 42%);
   }
   .hero__content { padding: 24px 0; }
   .hero__title { font-size: 30px; }

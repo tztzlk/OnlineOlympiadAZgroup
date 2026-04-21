@@ -548,7 +548,7 @@ const validateForm = () => {
       }
 
       if (question.answers.length < 2) {
-        return `Р”РѕР±Р°РІСЊС‚Рµ РјРёРЅРёРјСѓРј РґРІР° РІР°СЂРёР°РЅС‚Р° РѕС‚РІРµС‚Р° РІ РІРѕРїСЂРѕСЃ ${index + 1} РєР°С‚РµРіРѕСЂРёРё ${category.label}.`
+        return `Добавьте минимум два варианта ответа в вопрос ${index + 1} категории ${category.label}.`
       }
 
       for (const answer of question.answers) {
