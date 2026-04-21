@@ -131,6 +131,7 @@ class QuizController extends Controller
                 return [
                     'id' => $question->id,
                     'question' => $question->question,
+                    'explanation' => $question->explanation,
                     'image' => $question->image,
                     'image_source' => $question->image_source,
                     'position' => $question->position,

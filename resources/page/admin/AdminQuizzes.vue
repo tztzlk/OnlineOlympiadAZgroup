@@ -185,6 +185,15 @@
                 <textarea v-model="question.question" rows="2"></textarea>
               </label>
 
+              <label class="field full">
+                <span>Обоснование правильного ответа</span>
+                <textarea
+                  v-model="question.explanation"
+                  rows="3"
+                  placeholder="Коротко объясните, почему этот ответ верный."
+                ></textarea>
+              </label>
+
               <div class="image-tools">
                 <label class="field">
                   <span>Источник изображения</span>
@@ -304,6 +313,7 @@ const createAnswerOption = (answerIndex, answer = {}) => ({
 
 const createEmptyQuestion = (index) => ({
   question: '',
+  explanation: '',
   position: index + 1,
   correct_answer: 'A',
   image_source: '',
@@ -383,6 +393,7 @@ const mapCategoryFromResponse = (category, preset) => ({
   sort_order: category.sort_order ?? preset.sort_order,
   questions: (category.questions || []).map((question, questionIndex) => ({
     question: question.question || '',
+    explanation: question.explanation || '',
     position: question.position ?? questionIndex + 1,
     correct_answer: question.correct_answer || 'A',
     image_source: question.image_source || (question.image_url ? 'url' : question.image_path ? 'upload' : ''),
@@ -571,6 +582,7 @@ const normalizePayload = () => ({
     sort_order: category.sort_order ?? categoryIndex + 1,
     questions: category.questions.map((question, questionIndex) => ({
       question: question.question.trim(),
+      explanation: question.explanation?.trim() || '',
       position: questionIndex + 1,
       correct_answer: question.correct_answer,
       image_source: question.image_source || null,

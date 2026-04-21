@@ -60,6 +60,7 @@ it('renders page specific seo tags and fallback html on the catalog page', funct
     $response = $this->get('/subject')
         ->assertOk();
 
+    $response->assertHeader('content-type', 'text/html; charset=UTF-8');
     $response->assertSee('<html lang="ru-KZ">', false);
     $response->assertSee('<title>Каталог онлайн-олимпиад по предметам</title>', false);
     $response->assertSee('meta name="description" content="Выберите онлайн-олимпиаду по предмету, посмотрите доступные направления для школьников и перейдите к регистрации и оплате участия."', false);

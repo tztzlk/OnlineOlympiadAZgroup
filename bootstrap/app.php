@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append([
             \App\Http\Middleware\EnforceHttpsMiddleware::class,
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
+            \App\Http\Middleware\ForceUtf8HtmlResponseMiddleware::class,
             \App\Http\Middleware\StrictCorsMiddleware::class,
         ]);
 

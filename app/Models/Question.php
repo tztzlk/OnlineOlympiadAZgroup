@@ -10,6 +10,7 @@ class Question extends Model
         'quiz_id',
         'quiz_category_id',
         'question',
+        'explanation',
         'image_source',
         'image_url',
         'image_path',

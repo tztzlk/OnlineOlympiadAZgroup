@@ -183,6 +183,7 @@ class ProfileController extends Controller
                 return [
                     'question_id' => $question->id,
                     'question' => $question->question,
+                    'explanation' => $question->explanation,
                     'image' => $question->image,
                     'image_source' => $question->image_source,
                     'status' => $status,
@@ -198,7 +199,6 @@ class ProfileController extends Controller
                     ] : null,
                 ];
             })
-            ?->filter(fn (array $item) => $item['status'] !== 'correct')
             ?->values() ?? collect();
 
         return response()->json([
@@ -208,7 +208,8 @@ class ProfileController extends Controller
             'quiz_title' => $result->quiz?->title ?? 'РС‚РѕРіРѕРІС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚',
             'score' => $result->score,
             'total' => $result->total,
-            'mistakes_count' => $items->count(),
+            'mistakes_count' => $items->where('status', '!=', 'correct')->count(),
+            'questions_count' => $items->count(),
             'items' => $items,
         ]);
     }

@@ -4,17 +4,17 @@
     <div class="hero__overlay"></div>
 
     <div class="hero__content">
-      <h1 class="hero__title">Докажи, что ты лучший</h1>
+      <h1 class="hero__title">Р”РѕРєР°Р¶Рё, С‡С‚Рѕ С‚С‹ Р»СѓС‡С€РёР№</h1>
 
       <p class="hero__subheadline">
-        Безопасная онлайн-олимпиада с сертификатом
+        РћРЅР»Р°Р№РЅ-РѕР»РёРјРїРёР°РґР° СЃ СЃРµСЂС‚РёС„РёРєР°С‚РѕРј
       </p>
 
-      <p class="hero__price">Участие: от 2 990 &#8376;</p>
+      <p class="hero__price">РЈС‡Р°СЃС‚РёРµ: РѕС‚ 2 990 &#8376;</p>
 
       <div class="hero__actions">
         <router-link to="/subject" class="btn-primary">
-          Выбрать олимпиаду
+          Р’С‹Р±СЂР°С‚СЊ РѕР»РёРјРїРёР°РґСѓ
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
@@ -27,36 +27,36 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          Полный доступ к заданиям
+          РџРѕР»РЅС‹Р№ РґРѕСЃС‚СѓРї Рє Р·Р°РґР°РЅРёСЏРј
         </div>
         <div class="feature-chip">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          Мгновенный результат
+          РњРіРЅРѕРІРµРЅРЅС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚
         </div>
         <div class="feature-chip">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          Интерактивный формат
+          РРЅС‚РµСЂР°РєС‚РёРІРЅС‹Р№ С„РѕСЂРјР°С‚
         </div>
       </div>
 
       <div class="hero__stats">
         <div class="hero-stat">
           <span class="hero-stat__num">1 200+</span>
-          <span class="hero-stat__label">участников</span>
+          <span class="hero-stat__label">СѓС‡Р°СЃС‚РЅРёРєРѕРІ</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
           <span class="hero-stat__num">98%</span>
-          <span class="hero-stat__label">рекомендуют</span>
+          <span class="hero-stat__label">СЂРµРєРѕРјРµРЅРґСѓСЋС‚</span>
         </div>
         <div class="hero-stat-divider"></div>
         <div class="hero-stat">
-          <span class="hero-stat__num">10 минут</span>
-          <span class="hero-stat__label">до результата</span>
+          <span class="hero-stat__num">10 РјРёРЅСѓС‚</span>
+          <span class="hero-stat__label">РґРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р°</span>
         </div>
       </div>
     </div>
@@ -119,6 +119,7 @@ export default { name: 'Hero' }
   max-width: 980px;
   font-size: clamp(48px, 6vw, 74px);
   font-weight: 700;
+  font-family: "Segoe UI Variable Display", "Trebuchet MS", "Arial Narrow", sans-serif;
   color: #fff;
   line-height: 1.08;
   margin: 0;
@@ -129,6 +130,7 @@ export default { name: 'Hero' }
 .hero__subheadline {
   font-size: 20px;
   font-weight: 500;
+  font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
   line-height: 1.55;
   color: rgba(255, 249, 236, 0.92);
   margin: 18px 0 0;

@@ -3,47 +3,47 @@
     <StatePanel
       v-if="loading"
       tone="neutral"
-      eyebrow="Работа над ошибками"
-      title="Готовим разбор"
-      description="Собираем вопросы, где были ошибки или пропуски."
+      eyebrow="Р Р°Р±РѕС‚Р° РЅР°Рґ РѕС€РёР±РєР°РјРё"
+      title="Р“РѕС‚РѕРІРёРј СЂР°Р·Р±РѕСЂ"
+      description="РЎРѕР±РёСЂР°РµРј РІРѕРїСЂРѕСЃС‹, РѕС‚РІРµС‚С‹ Рё РѕР±СЉСЏСЃРЅРµРЅРёСЏ РїРѕ РєР°Р¶РґРѕРјСѓ Р·Р°РґР°РЅРёСЋ."
     />
 
     <StatePanel
       v-else-if="errorMessage"
       tone="warning"
-      eyebrow="Работа над ошибками"
-      title="Разбор пока недоступен"
+      eyebrow="Р Р°Р±РѕС‚Р° РЅР°Рґ РѕС€РёР±РєР°РјРё"
+      title="Р Р°Р·Р±РѕСЂ РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРµРЅ"
       :description="errorMessage"
     >
       <template #actions>
-        <RouterLink class="action-btn secondary" to="/results">К результатам</RouterLink>
+        <RouterLink class="action-btn secondary" to="/results">Рљ СЂРµР·СѓР»СЊС‚Р°С‚Р°Рј</RouterLink>
       </template>
     </StatePanel>
 
     <StatePanel
       v-else-if="!payload?.items?.length"
       tone="success"
-      eyebrow="Работа над ошибками"
-      title="Все ответы верные"
-      description="В этой попытке нет ошибок или пропусков, дополнительный разбор не требуется."
+      eyebrow="Р Р°Р±РѕС‚Р° РЅР°Рґ РѕС€РёР±РєР°РјРё"
+      title="Р Р°Р·Р±РѕСЂ РїРѕРєР° РїСѓСЃС‚"
+      description="Р’ СЌС‚РѕР№ РїРѕРїС‹С‚РєРµ РЅРµС‚ СЃРѕС…СЂР°РЅС‘РЅРЅС‹С… РІРѕРїСЂРѕСЃРѕРІ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ."
     >
       <template #actions>
-        <RouterLink class="action-btn" to="/results">Перейти к результатам</RouterLink>
+        <RouterLink class="action-btn" to="/results">РџРµСЂРµР№С‚Рё Рє СЂРµР·СѓР»СЊС‚Р°С‚Р°Рј</RouterLink>
       </template>
     </StatePanel>
 
     <template v-else>
       <header class="mistakes-header">
         <div>
-          <p class="eyebrow">Работа над ошибками</p>
+          <p class="eyebrow">Р Р°Р·Р±РѕСЂ РѕР»РёРјРїРёР°РґС‹</p>
           <h1>{{ payload.quiz_title }}</h1>
-          <p class="description">{{ payload.subject }} · {{ payload.child_name }}</p>
+          <p class="description">{{ payload.subject }} В· {{ payload.child_name }}</p>
         </div>
 
         <div class="summary-card">
-          <span>Нужно разобрать</span>
+          <span>РќСѓР¶РЅРѕ СЂР°Р·РѕР±СЂР°С‚СЊ</span>
           <strong>{{ payload.mistakes_count }}</strong>
-          <small>вопросов</small>
+          <small>РѕС€РёР±РѕРє РёР»Рё РїСЂРѕРїСѓСЃРєРѕРІ</small>
         </div>
       </header>
 
@@ -53,30 +53,35 @@
             <div class="mistake-card__title">
               <span class="mistake-index">{{ index + 1 }}</span>
               <div>
-                <p class="mistake-label">{{ item.status === 'skipped' ? 'Пропущенный вопрос' : 'Неверный ответ' }}</p>
+                <p class="mistake-label">{{ statusLabel(item.status) }}</p>
                 <h2>{{ item.question }}</h2>
               </div>
             </div>
-            <span class="mistake-status" :class="item.status">{{ item.status === 'skipped' ? 'Пропуск' : 'Ошибка' }}</span>
+            <span class="mistake-status" :class="item.status">{{ statusBadge(item.status) }}</span>
           </div>
 
           <img v-if="item.image" :src="item.image" alt="question" class="mistake-image" />
 
           <div class="mistake-answers">
             <div class="answer-block muted">
-              <span>Ваш ответ</span>
-              <strong>{{ item.selected_answer ? `${item.selected_answer.label}. ${item.selected_answer.answer}` : 'Ответ не выбран' }}</strong>
+              <span>Р’Р°С€ РѕС‚РІРµС‚</span>
+              <strong>{{ item.selected_answer ? `${item.selected_answer.label}. ${item.selected_answer.answer}` : 'РћС‚РІРµС‚ РЅРµ РІС‹Р±СЂР°РЅ' }}</strong>
             </div>
             <div class="answer-block correct">
-              <span>Правильный ответ</span>
-              <strong>{{ item.correct_answer ? `${item.correct_answer.label}. ${item.correct_answer.answer}` : 'Не найден' }}</strong>
+              <span>РџСЂР°РІРёР»СЊРЅС‹Р№ РѕС‚РІРµС‚</span>
+              <strong>{{ item.correct_answer ? `${item.correct_answer.label}. ${item.correct_answer.answer}` : 'РќРµ РЅР°Р№РґРµРЅ' }}</strong>
             </div>
+          </div>
+
+          <div v-if="item.explanation" class="explanation-block">
+            <span>Р Р°Р·Р±РѕСЂ</span>
+            <p>{{ item.explanation }}</p>
           </div>
         </article>
       </div>
 
       <div class="mistakes-actions">
-        <RouterLink class="action-btn secondary" to="/results">К результатам</RouterLink>
+        <RouterLink class="action-btn secondary" to="/results">Рљ СЂРµР·СѓР»СЊС‚Р°С‚Р°Рј</RouterLink>
       </div>
     </template>
   </div>
@@ -102,10 +107,22 @@ const loadMistakes = async () => {
     const { data } = await api.get(`/profile/results/${route.params.resultId}/mistakes`)
     payload.value = data
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || 'Не удалось открыть работу над ошибками.'
+    errorMessage.value = error.response?.data?.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РєСЂС‹С‚СЊ СЂР°Р±РѕС‚Сѓ РЅР°Рґ РѕС€РёР±РєР°РјРё.'
   } finally {
     loading.value = false
   }
+}
+
+const statusLabel = (status) => {
+  if (status === 'correct') return 'Р’РµСЂРЅС‹Р№ РѕС‚РІРµС‚'
+  if (status === 'skipped') return 'РџСЂРѕРїСѓС‰РµРЅРЅС‹Р№ РІРѕРїСЂРѕСЃ'
+  return 'РќРµРІРµСЂРЅС‹Р№ РѕС‚РІРµС‚'
+}
+
+const statusBadge = (status) => {
+  if (status === 'correct') return 'Р’РµСЂРЅРѕ'
+  if (status === 'skipped') return 'РџСЂРѕРїСѓСЃРє'
+  return 'РћС€РёР±РєР°'
 }
 
 onMounted(loadMistakes)
@@ -251,6 +268,11 @@ h2 {
   color: #8d6a14;
 }
 
+.mistake-status.correct {
+  background: rgba(44, 122, 75, 0.12);
+  color: #2f6f4b;
+}
+
 .mistake-image {
   width: 100%;
   max-height: 320px;
@@ -274,7 +296,8 @@ h2 {
   gap: 8px;
 }
 
-.answer-block span {
+.answer-block span,
+.explanation-block span {
   color: var(--text-secondary);
   font-size: 12px;
   text-transform: uppercase;
@@ -285,8 +308,22 @@ h2 {
   background: rgba(44, 122, 75, 0.08);
 }
 
-.answer-block.muted {
+.answer-block.muted,
+.explanation-block {
   background: rgba(255, 252, 244, 0.82);
+}
+
+.explanation-block {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--surface-border);
+  display: grid;
+  gap: 8px;
+}
+
+.explanation-block p {
+  margin: 0;
+  line-height: 1.65;
 }
 
 .mistakes-actions {

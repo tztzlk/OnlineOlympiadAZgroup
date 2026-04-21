@@ -134,6 +134,7 @@ class AdminQuizController extends Controller
             'categories.*.sort_order' => 'nullable|integer|min:1|max:20',
             'categories.*.questions' => 'required|array|min:1|max:100',
             'categories.*.questions.*.question' => 'required|string',
+            'categories.*.questions.*.explanation' => 'nullable|string',
             'categories.*.questions.*.image_source' => 'nullable|string|in:url,upload',
             'categories.*.questions.*.image_url' => 'nullable|string',
             'categories.*.questions.*.image_path' => 'nullable|string',
@@ -218,6 +219,7 @@ class AdminQuizController extends Controller
                 $question = $quiz->questions()->create([
                     'quiz_category_id' => $category->id,
                     'question' => $questionData['question'],
+                    'explanation' => $questionData['explanation'] ?? null,
                     'image_source' => $imageSource,
                     'image_url' => $imageSource === 'url' ? ($questionData['image_url'] ?? null) : null,
                     'image_path' => $imageSource === 'upload' ? ($questionData['image_path'] ?? null) : null,
@@ -263,6 +265,7 @@ class AdminQuizController extends Controller
                         return [
                             'id' => $question->id,
                             'question' => $question->question,
+                            'explanation' => $question->explanation,
                             'image_source' => $question->image_source,
                             'image_url' => $question->image_url,
                             'image_path' => $question->image_path,

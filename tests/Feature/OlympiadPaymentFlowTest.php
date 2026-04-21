@@ -220,6 +220,7 @@ it('allows quiz access and submission only for approved and paid requests', func
         'status' => 'approved',
         'payment_status' => 'paid',
         'paid_at' => now(),
+        'attempt_started_at' => now()->subMinutes(5),
     ]);
 
     $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
@@ -453,4 +454,94 @@ it('marks ambiguous imported rows for review without opening quiz access', funct
     Sanctum::actingAs($parentA);
     $this->getJson('/api/quiz/' . $subjectA->public_id . '?child_profile_id=' . $childA->public_id)
         ->assertStatus(402);
+});
+
+it('stores explanation text when admin creates a quiz', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Sanctum::actingAs($admin);
+
+    $response = $this->postJson('/api/admin/quizzes', [
+        'subject' => [
+            'name' => 'Физика',
+            'description' => 'Описание предмета',
+            'start_date' => '2026-04-21',
+        ],
+        'title' => 'Олимпиада по физике',
+        'description' => 'Проверка знаний',
+        'price' => 2990,
+        'time_limit' => 45,
+        'is_published' => false,
+        'categories' => [[
+            'label' => '7-8',
+            'grade_from' => 7,
+            'grade_to' => 8,
+            'sort_order' => 1,
+            'questions' => [[
+                'question' => 'Сколько будет 2 + 2?',
+                'explanation' => 'Потому что при сложении двух и двух получаем четыре.',
+                'position' => 1,
+                'correct_answer' => 'A',
+                'answers' => [
+                    ['label' => 'A', 'answer' => '4', 'position' => 1],
+                    ['label' => 'B', 'answer' => '5', 'position' => 2],
+                ],
+            ]],
+        ]],
+    ])->assertCreated();
+
+    expect(Question::query()->firstOrFail()->explanation)->toBe('Потому что при сложении двух и двух получаем четыре.');
+    expect($response->json('categories.0.questions.0.explanation'))->toBe('Потому что при сложении двух и двух получаем четыре.');
+});
+
+it('returns full review payload with correct answers and explanation text', function () {
+    $parent = User::factory()->create();
+    ['child' => $child, 'subject' => $subject, 'quiz' => $quiz, 'question' => $question, 'correctAnswer' => $correctAnswer] = createOlympiadFixture($parent);
+
+    $question->update([
+        'explanation' => 'Правильный ответ получается обычным сложением.',
+    ]);
+
+    $wrongAnswer = $question->answers()->create([
+        'label' => 'B',
+        'position' => 2,
+        'answer' => '5',
+        'is_correct' => false,
+    ]);
+
+    Sanctum::actingAs($parent);
+
+    $this->postJson('/api/olympiad/request', [
+        'subject_id' => $subject->public_id,
+        'child_profile_id' => $child->public_id,
+        'language' => 'ru',
+        'parent_name' => 'Родитель',
+        'parent_phone' => '+77000000000',
+        'parent_email' => 'parent@example.com',
+    ])->assertOk();
+
+    OlympiadRequest::query()->update([
+        'status' => 'approved',
+        'payment_status' => 'paid',
+        'paid_at' => now(),
+        'attempt_started_at' => now()->subMinutes(5),
+    ]);
+
+    $submitResponse = $this->postJson('/api/quiz/' . $quiz->public_id . '/submit', [
+        'child_profile_id' => $child->public_id,
+        'answers' => [
+            $question->id => $wrongAnswer->id,
+        ],
+    ])->assertOk();
+
+    $resultId = $submitResponse->json('id');
+
+    $this->getJson('/api/profile/results/' . $resultId . '/mistakes')
+        ->assertOk()
+        ->assertJsonPath('mistakes_count', 1)
+        ->assertJsonPath('questions_count', 1)
+        ->assertJsonPath('items.0.status', 'wrong')
+        ->assertJsonPath('items.0.correct_answer.label', 'A')
+        ->assertJsonPath('items.0.selected_answer.label', 'B')
+        ->assertJsonPath('items.0.explanation', 'Правильный ответ получается обычным сложением.');
 });

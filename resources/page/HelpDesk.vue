@@ -5,7 +5,8 @@
         <p class="eyebrow">Support</p>
         <h1>Поддержка по заявкам, оплатам и входу</h1>
         <p class="lead">
-          Напишите нам, если нужна помощь с регистрацией, подтверждением оплаты, доступом к олимпиаде или прохождением теста.
+          Напишите нам, если нужна помощь с регистрацией, оплатой, доступом к олимпиаде
+          или прохождением теста.
         </p>
 
         <div class="contact-list">
@@ -20,8 +21,8 @@
         </div>
 
         <div class="trust-box">
-          <strong>Когда писать в поддержку?</strong>
-          <p>Если вы не понимаете статус заявки, не можете войти, не проходит оплата или возникла проблема с тестом.</p>
+          <strong>Когда стоит обратиться?</strong>
+          <p>Если неясен статус заявки, не проходит оплата, не удаётся войти или открыть тест.</p>
         </div>
       </section>
 
@@ -29,7 +30,7 @@
         <div class="help-head">
           <p class="eyebrow">Обратная связь</p>
           <h2>Опишите вопрос в свободной форме</h2>
-          <p>Чем точнее вы опишете проблему, тем быстрее команда сможет помочь.</p>
+          <p>Чем точнее описание, тем быстрее команда сможет помочь.</p>
         </div>
 
         <form @submit.prevent="submit" class="help-form">
@@ -97,18 +98,21 @@ const submit = async () => {
 
   try {
     const pow = await solveProofOfWork('feedback')
-    const { data } = await api.post('/support/feedback', {
+    await api.post('/support/feedback', {
       ...form,
       ...pow,
     })
-    message.value = data.message
+
+    message.value = 'Сообщение успешно отправлено'
     form.name = ''
     form.email = ''
     form.phone = ''
     form.topic = ''
     form.message = ''
   } catch (err) {
-    error.value = err.response?.data?.message || 'Не удалось отправить обращение.'
+    error.value = err.response?.status >= 400
+      ? (err.response?.data?.message || 'Не удалось отправить обращение.')
+      : 'Не удалось отправить обращение.'
   } finally {
     loading.value = false
   }

@@ -120,11 +120,15 @@
           description="Пожалуйста, не закрывайте страницу. Можно попробовать отправить ответы ещё раз."
         />
 
-        <div class="exam-body">
-        <aside class="progress-card">
+        <section class="progress-card">
           <div class="progress-top"><span>Прогресс</span><strong>{{ progressPercent }}%</strong></div>
           <div class="progress-track"><div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div></div>
-          <div class="question-map">
+          <div class="progress-meta">
+            <span>Отвечено: {{ answeredCount }}</span>
+            <span>Пропущено: {{ skippedCount }}</span>
+            <span>Текущий: {{ currentQuestionIndex + 1 }}/{{ quiz.questions.length }}</span>
+          </div>
+          <div class="question-map question-map--horizontal">
             <button
               v-for="(question, index) in quiz.questions"
               :key="question.id"
@@ -136,47 +140,50 @@
               {{ index + 1 }}
             </button>
           </div>
-        </aside>
+        </section>
 
-        <div class="exam-main">
-        <article class="question-card">
-          <div class="question-header">
-            <span class="question-index">{{ currentQuestionIndex + 1 }}</span>
-            <div>
-              <p class="question-hint">Выберите один вариант ответа</p>
-              <h2>{{ currentQuestion.question }}</h2>
-            </div>
+        <div class="exam-body">
+          <div class="exam-main">
+            <article class="question-card">
+              <div class="question-header">
+                <span class="question-index">{{ currentQuestionIndex + 1 }}</span>
+                <div>
+                  <p class="question-hint">Выберите один вариант ответа</p>
+                  <h2>{{ currentQuestion.question }}</h2>
+                </div>
+              </div>
+
+              <div v-if="currentQuestion.image" class="question-image-shell">
+                <img :src="currentQuestion.image" alt="question" class="question-image" />
+              </div>
+
+              <div class="answer-list">
+                <label
+                  v-for="answer in currentQuestion.answers"
+                  :key="answer.id"
+                  class="answer-option"
+                  :class="{ selected: userAnswers[currentQuestion.id] === answer.id }"
+                >
+                  <input
+                    v-model="userAnswers[currentQuestion.id]"
+                    type="radio"
+                    :name="`question-${currentQuestion.id}`"
+                    :value="answer.id"
+                    @change="markVisited(currentQuestionIndex)"
+                  />
+                  <span class="answer-label">{{ answer.label }}</span>
+                  <span class="answer-text">{{ answer.answer }}</span>
+                </label>
+              </div>
+            </article>
+
+            <footer class="sticky-footer">
+              <button class="action-btn secondary" :disabled="currentQuestionIndex === 0" @click="goPrev">Назад</button>
+              <button class="action-btn secondary" @click="skipQuestion">Пропустить</button>
+              <button v-if="!isLastQuestion" class="action-btn secondary" @click="goNext">Далее</button>
+              <button v-else class="action-btn" :disabled="submitting" @click="confirmSubmitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
+            </footer>
           </div>
-
-          <img v-if="currentQuestion.image" :src="currentQuestion.image" alt="question" class="question-image" />
-
-          <div class="answer-list">
-            <label
-              v-for="answer in currentQuestion.answers"
-              :key="answer.id"
-              class="answer-option"
-              :class="{ selected: userAnswers[currentQuestion.id] === answer.id }"
-            >
-              <input
-                v-model="userAnswers[currentQuestion.id]"
-                type="radio"
-                :name="`question-${currentQuestion.id}`"
-                :value="answer.id"
-                @change="markVisited(currentQuestionIndex)"
-              />
-              <span class="answer-label">{{ answer.label }}</span>
-              <span class="answer-text">{{ answer.answer }}</span>
-            </label>
-          </div>
-        </article>
-
-        <footer class="sticky-footer">
-          <button class="action-btn secondary" :disabled="currentQuestionIndex === 0" @click="goPrev">Назад</button>
-          <button class="action-btn secondary" @click="skipQuestion">Пропустить</button>
-          <button v-if="!isLastQuestion" class="action-btn secondary" @click="goNext">Далее</button>
-          <button v-else class="action-btn" :disabled="submitting" @click="submitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
-        </footer>
-        </div>
         </div>
       </section>
     </template>
@@ -185,14 +192,13 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import api from '../js/api'
 import { useUserStore } from '../stores/user'
 import StatePanel from '../components/StatePanel.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 
 const route = useRoute()
-const router = useRouter()
 const userStore = useUserStore()
 
 const loading = ref(true)
@@ -309,6 +315,15 @@ const skipQuestion = () => {
   }
 }
 
+const confirmSubmitQuiz = async () => {
+  if (submitting.value || violated) return
+
+  const confirmed = window.confirm('Вы уверены, что хотите завершить тест? После отправки ответы изменить нельзя.')
+  if (!confirmed) return
+
+  await submitQuiz()
+}
+
 const requestFullscreen = async () => {
   fullscreenError.value = ''
   const element = document.documentElement
@@ -417,7 +432,7 @@ const startExam = async () => {
     markVisited(0)
     startTimerFromSeconds(data.remaining_seconds || (quiz.value.time_limit || 60) * 60)
   } catch (error) {
-    submitError.value = error.response?.data?.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РїСѓСЃС‚РёС‚СЊ РѕР»РёРјРїРёР°РґСѓ.'
+    submitError.value = error.response?.data?.message || 'Не удалось запустить олимпиаду.'
   }
 }
 
@@ -505,23 +520,26 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .stat-box span { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
 .stat-box.warn { outline: 2px solid rgba(198,90,90,0.24); }
 .fullscreen-btn { cursor: pointer; }
-.exam-body { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 16px; align-items: start; }
-.exam-main { display: grid; gap: 16px; min-width: 0; }
-.progress-card { padding: 20px 20px 22px; position: sticky; top: 110px; align-self: start; }
+.progress-card { padding: 20px 20px 22px; position: sticky; top: 110px; align-self: start; z-index: 4; }
 .progress-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-secondary); margin-bottom: 12px; }
 .progress-track { height: 10px; border-radius: 999px; background: rgba(100,83,41,0.12); overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success-soft), #56a36f); }
-.question-map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.progress-meta { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary); font-size: 13px; }
+.exam-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.exam-main { display: grid; gap: 16px; min-width: 0; }
+.question-map { display: grid; gap: 10px; margin-top: 18px; }
+.question-map--horizontal { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
 .question-dot { height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); background: rgba(255,252,244,0.8); color: var(--text); font-weight: 700; cursor: pointer; }
 .question-dot.current { background: var(--info-soft); border-color: rgba(26,95,168,0.32); color: var(--info); }
 .question-dot.answered { background: rgba(44,122,75,0.14); border-color: rgba(44,122,75,0.34); color: var(--success-soft); }
 .question-dot.skipped { background: var(--warning-bg); border-color: rgba(201,171,99,0.3); color: var(--accent-strong); }
 .question-dot.visited { background: rgba(26,95,168,0.08); }
-.question-card { padding: 28px; }
+.question-card { padding: 28px; min-height: 520px; display: grid; align-content: start; }
 .question-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
 .question-index { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: var(--info-soft); color: var(--info); }
 .question-hint { margin: 0 0 8px; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
-.question-image { width: 100%; max-height: 320px; object-fit: contain; border-radius: 18px; margin-bottom: 18px; background: rgba(255,252,244,0.8); border: 1px solid var(--surface-border); }
+.question-image-shell { width: 100%; min-height: 220px; max-height: 360px; display: flex; align-items: center; justify-content: center; border-radius: 18px; margin-bottom: 18px; background: rgba(255,252,244,0.8); border: 1px solid var(--surface-border); padding: 14px; overflow: hidden; }
+.question-image { width: 100%; height: 100%; max-height: 330px; object-fit: contain; border-radius: 12px; }
 .answer-list { display: grid; gap: 12px; }
 .answer-option { display: grid; grid-template-columns: 28px 24px 1fr; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--surface-border); background: rgba(255,252,244,0.82); cursor: pointer; }
 .answer-option.selected { border-color: rgba(26,95,168,0.36); background: rgba(26,95,168,0.08); }
@@ -532,7 +550,7 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .action-btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 14px; padding: 12px 18px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--text); font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 12px 26px rgba(201,168,76,0.24); }
 .action-btn.secondary { background: var(--info-soft); color: var(--info); border: 1px solid rgba(26,95,168,0.18); box-shadow: none; }
 .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-@media (max-width: 980px) { .exam-body { grid-template-columns: 1fr; } .progress-card { position: static; } .question-map { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); } }
+@media (max-width: 980px) { .progress-card { position: static; } .question-card { min-height: 0; } }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .sticky-footer { position: static; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
+@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .progress-meta { flex-direction: column; gap: 6px; } .question-image-shell { min-height: 180px; } .sticky-footer { position: static; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
 </style>
