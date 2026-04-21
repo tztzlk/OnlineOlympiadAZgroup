@@ -16,6 +16,7 @@ use App\Support\KaspiCsvImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -98,10 +99,10 @@ class AdminController extends Controller
                 'failed' => PaymentRecord::where('status', 'failed')->count(),
             ],
             'top_subjects' => QuizResult::query()
-                ->selectRaw('subjects.name as subject_name, COUNT(quiz_results.id) as results_count, ROUND(AVG((quiz_results.score / NULLIF(quiz_results.total, 0)) * 100), 0) as average_percent')
+                ->selectRaw('subjects.id, subjects.name as subject_name, COUNT(quiz_results.id) as results_count, ROUND(AVG((quiz_results.score / NULLIF(quiz_results.total, 0)) * 100), 0) as average_percent')
                 ->join('quizzes', 'quizzes.id', '=', 'quiz_results.quiz_id')
                 ->join('subjects', 'subjects.id', '=', 'quizzes.subject_id')
-                ->groupBy('subjects.name')
+                ->groupBy('subjects.id', 'subjects.name')
                 ->orderByDesc('results_count')
                 ->limit(5)
                 ->get()
@@ -125,7 +126,7 @@ class AdminController extends Controller
 
     public function getUsers()
     {
-        return response()->json(User::with('childProfiles')->get());
+        return response()->json(User::with('childProfiles')->paginate(100));
     }
 
     public function usersResults(Request $request)
@@ -220,7 +221,16 @@ class AdminController extends Controller
                 continue;
             }
 
-            $row = array_combine($header, $columns);
+            $row = array_combine($header, array_slice($columns, 0, count($header)));
+
+            if ($row === false) {
+                $errors[] = [
+                    'line' => $lineNumber + 1,
+                    'message' => 'Некорректный формат CSV: количество колонок не совпадает с заголовками',
+                ];
+                continue;
+            }
+
             $email = trim((string) ($row['parent_email'] ?? ''));
             $childFirst = trim((string) ($row['child_first_name'] ?? ''));
             $childLast = trim((string) ($row['child_last_name'] ?? ''));
@@ -266,6 +276,14 @@ class AdminController extends Controller
 
             $imported++;
         }
+
+        Log::channel('security')->info('admin.import_participants', [
+            'admin_id' => $request->user()?->id,
+            'imported' => $imported,
+            'created_parents' => $createdParents,
+            'errors_count' => count($errors),
+            'ip' => $request->ip(),
+        ]);
 
         return response()->json([
             'message' => 'Импорт завершен',
@@ -316,6 +334,12 @@ class AdminController extends Controller
 
         $stats = $importService->import($request->file('file'));
 
+        Log::channel('security')->info('admin.import_payments', [
+            'admin_id' => $request->user()?->id,
+            'stats' => $stats,
+            'ip' => $request->ip(),
+        ]);
+
         return response()->json([
             'message' => 'Импорт платежей завершен.',
             'stats' => $stats,
@@ -327,6 +351,7 @@ class AdminController extends Controller
     {
         return response()->json(
             CallbackRequest::latest()
+                ->limit(500)
                 ->get()
                 ->map(fn (CallbackRequest $callback) => [
                     'id' => $callback->id,
@@ -368,6 +393,7 @@ class AdminController extends Controller
 
         return QuizResult::with(['user', 'childProfile', 'quiz.subject', 'category'])
             ->latest()
+            ->limit(500)
             ->get()
             ->map(function (QuizResult $result) {
                 $percent = $result->total > 0
@@ -429,6 +455,7 @@ class AdminController extends Controller
     {
         return PaymentRecord::with(['parent', 'childProfile', 'subject', 'olympiadRequest'])
             ->latest()
+            ->limit(500)
             ->get()
             ->map(fn (PaymentRecord $payment) => [
                 'id' => $payment->id,

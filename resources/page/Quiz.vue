@@ -191,7 +191,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../js/api'
 import { useUserStore } from '../stores/user'
@@ -226,7 +226,64 @@ const defaultRules = [
 ]
 
 let timerId = null
+let heartbeatId = null
 let violated = false
+
+const storageKey = computed(() => `quiz_draft_${route.params.subjectId}`)
+
+const saveAnswers = () => {
+  if (!examStarted.value || violated || result.value) return
+  try { localStorage.setItem(storageKey.value, JSON.stringify(userAnswers.value)) } catch {}
+}
+
+const restoreAnswers = () => {
+  try {
+    const saved = localStorage.getItem(storageKey.value)
+    if (saved) userAnswers.value = JSON.parse(saved)
+  } catch {}
+}
+
+const clearSavedAnswers = () => {
+  try { localStorage.removeItem(storageKey.value) } catch {}
+}
+
+watch(userAnswers, saveAnswers, { deep: true })
+
+const clearHeartbeat = () => {
+  if (heartbeatId) { clearInterval(heartbeatId); heartbeatId = null }
+}
+
+let heartbeatFailures = 0
+const MAX_HEARTBEAT_FAILURES = 3
+
+const startHeartbeat = () => {
+  clearHeartbeat()
+  heartbeatFailures = 0
+  heartbeatId = window.setInterval(async () => {
+    if (!quiz.value || !examStarted.value || violated || result.value) return
+    try {
+      const { data } = await api.post(`/quiz/${quiz.value.id}/start`, {
+        child_profile_id: activeChildId.value,
+      })
+      heartbeatFailures = 0
+      const serverRemaining = data.remaining_seconds ?? 0
+      if (serverRemaining <= 0) {
+        clearHeartbeat()
+        await submitQuiz()
+        return
+      }
+      if (Math.abs(timeLeft.value - serverRemaining) > 15) {
+        timeLeft.value = serverRemaining
+      }
+    } catch {
+      heartbeatFailures++
+      if (heartbeatFailures >= MAX_HEARTBEAT_FAILURES) {
+        // Server unreachable for 3 min — client timer keeps running, submit on expire
+        clearHeartbeat()
+      }
+    }
+  }, 60000)
+}
 
 const currentQuestion = computed(() => quiz.value?.questions[currentQuestionIndex.value] || null)
 const isLastQuestion = computed(() => {
@@ -350,6 +407,8 @@ const registerViolation = async (reason = 'window_focus_lost') => {
 
   violated = true
   clearTimer()
+  clearHeartbeat()
+  clearSavedAnswers()
   userAnswers.value = {}
   violationMessage.value = 'Вы переключились на другое окно, вкладку или вышли из полноэкранного режима. По правилам олимпиады попытка аннулирована. Если это сработало ошибочно, можно сразу подать апелляцию через поддержку.'
 
@@ -407,7 +466,9 @@ const loadQuiz = async () => {
     if (data.attempt_started_at) {
       examStarted.value = true
       rulesAccepted.value = true
+      restoreAnswers()
       startTimerFromSeconds(data.remaining_seconds || 0)
+      startHeartbeat()
     }
   } catch (error) {
     loadError.value = true
@@ -431,6 +492,7 @@ const startExam = async () => {
     examStarted.value = true
     markVisited(0)
     startTimerFromSeconds(data.remaining_seconds || (quiz.value.time_limit || 60) * 60)
+    startHeartbeat()
   } catch (error) {
     submitError.value = error.response?.data?.message || 'Не удалось запустить олимпиаду.'
   }
@@ -448,6 +510,8 @@ const submitQuiz = async () => {
       answers: userAnswers.value,
     })
     result.value = data
+    clearHeartbeat()
+    clearSavedAnswers()
     if (document.fullscreenElement) {
       await document.exitFullscreen().catch(() => {})
     }
@@ -484,6 +548,7 @@ onMounted(async () => {
 
 onUnmounted(async () => {
   clearTimer()
+  clearHeartbeat()
   document.removeEventListener('visibilitychange', handleVisibilityLoss)
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   window.removeEventListener('blur', handleWindowBlur)

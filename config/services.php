@@ -42,6 +42,7 @@ return [
 
     'kaspi' => [
         'payment_url' => env('KASPI_PAYMENT_URL', 'https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=22909&region_id=19'),
+        'callback_secret' => env('KASPI_CALLBACK_SECRET', ''),
     ],
 
     'webhooks' => [

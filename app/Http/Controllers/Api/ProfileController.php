@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Concerns\ResolvesChildId;
 use App\Http\Controllers\Controller;
 use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
@@ -12,10 +13,10 @@ use App\Models\TrainingAttempt;
 use App\Support\OnboardingProgress;
 use App\Support\StatusPresenter;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
+    use ResolvesChildId;
     public function me(Request $request)
     {
         $user = $request->user();
@@ -48,7 +49,7 @@ class ProfileController extends Controller
                 'training_attempts' => $trainingCount,
                 'payments' => $paymentsCount,
                 'pending_requests' => $olympiads->where('status', 'pending')->count(),
-                'ready_to_start' => $olympiads->filter(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] === 'paid' && !$item['completed'])->count(),
+                'ready_to_start' => $olympiads->filter(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] === 'paid' && ($item['reconciliation_status'] ?? '') === 'matched' && !$item['completed'])->count(),
             ],
             'onboarding' => OnboardingProgress::payloadFor($user),
             'summary' => [
@@ -341,23 +342,21 @@ class ProfileController extends Controller
             : 0;
 
         $pdf = $this->buildPdfCertificate([
-            'ONLINE OLYMPIAD',
-            'CERTIFICATE',
-            'Participation and result confirmation',
-            'Participant: ' . ($result->childProfile?->full_name ?? $result->user?->name ?? 'Participant'),
-            'Subject: ' . ($result->quiz?->subject?->name ?? 'Olympiad'),
-            'Category: ' . ($result->category?->label ?? 'General'),
-            'Quiz: ' . ($result->quiz?->title ?? 'Final result'),
-            'School: ' . ($result->childProfile?->school ?: ($result->user?->school ?: 'Not specified')),
-            'City: ' . ($result->childProfile?->city ?: ($result->user?->city ?: 'Not specified')),
-            'Score: ' . "{$result->score} / {$result->total} ({$percent}%)",
-            'Date: ' . optional($result->created_at)->format('d.m.Y'),
-            'Result ID: #' . $result->public_id,
+            'participant'    => $this->transliterate($result->childProfile?->full_name ?? $result->user?->name ?? 'Participant'),
+            'subject'        => $this->transliterate($result->quiz?->subject?->name ?? 'Olympiad'),
+            'category'       => $this->transliterate($result->category?->label ?? 'General'),
+            'school'         => $this->transliterate($result->childProfile?->school ?: ($result->user?->school ?: 'N/A')),
+            'city'           => $this->transliterate($result->childProfile?->city ?: ($result->user?->city ?: 'N/A')),
+            'score'          => "{$result->score} / {$result->total}",
+            'percent'        => $percent,
+            'date'           => optional($result->created_at)->format('d.m.Y') ?? date('d.m.Y'),
+            'certificate_id' => $result->public_id,
+            'passed'         => $percent >= 60,
         ]);
 
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="certificate-result-' . $result->public_id . '.pdf"',
+            'Content-Disposition' => 'attachment; filename="certificate-' . $result->public_id . '.pdf"',
         ]);
     }
 
@@ -463,10 +462,10 @@ class ProfileController extends Controller
         if ($children->isEmpty()) {
             return [
                 'key' => 'add_child',
-                'title' => 'Р”РѕР±Р°РІСЊС‚Рµ РїРµСЂРІРѕРіРѕ СѓС‡Р°СЃС‚РЅРёРєР°',
-                'description' => 'РЎРѕР·РґР°Р№С‚Рµ РїСЂРѕС„РёР»СЊ СЂРµР±С‘РЅРєР°, С‡С‚РѕР±С‹ РјРѕР¶РЅРѕ Р±С‹Р»Рѕ РѕС‚РїСЂР°РІРёС‚СЊ Р·Р°СЏРІРєСѓ РЅР° РѕР»РёРјРїРёР°РґСѓ.',
+                'title' => 'Добавьте первого участника',
+                'description' => 'Создайте профиль ребёнка, чтобы можно было отправить заявку на олимпиаду.',
                 'action_url' => '/profile/children',
-                'action_label' => 'Р”РѕР±Р°РІРёС‚СЊ СЂРµР±С‘РЅРєР°',
+                'action_label' => 'Добавить ребёнка',
                 'tone' => 'warning',
             ];
         }
@@ -475,27 +474,27 @@ class ProfileController extends Controller
         if ($pendingRequest) {
             return [
                 'key' => 'wait_approval',
-                'title' => 'Р—Р°СЏРІРєР° РѕР¶РёРґР°РµС‚ РїСЂРѕРІРµСЂРєРё',
-                'description' => 'РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ РїСЂРѕРІРµСЂСЏРµС‚ РґР°РЅРЅС‹Рµ СѓС‡Р°СЃС‚РЅРёРєР°. РџРѕСЃР»Рµ СЌС‚РѕРіРѕ РѕС‚РєСЂРѕРµС‚СЃСЏ СЃР»РµРґСѓСЋС‰РёР№ С€Р°Рі.',
+                'title' => 'Заявка ожидает проверки',
+                'description' => 'Администратор проверяет данные участника. После этого откроется следующий шаг.',
                 'action_url' => '/profile/olympiads',
-                'action_label' => 'РЎРјРѕС‚СЂРµС‚СЊ СЃС‚Р°С‚СѓСЃ',
+                'action_label' => 'Смотреть статус',
                 'tone' => 'warning',
             ];
         }
 
-        $paymentPending = $olympiads->first(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] !== 'paid');
+        $paymentPending = $olympiads->first(fn (array $item) => $item['status'] === 'approved' && ($item['payment_status'] !== 'paid' || ($item['reconciliation_status'] ?? '') !== 'matched'));
         if ($paymentPending) {
             return [
                 'key' => 'complete_payment',
-                'title' => 'РџРѕРґС‚РІРµСЂРґРёС‚Рµ РѕРїР»Р°С‚Сѓ',
-                'description' => 'Р—Р°СЏРІРєР° РѕРґРѕР±СЂРµРЅР°. РћСЃС‚Р°Р»РѕСЃСЊ РѕРїР»Р°С‚РёС‚СЊ СѓС‡Р°СЃС‚РёРµ РёР»Рё РґРѕР¶РґР°С‚СЊСЃСЏ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ РїР»Р°С‚РµР¶Р°.',
+                'title' => 'Подтвердите оплату',
+                'description' => 'Заявка одобрена. Осталось оплатить участие или дождаться подтверждения платежа.',
                 'action_url' => '/profile/olympiads',
-                'action_label' => 'РџСЂРѕРІРµСЂРёС‚СЊ РѕРїР»Р°С‚Сѓ',
+                'action_label' => 'Проверить оплату',
                 'tone' => 'warning',
             ];
         }
 
-        $readyQuiz = $olympiads->first(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] === 'paid' && !$item['completed']);
+        $readyQuiz = $olympiads->first(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] === 'paid' && ($item['reconciliation_status'] ?? '') === 'matched' && !$item['completed']);
         if ($readyQuiz) {
             $readyActionUrl = '/profile/olympiads';
 
@@ -509,10 +508,10 @@ class ProfileController extends Controller
 
             return [
                 'key' => 'start_quiz',
-                'title' => 'РњРѕР¶РЅРѕ РЅР°С‡РёРЅР°С‚СЊ РѕР»РёРјРїРёР°РґСѓ',
-                'description' => 'Р”РѕСЃС‚СѓРї Рє РѕР»РёРјРїРёР°РґРµ РѕС‚РєСЂС‹С‚. РџРµСЂРµРґ СЃС‚Р°СЂС‚РѕРј РјРѕР¶РЅРѕ РїСЂРѕР№С‚Рё С‚СЂРµРЅРёСЂРѕРІРєСѓ.',
+                'title' => 'Можно начинать олимпиаду',
+                'description' => 'Доступ к олимпиаде открыт. Перед стартом можно пройти тренировку.',
                 'action_url' => $readyActionUrl,
-                'action_label' => 'РћС‚РєСЂС‹С‚СЊ РѕР»РёРјРїРёР°РґСѓ',
+                'action_label' => 'Открыть олимпиаду',
                 'tone' => 'success',
             ];
         }
@@ -520,20 +519,20 @@ class ProfileController extends Controller
         if (QuizResult::where('user_id', $user->id)->exists()) {
             return [
                 'key' => 'review_results',
-                'title' => 'Р РµР·СѓР»СЊС‚Р°С‚С‹ СѓР¶Рµ РґРѕСЃС‚СѓРїРЅС‹',
-                'description' => 'РћС‚РєСЂРѕР№С‚Рµ РїРѕСЃР»РµРґРЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚С‹ Рё СЃРєР°С‡Р°Р№С‚Рµ СЃРµСЂС‚РёС„РёРєР°С‚ СѓС‡Р°СЃС‚РЅРёРєР°.',
+                'title' => 'Результаты уже доступны',
+                'description' => 'Откройте последние результаты и скачайте сертификат участника.',
                 'action_url' => '/results',
-                'action_label' => 'РћС‚РєСЂС‹С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹',
+                'action_label' => 'Открыть результаты',
                 'tone' => 'success',
             ];
         }
 
         return [
             'key' => 'choose_olympiad',
-            'title' => 'Р’С‹Р±РµСЂРёС‚Рµ РѕР»РёРјРїРёР°РґСѓ',
-            'description' => 'РљРѕРіРґР° РїСЂРѕС„РёР»СЊ СЂРµР±С‘РЅРєР° РіРѕС‚РѕРІ, РјРѕР¶РЅРѕ РїРµСЂРµР№С‚Рё Рє РІС‹Р±РѕСЂСѓ РїСЂРµРґРјРµС‚Р° Рё РѕС‚РїСЂР°РІРєРµ Р·Р°СЏРІРєРё.',
+            'title' => 'Выберите олимпиаду',
+            'description' => 'Когда профиль ребёнка готов, можно перейти к выбору предмета и отправке заявки.',
             'action_url' => '/subject',
-            'action_label' => 'Р’С‹Р±СЂР°С‚СЊ РѕР»РёРјРїРёР°РґСѓ',
+            'action_label' => 'Выбрать олимпиаду',
             'tone' => 'neutral',
         ];
     }
@@ -541,22 +540,44 @@ class ProfileController extends Controller
     protected function resolveRequestNextAction(?string $status, ?string $paymentStatus, bool $completed): string
     {
         if ($completed) {
-            return 'РћС‚РєСЂРѕР№С‚Рµ СЂРµР·СѓР»СЊС‚Р°С‚ Рё СЃРµСЂС‚РёС„РёРєР°С‚ РІ РєР°Р±РёРЅРµС‚Рµ.';
+            return 'Откройте результат и сертификат в кабинете.';
         }
 
         if ($status === 'approved' && $paymentStatus === 'paid') {
-            return 'РњРѕР¶РЅРѕ РЅР°С‡РёРЅР°С‚СЊ РѕР»РёРјРїРёР°РґСѓ РёР»Рё РѕС‚РєСЂС‹С‚СЊ С‚СЂРµРЅРёСЂРѕРІРєСѓ.';
+            return 'Можно начинать олимпиаду или открыть тренировку.';
         }
 
         if ($status === 'approved') {
-            return 'РџРѕРґС‚РІРµСЂРґРёС‚Рµ РѕРїР»Р°С‚Сѓ Рё РґРѕР¶РґРёС‚РµСЃСЊ РґРѕСЃС‚СѓРїР° Рє РѕР»РёРјРїРёР°РґРµ.';
+            return 'Подтвердите оплату и дождитесь доступа к олимпиаде.';
         }
 
         if ($status === 'rejected') {
-            return 'РџСЂРѕРІРµСЂСЊС‚Рµ РґР°РЅРЅС‹Рµ СѓС‡Р°СЃС‚РЅРёРєР° Рё РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё СЃРІСЏР¶РёС‚РµСЃСЊ СЃ РїРѕРґРґРµСЂР¶РєРѕР№.';
+            return 'Проверьте данные участника и при необходимости свяжитесь с поддержкой.';
         }
 
-        return 'РћР¶РёРґР°Р№С‚Рµ РїСЂРѕРІРµСЂРєРё Р·Р°СЏРІРєРё Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј.';
+        return 'Ожидайте проверки заявки администратором.';
+    }
+
+    protected function transliterate(string $value): string
+    {
+        $map = [
+            'а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'yo','ж'=>'zh',
+            'з'=>'z','и'=>'i','й'=>'j','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o',
+            'п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'kh','ц'=>'ts',
+            'ч'=>'ch','ш'=>'sh','щ'=>'shch','ъ'=>'','ы'=>'y','ь'=>'','э'=>'e','ю'=>'yu',
+            'я'=>'ya',
+            'А'=>'A','Б'=>'B','В'=>'V','Г'=>'G','Д'=>'D','Е'=>'E','Ё'=>'Yo','Ж'=>'Zh',
+            'З'=>'Z','И'=>'I','Й'=>'J','К'=>'K','Л'=>'L','М'=>'M','Н'=>'N','О'=>'O',
+            'П'=>'P','Р'=>'R','С'=>'S','Т'=>'T','У'=>'U','Ф'=>'F','Х'=>'Kh','Ц'=>'Ts',
+            'Ч'=>'Ch','Ш'=>'Sh','Щ'=>'Shch','Ъ'=>'','Ы'=>'Y','Ь'=>'','Э'=>'E','Ю'=>'Yu',
+            'Я'=>'Ya',
+            // Kazakh-specific
+            'ә'=>'a','Ә'=>'A','ғ'=>'gh','Ғ'=>'Gh','қ'=>'q','Қ'=>'Q','ң'=>'ng','Ң'=>'Ng',
+            'ө'=>'o','Ө'=>'O','ұ'=>'u','Ұ'=>'U','ү'=>'u','Ү'=>'U','һ'=>'h','Һ'=>'H',
+            'і'=>'i','І'=>'I',
+        ];
+
+        return strtr($value, $map);
     }
 
     protected function escapeSvg(string $value): string
@@ -564,26 +585,167 @@ class ProfileController extends Controller
         return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 
-    protected function buildPdfCertificate(array $lines): string
+    protected function buildPdfCertificate(array $data): string
     {
-        $y = 520;
-        $content = ["BT", "/F1 18 Tf"];
+        $p       = $this->escapePdfText($data['participant']);
+        $sub     = $this->escapePdfText($data['subject']);
+        $cat     = $this->escapePdfText($data['category']);
+        $school  = $this->escapePdfText($data['school']);
+        $city    = $this->escapePdfText($data['city']);
+        $score   = $this->escapePdfText($data['score']);
+        $percent = (int) $data['percent'];
+        $date    = $this->escapePdfText($data['date']);
+        $certId  = $this->escapePdfText($data['certificate_id']);
+        $passed  = (bool) $data['passed'];
 
-        foreach ($lines as $line) {
-            $safeLine = $this->escapePdfText(Str::ascii($line));
-            $content[] = sprintf('1 0 0 1 56 %d Tm (%s) Tj', $y, $safeLine);
-            $y -= 34;
-        }
+        $resultBg   = $passed ? '0.13 0.47 0.29 rg' : '0.60 0.18 0.18 rg';
+        $resultText = $passed ? 'PASSED' : 'FAILED';
+        $statusLine = $passed ? 'Congratulations!' : 'Keep practicing!';
 
-        $content[] = 'ET';
-        $stream = implode("\n", $content);
+        $ops = [];
+
+        // Cream background
+        $ops[] = 'q';
+        $ops[] = '0.992 0.973 0.928 rg';
+        $ops[] = '0 0 842 595 re f';
+        $ops[] = 'Q';
+
+        // Outer gold border
+        $ops[] = 'q';
+        $ops[] = '0.792 0.675 0.239 RG';
+        $ops[] = '3 w';
+        $ops[] = '14 14 814 567 re S';
+        $ops[] = 'Q';
+
+        // Inner thin gold border
+        $ops[] = 'q';
+        $ops[] = '0.792 0.675 0.239 RG';
+        $ops[] = '0.8 w';
+        $ops[] = '22 22 798 551 re S';
+        $ops[] = 'Q';
+
+        // Left gold accent bar
+        $ops[] = 'q';
+        $ops[] = '0.792 0.675 0.239 rg';
+        $ops[] = '22 22 6 434 re f';
+        $ops[] = 'Q';
+
+        // Header gold block
+        $ops[] = 'q';
+        $ops[] = '0.792 0.675 0.239 rg';
+        $ops[] = '22 456 798 117 re f';
+        $ops[] = 'Q';
+
+        // Header white divider line
+        $ops[] = 'q';
+        $ops[] = '1 1 1 RG';
+        $ops[] = '0.5 w';
+        $ops[] = '42 468 m';
+        $ops[] = '800 468 l';
+        $ops[] = 'S';
+        $ops[] = 'Q';
+
+        // Result box
+        $ops[] = 'q';
+        $ops[] = $resultBg;
+        $ops[] = '555 188 255 110 re f';
+        $ops[] = 'Q';
+
+        // Result box border (white)
+        $ops[] = 'q';
+        $ops[] = '1 1 1 RG';
+        $ops[] = '0.8 w';
+        $ops[] = '555 188 255 110 re S';
+        $ops[] = 'Q';
+
+        // Footer divider line
+        $ops[] = 'q';
+        $ops[] = '0.792 0.675 0.239 RG';
+        $ops[] = '0.5 w';
+        $ops[] = '42 67 m';
+        $ops[] = '800 67 l';
+        $ops[] = 'S';
+        $ops[] = 'Q';
+
+        // Header text (white)
+        $ops[] = 'BT';
+        $ops[] = '1 1 1 rg';
+        $ops[] = '/F1 10 Tf';
+        $ops[] = '1 0 0 1 268 540 Tm';
+        $ops[] = '(O N L I N E   O L Y M P I A D) Tj';
+        $ops[] = '/F2 36 Tf';
+        $ops[] = '1 0 0 1 228 475 Tm';
+        $ops[] = '(CERTIFICATE) Tj';
+        $ops[] = 'ET';
+
+        // Body text
+        $ops[] = 'BT';
+        $ops[] = '0.40 0.30 0.10 rg';
+        $ops[] = '/F1 10 Tf';
+        $ops[] = '1 0 0 1 48 428 Tm';
+        $ops[] = '(This is to certify that) Tj';
+        $ops[] = '0.07 0.07 0.07 rg';
+        $ops[] = '/F2 22 Tf';
+        $ops[] = '1 0 0 1 48 397 Tm';
+        $ops[] = "({$p}) Tj";
+        $ops[] = '0.40 0.40 0.40 rg';
+        $ops[] = '/F1 11 Tf';
+        $ops[] = '1 0 0 1 48 369 Tm';
+        $ops[] = '(has participated in the Online Olympiad) Tj';
+        $ops[] = '0.07 0.07 0.07 rg';
+        $ops[] = '/F2 17 Tf';
+        $ops[] = '1 0 0 1 48 341 Tm';
+        $ops[] = "({$sub}) Tj";
+        $ops[] = '0.45 0.45 0.45 rg';
+        $ops[] = '/F1 10 Tf';
+        $ops[] = '1 0 0 1 48 311 Tm';
+        $ops[] = "(Category: {$cat}) Tj";
+        $ops[] = '1 0 0 1 48 290 Tm';
+        $ops[] = "(School: {$school}    City: {$city}) Tj";
+        $ops[] = $passed ? '0.13 0.47 0.29 rg' : '0.60 0.18 0.18 rg';
+        $ops[] = '/F2 11 Tf';
+        $ops[] = '1 0 0 1 48 262 Tm';
+        $ops[] = "({$statusLine}) Tj";
+        $ops[] = 'ET';
+
+        // Result box text (white)
+        $ops[] = 'BT';
+        $ops[] = '1 1 1 rg';
+        $ops[] = '/F1 9 Tf';
+        $ops[] = '1 0 0 1 608 284 Tm';
+        $ops[] = '(RESULT) Tj';
+        $ops[] = '/F2 32 Tf';
+        $ops[] = '1 0 0 1 570 243 Tm';
+        $ops[] = "({$percent}%) Tj";
+        $ops[] = '/F2 12 Tf';
+        $ops[] = '1 0 0 1 595 214 Tm';
+        $ops[] = "({$resultText}) Tj";
+        $ops[] = '/F1 9 Tf';
+        $ops[] = '1 0 0 1 575 199 Tm';
+        $ops[] = "(Score: {$score}) Tj";
+        $ops[] = 'ET';
+
+        // Footer text
+        $ops[] = 'BT';
+        $ops[] = '0.55 0.55 0.55 rg';
+        $ops[] = '/F1 8 Tf';
+        $ops[] = '1 0 0 1 48 50 Tm';
+        $ops[] = "(Certificate ID: {$certId}) Tj";
+        $ops[] = '1 0 0 1 330 50 Tm';
+        $ops[] = "(Date: {$date}) Tj";
+        $ops[] = '1 0 0 1 598 50 Tm';
+        $ops[] = '(onlineolympiad.kz) Tj';
+        $ops[] = 'ET';
+
+        $stream = implode("\n", $ops);
 
         $objects = [];
         $objects[] = '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj';
         $objects[] = '2 0 obj << /Type /Pages /Count 1 /Kids [3 0 R] >> endobj';
-        $objects[] = '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >> endobj';
+        $objects[] = '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >> endobj';
         $objects[] = '4 0 obj << /Length ' . strlen($stream) . " >> stream\n" . $stream . "\nendstream endobj";
         $objects[] = '5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj';
+        $objects[] = '6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> endobj';
 
         $pdf = "%PDF-1.4\n";
         $offsets = [0];
@@ -612,15 +774,4 @@ class ProfileController extends Controller
         return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
     }
 
-    protected function resolveChildId(int $userId, mixed $childPublicId): ?int
-    {
-        if (!$childPublicId) {
-            return null;
-        }
-
-        return ChildProfile::query()
-            ->where('parent_id', $userId)
-            ->where('public_id', (string) $childPublicId)
-            ->value('id');
-    }
 }

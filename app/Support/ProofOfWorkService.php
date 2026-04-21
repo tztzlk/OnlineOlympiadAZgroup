@@ -55,7 +55,18 @@ class ProofOfWorkService
         abort_unless(str_starts_with($hash, $prefix), 422, 'Anti-bot проверка не пройдена.');
 
         $cacheKey = 'pow:' . hash('sha256', $token . '|' . $nonce);
-        abort_unless(Cache::add($cacheKey, true, now()->addMinutes(15)), 422, 'Этот anti-bot токен уже использован.');
+        $used = false;
+
+        Cache::lock('pow_lock:' . $cacheKey, 5)->get(function () use ($cacheKey, &$used) {
+            if (Cache::has($cacheKey)) {
+                $used = true;
+
+                return;
+            }
+            Cache::put($cacheKey, true, now()->addMinutes(15));
+        });
+
+        abort_if($used, 422, 'Этот anti-bot токен уже использован.');
     }
 
     protected function secret(): string

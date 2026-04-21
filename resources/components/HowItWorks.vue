@@ -19,6 +19,7 @@
           <span class="step-card__chip">{{ step.chip }}</span>
         </div>
 
+        <!-- step.icon — static SVG strings defined in this file only; never bind API/user data here -->
         <div class="step-card__icon" v-html="step.icon"></div>
 
         <div class="step-card__copy">

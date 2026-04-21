@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Concerns\ResolvesChildId;
 use App\Http\Controllers\Controller;
 use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
@@ -13,9 +14,11 @@ use App\Support\NotificationWorkflow;
 use App\Support\OnboardingProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class QuizController extends Controller
 {
+    use ResolvesChildId;
     public function getSubjects(Request $request)
     {
         $user = Auth::user();
@@ -25,6 +28,7 @@ class QuizController extends Controller
             ->where('user_id', $user->id)
             ->where('status', 'approved')
             ->where('payment_status', 'paid')
+            ->whereHas('paymentRecord', fn ($q) => $q->where('reconciliation_status', 'matched'))
             ->when($childId > 0, fn ($query) => $query->where('child_profile_id', $childId))
             ->pluck('subject_id');
 
@@ -60,7 +64,7 @@ class QuizController extends Controller
             return response()->json(['message' => 'Попытка аннулирована из-за нарушения правил тестирования.'], 403);
         }
 
-        if ($requestRecord->payment_status !== 'paid') {
+        if (!$requestRecord->isPaymentConfirmed()) {
             return response()->json([
                 'message' => 'Оплата ещё не подтверждена. После проверки оплаты доступ к олимпиаде откроется.',
                 'payment_required' => true,
@@ -163,7 +167,7 @@ class QuizController extends Controller
             return response()->json(['message' => 'Заявка ещё не одобрена.'], 403);
         }
 
-        if ($requestRecord->payment_status !== 'paid') {
+        if (!$requestRecord->isPaymentConfirmed()) {
             return response()->json(['message' => 'Оплата ещё не подтверждена.'], 402);
         }
 
@@ -247,8 +251,12 @@ class QuizController extends Controller
             return response()->json(['message' => 'Заявка ещё не одобрена.'], 403);
         }
 
-        if ($requestRecord->payment_status !== 'paid') {
+        if (!$requestRecord->isPaymentConfirmed()) {
             return response()->json(['message' => 'Оплата ещё не подтверждена.'], 402);
+        }
+
+        if ($childId !== null && $requestRecord->child_profile_id !== $childId) {
+            return response()->json(['message' => 'Профиль ребёнка не соответствует заявке на олимпиаду.'], 403);
         }
 
         if (!$quiz->is_published) {
@@ -259,16 +267,32 @@ class QuizController extends Controller
             return response()->json(['message' => 'Попытка уже аннулирована.'], 403);
         }
 
-        $exists = QuizResult::query()
-            ->where('user_id', $user->id)
-            ->where('quiz_id', $quiz->id)
-            ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
-            ->exists();
+        $submitLockKey = 'quiz_submit:' . $user->id . ':' . $quiz->id . ':' . ($requestRecord->child_profile_id ?? 0);
+        $lock = Cache::lock($submitLockKey, 30);
 
-        if ($exists) {
-            return response()->json(['message' => 'Олимпиада уже была пройдена.'], 403);
+        if (!$lock->get()) {
+            return response()->json(['message' => 'Результат уже обрабатывается. Подождите.'], 429);
         }
 
+        try {
+            $exists = QuizResult::query()
+                ->where('user_id', $user->id)
+                ->where('quiz_id', $quiz->id)
+                ->when($requestRecord->child_profile_id, fn ($query) => $query->where('child_profile_id', $requestRecord->child_profile_id))
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['message' => 'Олимпиада уже была пройдена.'], 403);
+            }
+
+            return $this->processSubmit($request, $user, $quiz, $requestRecord);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    protected function processSubmit(Request $request, $user, $quiz, $requestRecord)
+    {
         $category = $this->pickCategoryForGrade($quiz, $requestRecord->grade);
 
         if (!$category) {
@@ -413,9 +437,16 @@ class QuizController extends Controller
         }
 
         if (!$requestRecord->disqualified_at) {
+            $allowedReasons = OlympiadRequest::allowedViolationReasons();
+            $reason = $request->input('reason', 'window_focus_lost');
+
+            if (!in_array($reason, $allowedReasons, true)) {
+                $reason = 'window_focus_lost';
+            }
+
             $requestRecord->update([
                 'disqualified_at' => now(),
-                'disqualification_reason' => $request->input('reason', 'window_focus_lost'),
+                'disqualification_reason' => $reason,
                 'attempt_last_activity_at' => now(),
             ]);
         }
@@ -482,18 +513,6 @@ class QuizController extends Controller
         return $category->grade_from === $category->grade_to
             ? (string) $category->grade_from
             : "{$category->grade_from}-{$category->grade_to}";
-    }
-
-    protected function resolveChildId(int $userId, mixed $childPublicId): ?int
-    {
-        if (!$childPublicId) {
-            return null;
-        }
-
-        return ChildProfile::query()
-            ->where('parent_id', $userId)
-            ->where('public_id', (string) $childPublicId)
-            ->value('id');
     }
 
     protected function resolveSubjectId(string $subjectKey): int
