@@ -231,13 +231,13 @@ onUnmounted(() => {
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Only transparent on homepage before scroll */
+/* Transparent on homepage before scroll — light hero, so keep dark text */
 .header.transparent {
-  background: transparent;
-  border-bottom: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .header__container {
@@ -266,18 +266,18 @@ onUnmounted(() => {
   white-space: nowrap;
   transition: color 0.4s ease;
 }
-.header.transparent .header__logo span { color: white; }
+/* transparent header inherits normal dark text — no override needed */
 .logo-icon {
   width: 36px;
   height: 36px;
-  background: var(--accent);
+  background: var(--green);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.22);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.28);
 }
 .logo-icon.small {
   width: 28px; height: 28px;
@@ -304,13 +304,7 @@ onUnmounted(() => {
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.header.transparent .header__link { color: rgba(255,255,255,0.85); }
-.header.transparent .header__link:hover,
-.header.transparent .header__link.router-link-active {
-  
-  color: white;
-  background: rgba(255,255,255,0.15);
-}
+/* nav links use normal theme colors on transparent header */
 
 /* User area */
 .header__user {
@@ -341,15 +335,7 @@ onUnmounted(() => {
 .theme-icon {
   flex-shrink: 0;
 }
-.header.transparent .header__theme-toggle {
-  border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
-.header.transparent .header__theme-toggle:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.4);
-}
+/* theme toggle: same as scrolled state on light background */
 
 .header__profile {
   display: flex;
@@ -372,16 +358,7 @@ onUnmounted(() => {
   color: var(--text);
   transition: color 0.3s;
 }
-.header.transparent .header__profile {
-  border-color: rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-}
-.header.transparent .header__profile:hover {
-  background: rgba(255,255,255,0.22);
-  border-color: rgba(255,255,255,0.5);
-}
-.header.transparent .header__profile span { color: white; }
+/* profile pill: same as scrolled state on light background */
 
 .header__avatar {
   width: 30px;
@@ -410,13 +387,7 @@ onUnmounted(() => {
   cursor: pointer;
 }
 .btn-ghost:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.header.transparent .btn-ghost {
-  background: rgba(255,255,255,0.12);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.3);
-  backdrop-filter: blur(6px);
-}
-.header.transparent .btn-ghost:hover { background: rgba(255,255,255,0.22); }
+/* btn-ghost: same on transparent — inherits normal styles */
 
 .btn-primary {
   padding: 8px 18px;
@@ -452,13 +423,7 @@ onUnmounted(() => {
   transition: all 0.3s;
 }
 .btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
-.header.transparent .btn-logout {
-  background: rgba(255,80,80,0.15);
-  color: rgba(255,200,200,1);
-  border-color: rgba(255,100,100,0.3);
-  backdrop-filter: blur(6px);
-}
-.header.transparent .btn-logout:hover { background: rgba(255,80,80,0.25); }
+/* btn-logout: inherits same green style on light background */
 
 /* Skeleton */
 .skeleton-user {
@@ -484,27 +449,20 @@ onUnmounted(() => {
   height: 40px;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.3s;
 }
-.burger:hover { background: rgba(208, 179, 107, 0.16); border-color: rgba(208, 179, 107, 0.28); }
+.burger:hover { background: var(--accent-soft); border-color: rgba(245, 200, 66, 0.4); }
 .burger span {
   display: block;
   height: 2px;
-  background: var(--accent);
+  background: var(--text);
   border-radius: 2px;
   transition: all 0.3s;
   transform-origin: center;
 }
-.header.transparent .burger {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.25);
-  backdrop-filter: blur(6px);
-}
-.header.transparent .burger:hover { background: rgba(255,255,255,0.22); }
-.header.transparent .burger span { background: white; }
 .burger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .burger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }

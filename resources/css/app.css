@@ -10,9 +10,9 @@
 }
 
 :root {
-    /* Backgrounds */
-    --bg: #ffffff;
-    --bg-alt: #f9fafb;
+    /* Backgrounds — slightly off-white so white cards pop */
+    --bg: #f8fafc;
+    --bg-alt: #f1f5f9;
     --bg-yellow: #fffbeb;
     --bg-green: #f0fdf4;
 
@@ -22,10 +22,10 @@
 
     /* Cards & Surfaces */
     --card: #ffffff;
-    --surface: rgba(255, 255, 255, 0.92);
-    --surface-border: rgba(0, 0, 0, 0.08);
-    --surface-soft: rgba(0, 0, 0, 0.04);
-    --surface-strong: #f3f4f6;
+    --surface: rgba(255, 255, 255, 0.96);
+    --surface-border: rgba(0, 0, 0, 0.09);
+    --surface-soft: rgba(0, 0, 0, 0.03);
+    --surface-strong: #e2e8f0;
 
     /* Yellow — highlights, accent shapes, decorative */
     --accent: #f5c842;
@@ -187,4 +187,247 @@ select:focus {
 ::selection {
     background: rgba(245, 200, 66, 0.28);
     color: var(--text);
+}
+
+/* ==========================================================
+   EURICA DESIGN SYSTEM — Global Utility Classes
+   Use these across pages for consistency.
+   ========================================================== */
+
+/* ---- Button base ---- */
+.ds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    font-family: 'Inter', var(--font-sans);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+}
+.ds-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+/* Green — primary CTA */
+.ds-btn-green {
+    background: var(--green);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.24);
+}
+.ds-btn-green:hover:not(:disabled) {
+    background: var(--green-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(22, 163, 74, 0.32);
+}
+
+/* Yellow — accent / secondary CTA */
+.ds-btn-yellow {
+    background: var(--accent);
+    color: #111827;
+    box-shadow: 0 6px 20px rgba(245, 200, 66, 0.22);
+}
+.ds-btn-yellow:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+/* Ghost outline */
+.ds-btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+}
+.ds-btn-ghost:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: #92660a;
+}
+
+/* Danger */
+.ds-btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger-soft);
+    border: 1px solid rgba(220, 38, 38, 0.15);
+}
+.ds-btn-danger:hover:not(:disabled) {
+    background: #fecaca;
+}
+
+/* ---- Input ---- */
+.ds-input {
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: 'Inter', var(--font-sans);
+    font-size: 15px;
+    font-weight: 400;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.ds-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+.ds-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.18);
+}
+.ds-input.is-error {
+    border-color: var(--danger-soft);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10);
+}
+.ds-input.is-valid {
+    border-color: var(--green);
+}
+
+/* ---- Card ---- */
+.ds-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+}
+.ds-card-sm {
+    padding: 16px;
+    border-radius: var(--radius-md);
+}
+
+/* ---- Form message / alert ---- */
+.ds-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    border: 1px solid transparent;
+}
+.ds-msg.success {
+    background: var(--green-soft);
+    border-color: rgba(22, 163, 74, 0.2);
+    color: var(--green-strong);
+}
+.ds-msg.error {
+    background: var(--danger-bg);
+    border-color: rgba(220, 38, 38, 0.15);
+    color: #b91c1c;
+}
+.ds-msg.warning {
+    background: var(--warning-bg);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #92400e;
+}
+.ds-msg.info {
+    background: var(--info-bg);
+    border-color: rgba(26, 95, 168, 0.15);
+    color: var(--info);
+}
+
+/* ---- Section / page layout ---- */
+.ds-section {
+    padding: 80px 28px;
+}
+.ds-section-sm {
+    padding: 48px 28px;
+}
+.ds-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.ds-page {
+    min-height: 100vh;
+    background: var(--bg);
+    padding-top: 88px; /* clears fixed header */
+}
+
+/* ---- Eyebrow label ---- */
+.ds-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(245, 200, 66, 0.3);
+    color: #92660a;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+/* ---- Badge / tag ---- */
+.ds-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.ds-badge.green  { background: var(--green-soft);  border-color: rgba(22,163,74,0.2);  color: var(--green-strong); }
+.ds-badge.yellow { background: var(--accent-soft); border-color: rgba(245,200,66,0.3); color: #92660a; }
+.ds-badge.red    { background: var(--danger-bg);   border-color: rgba(220,38,38,0.15); color: #b91c1c; }
+
+/* ---- Progress bar ---- */
+.ds-progress-track {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+.ds-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--green);
+    transition: width 0.3s ease;
+}
+
+/* ---- Divider with label ---- */
+.ds-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.ds-divider::before,
+.ds-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ---- Loading spinner ---- */
+.ds-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(0, 0, 0, 0.12);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: ds-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes ds-spin {
+    to { transform: rotate(360deg); }
 }
