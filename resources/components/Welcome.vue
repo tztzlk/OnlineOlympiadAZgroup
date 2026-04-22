@@ -8,7 +8,7 @@
       <h1 class="hero__title">Докажи, что ты лучший</h1>
 
       <p class="hero__subheadline">
-        Безопасная онлайн-олимпиада с быстрым результатом, сертификатом и понятным маршрутом для родителя.
+        Онлайн-олимпиада с быстрым результатом, сертификатом и понятным маршрутом для родителя.
       </p>
 
       <p class="hero__price">Участие: от 2 990 &#8376;</p>
@@ -86,7 +86,7 @@ export default { name: 'Hero' }
 .hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/welcome.png') center/cover no-repeat;
+  background: url('/.png') center/cover no-repeat;
   z-index: 0;
 }
 

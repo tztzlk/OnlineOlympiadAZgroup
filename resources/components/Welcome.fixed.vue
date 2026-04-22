@@ -85,7 +85,7 @@ export default { name: 'Hero' }
 .hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/welcome.png') center/cover no-repeat;
+  background: url('/.png') center/cover no-repeat;
   z-index: 0;
 }
 
