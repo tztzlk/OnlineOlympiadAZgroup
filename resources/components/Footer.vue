@@ -5,12 +5,12 @@
     <div class="footer__container">
       <div class="footer__block footer__block--brand">
         <router-link to="/" class="footer__logo">
-          <div class="logo-icon">OO</div>
-          <span>Онлайн-олимпиада</span>
+          <div class="logo-icon">E</div>
+          <span>Eurica</span>
         </router-link>
 
         <p class="footer__desc">
-          Современная образовательная платформа для школьников. Участвуйте в олимпиадах, проходите тесты и получайте результаты онлайн.
+          Eurica — онлайн-олимпиады по математике и другим предметам. Мгновенный результат, сертификат и разбор ошибок.
         </p>
 
         <div class="footer__socials">
@@ -64,7 +64,7 @@
 
     <div class="footer__bottom">
       <div class="footer__bottom-inner">
-        <span>© 2026 Онлайн-олимпиада. Все права защищены.</span>
+        <span>© 2026 Eurica. Все права защищены.</span>
         <div class="footer__bottom-links">
           <router-link to="/help-desk">Help Desk</router-link>
           <span class="divider">·</span>
@@ -78,10 +78,10 @@
 <style scoped>
 * { box-sizing: border-box; }
 .footer { background: var(--bg); position: relative; overflow: hidden; }
-.footer__accent-line { height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-hover), var(--accent)); }
+.footer__accent-line { height: 3px; background: linear-gradient(90deg, var(--accent), var(--green), var(--accent)); }
 .footer__container { max-width: 1200px; margin: 0 auto; padding: 60px 28px 48px; display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 48px; }
 .footer__logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
-.logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
+.logo-icon { width: 34px; height: 34px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 15px; }
 .footer__logo span { font-size: 18px; font-weight: 700; color: var(--text); }
 .footer__desc { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }
 .footer__socials { display: flex; gap: 10px; flex-wrap: wrap; }

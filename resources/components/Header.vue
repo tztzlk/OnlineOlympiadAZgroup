@@ -9,7 +9,7 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </div>
-        <span>Онлайн-олимпиада</span>
+        <span>Eurica</span>
       </router-link>
 
       <!-- Навигация -->
@@ -75,7 +75,7 @@
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
-          <span class="mobile-menu__title">Олимпиада</span>
+          <span class="mobile-menu__title">Eurica</span>
           <button class="mobile-close" @click="closeMenu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -421,20 +421,20 @@ onUnmounted(() => {
 .btn-primary {
   padding: 8px 18px;
   border-radius: 12px;
-  background: var(--accent);
-  color: #18120a;
+  background: var(--green);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
   border: none;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.28);
   transition: all 0.2s;
 }
 .btn-primary:hover {
-  background: var(--accent-hover);
+  background: var(--green-hover);
   transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(104, 79, 28, 0.3);
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.34);
 }
 
 .btn-logout {
@@ -683,16 +683,16 @@ onUnmounted(() => {
   display: block;
   text-align: center;
   padding: 12px;
-  background: var(--accent);
-  color: #18120a;
+  background: var(--green);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 700;
   border-radius: 14px;
   text-decoration: none;
-  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28);
   transition: all 0.2s;
 }
-.mobile-btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(104, 79, 28, 0.3); }
+.mobile-btn-primary:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34); }
 
 /* Transitions */
 .slide-enter-active, .slide-leave-active { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -718,12 +718,12 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-  color: #18120a;
+  background: var(--green);
+  color: #ffffff;
   font-size: 15px;
   font-weight: 800;
   text-decoration: none;
-  box-shadow: 0 18px 32px rgba(139, 103, 20, 0.28);
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.32);
   z-index: 1400;
 }
 
