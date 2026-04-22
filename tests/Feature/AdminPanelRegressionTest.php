@@ -57,34 +57,34 @@ it('keeps admin vue pages free from mojibake text regressions', function () {
     $files = [
         resource_path('page/admin/AdminLogin.vue') => [
             'mustContain' => [
-                'Панель управления',
-                'Войдите, чтобы продолжить',
-                'Электронная почта',
-                'Только для авторизованных сотрудников',
+                '������ ����������',
+                '�������, ����� ����������',
+                '����������� �����',
+                '������ ��� �������������� �����������',
             ],
         ],
         resource_path('page/admin/AdminDashboard.vue') => [
             'mustContain' => [
-                'Операционный центр олимпиад',
-                'Воронка участия',
-                'Платёжные статусы',
-                'Быстрые переходы',
+                '������������ ����� ��������',
+                '������� �������',
+                '�������� �������',
+                '������� ��������',
             ],
         ],
         resource_path('page/admin/AdminLayout.vue') => [
             'mustContain' => [
-                'Операционная панель команды',
-                'Заявки',
-                'Олимпиады',
-                'Вернуться на сайт',
+                '������������ ������ �������',
+                '������',
+                '���������',
+                '��������� �� ����',
             ],
         ],
         resource_path('page/admin/AdminRequests.vue') => [
             'mustContain' => [
-                'Участники и подтверждение оплат',
-                'Статус оплаты',
-                'Подтвердить оплату',
-                'Вернуть в ожидание оплаты',
+                '��������� � ������������� �����',
+                '������ ������',
+                '����������� ������',
+                '������� � �������� ������',
             ],
         ],
     ];
@@ -98,6 +98,6 @@ it('keeps admin vue pages free from mojibake text regressions', function () {
             expect($contents)->toContain($expectedText);
         }
 
-        expect($contents)->not->toContain('Р Сџ');
+        expect($contents)->not->toContain('Рџ');
     }
 });

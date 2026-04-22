@@ -7,14 +7,39 @@
       <section class="result-card">
         <p class="eyebrow">Результат тренировки</p>
         <h1>{{ result.score }} / {{ result.total }}</h1>
-        <p class="description">Правильных ответов: {{ result.percent }}%</p>
+        <p class="description">{{ correctAnswersLabel }}: {{ result.percent }}%</p>
+
         <div class="items">
           <article v-for="item in result.items" :key="item.question_id" class="item-card" :class="{ ok: item.is_correct, bad: !item.is_correct }">
-            <strong>{{ item.question }}</strong>
-            <p>Правильный ответ: {{ item.correct_answer }}</p>
-            <p>{{ item.explanation }}</p>
+            <div class="item-card__header">
+              <strong>{{ item.question }}</strong>
+              <span class="result-chip" :class="{ ok: item.is_correct, bad: !item.is_correct }">
+                {{ item.is_correct ? 'Верно' : 'Есть ошибка' }}
+              </span>
+            </div>
+
+            <div v-if="item.image" class="question-image-shell">
+              <img :src="item.image" alt="question" class="question-image" />
+            </div>
+
+            <div class="result-meta">
+              <p>
+                <span>{{ yourAnswerLabel }}</span>
+                <strong>{{ formatAnswer(item.selected_answer, answerNotSelectedLabel) }}</strong>
+              </p>
+              <p>
+                <span>{{ correctAnswerLabel }}</span>
+                <strong>{{ formatAnswer(item.correct_answer, notFoundLabel) }}</strong>
+              </p>
+            </div>
+
+            <div v-if="item.explanation" class="explanation-card">
+              <span>{{ explanationLabel }}</span>
+              <p>{{ item.explanation }}</p>
+            </div>
           </article>
         </div>
+
         <button class="primary-btn" @click="router.push('/profile')">Вернуться в профиль</button>
       </section>
     </template>
@@ -32,6 +57,11 @@
       <section class="question-list">
         <article v-for="question in quiz.questions" :key="question.id" class="question-card">
           <h2>{{ question.question }}</h2>
+
+          <div v-if="question.image" class="question-image-shell">
+            <img :src="question.image" alt="question" class="question-image" />
+          </div>
+
           <div class="answer-list">
             <label v-for="answer in question.answers" :key="answer.id" class="answer-option">
               <input v-model="answers[question.id]" type="radio" :name="`q-${question.id}`" :value="answer.id" />
@@ -67,6 +97,19 @@ const quiz = ref(null)
 const result = ref(null)
 const answers = ref({})
 const activeChildId = ref(null)
+
+const correctAnswersLabel = '\u041F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u044B\u0445 \u043E\u0442\u0432\u0435\u0442\u043E\u0432'
+const yourAnswerLabel = '\u0412\u0430\u0448 \u043E\u0442\u0432\u0435\u0442'
+const answerNotSelectedLabel = '\u041E\u0442\u0432\u0435\u0442 \u043D\u0435 \u0432\u044B\u0431\u0440\u0430\u043D'
+const correctAnswerLabel = '\u041F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442'
+const notFoundLabel = '\u041D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D'
+const explanationLabel = '\u0420\u0430\u0437\u0431\u043E\u0440'
+
+const formatAnswer = (answer, fallback) => {
+  if (!answer) return fallback
+
+  return answer.label ? `${answer.label}. ${answer.answer}` : answer.answer
+}
 
 const syncSelectedChild = () => {
   const queryChildId = route.query.childId ? String(route.query.childId) : null
@@ -127,6 +170,8 @@ onMounted(load)
 .eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: var(--accent-strong); }
 .description { color: var(--text-secondary); line-height: 1.6; }
 .question-list { display: grid; gap: 16px; margin-top: 18px; }
+.question-image-shell { margin-top: 16px; border-radius: 18px; overflow: hidden; border: 1px solid var(--surface-border); background: rgba(255,252,244,.92); }
+.question-image { display: block; width: 100%; max-height: 360px; object-fit: contain; background: #fff; }
 .answer-list { display: grid; gap: 10px; margin-top: 16px; }
 .answer-option { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.8); }
 .footer { margin-top: 18px; display: flex; justify-content: flex-end; }
@@ -135,5 +180,13 @@ onMounted(load)
 .item-card { border-radius: 18px; padding: 16px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.82); }
 .item-card.ok { background: rgba(34,197,94,0.08); }
 .item-card.bad { background: rgba(198,90,90,0.08); }
+.item-card__header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.result-chip { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(26,95,168,.12); color: var(--info); }
+.result-chip.ok { background: rgba(34,197,94,0.14); color: #2f6f4b; }
+.result-chip.bad { background: rgba(198,90,90,0.14); color: #8f3b3b; }
+.result-meta { display: grid; gap: 10px; margin-top: 16px; }
+.result-meta p, .explanation-card p { margin: 0; }
+.result-meta span, .explanation-card span { display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px; }
+.explanation-card { margin-top: 16px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.72); }
 .error { color: #8f3b3b; }
 </style>

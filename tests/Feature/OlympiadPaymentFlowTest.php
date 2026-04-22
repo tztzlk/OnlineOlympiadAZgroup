@@ -19,23 +19,23 @@ function createOlympiadFixture(User $parent): array
 {
     $child = ChildProfile::create([
         'parent_id' => $parent->id,
-        'first_name' => 'Максат',
-        'last_name' => 'Амантаев',
+        'first_name' => '������',
+        'last_name' => '��������',
         'grade' => 7,
         'language_preference' => 'ru',
     ]);
 
-    $subject = Subject::create(['name' => 'Математика']);
+    $subject = Subject::create(['name' => '����������']);
     $quiz = Quiz::create([
         'subject_id' => $subject->id,
-        'title' => 'Олимпиада по математике',
+        'title' => '��������� �� ����������',
         'time_limit' => 30,
         'is_published' => true,
     ]);
 
     $category = QuizCategory::create([
         'quiz_id' => $quiz->id,
-        'label' => '7 класс',
+        'label' => '7 �����',
         'grade_from' => 7,
         'grade_to' => 7,
         'sort_order' => 1,
@@ -68,7 +68,7 @@ function createOlympiadRequestForParent(User $parent): array
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Р РѕРґРёС‚РµР»СЊ',
+        'parent_name' => 'Родитель',
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk();
@@ -100,7 +100,7 @@ it('creates a new olympiad participation as approved with pending payment', func
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Родитель',
+        'parent_name' => '��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk()
@@ -128,6 +128,12 @@ it('creates a new olympiad participation as approved with pending payment', func
         'provider' => 'kaspi',
         'reconciliation_status' => 'awaiting_payment',
     ]);
+
+    $this->getJson('/api/olympiad/request/status?subject_id=' . $subject->public_id . '&child_profile_id=' . $child->public_id)
+        ->assertOk()
+        ->assertJsonPath('status', 'approved')
+        ->assertJsonPath('payment_status', 'pending')
+        ->assertJsonPath('reconciliation_status', 'awaiting_payment');
 });
 
 it('updates an existing participation without creating duplicates and resets unpaid entries to pending payment', function () {
@@ -140,7 +146,7 @@ it('updates an existing participation without creating duplicates and resets unp
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Первый родитель',
+        'parent_name' => '������ ��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'first@example.com',
     ])->assertOk();
@@ -155,7 +161,7 @@ it('updates an existing participation without creating duplicates and resets unp
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'kk',
-        'parent_name' => 'Обновлённый родитель',
+        'parent_name' => '���������� ��������',
         'parent_phone' => '+77011111111',
         'parent_email' => 'updated@example.com',
     ])->assertOk()
@@ -167,7 +173,7 @@ it('updates an existing participation without creating duplicates and resets unp
     $this->assertDatabaseHas('olympiad_requests', [
         'id' => $request->id,
         'language' => 'kk',
-        'parent_name' => 'Обновлённый родитель',
+        'parent_name' => '���������� ��������',
         'payment_status' => 'pending',
         'status' => 'approved',
     ]);
@@ -183,7 +189,7 @@ it('does not allow quiz access until payment is confirmed', function () {
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Родитель',
+        'parent_name' => '��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk();
@@ -192,13 +198,13 @@ it('does not allow quiz access until payment is confirmed', function () {
 
     $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
         ->assertStatus(402)
-        ->assertJsonPath('message', 'Оплата ещё не подтверждена. После проверки оплаты доступ к олимпиаде откроется.');
+        ->assertJsonPath('message', '������ ��� �� ������������. ����� �������� ������ ������ � ��������� ���������.');
 
     $request->update(['status' => 'rejected', 'payment_status' => 'paid']);
 
     $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
         ->assertStatus(403)
-        ->assertJsonPath('message', 'Заявка отклонена. Доступ к олимпиаде закрыт.');
+        ->assertJsonPath('message', '������ ���������. ������ � ��������� ������.');
 });
 
 it('allows quiz access and submission only for approved and paid requests', function () {
@@ -211,7 +217,7 @@ it('allows quiz access and submission only for approved and paid requests', func
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Родитель',
+        'parent_name' => '��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk();
@@ -246,7 +252,7 @@ it('lets an admin update request and payment statuses and exposes changes in the
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Родитель',
+        'parent_name' => '��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk();
@@ -290,7 +296,7 @@ it('shows only the latest request per parent child and subject in the admin list
         'birth_date' => '2013-01-01',
         'grade' => 7,
         'language' => 'ru',
-        'parent_name' => 'Старый родитель',
+        'parent_name' => '������ ��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'old@example.com',
         'status' => 'rejected',
@@ -306,7 +312,7 @@ it('shows only the latest request per parent child and subject in the admin list
         'birth_date' => '2013-01-01',
         'grade' => 7,
         'language' => 'ru',
-        'parent_name' => 'Новый родитель',
+        'parent_name' => '����� ��������',
         'parent_phone' => '+77011111111',
         'parent_email' => 'new@example.com',
         'status' => 'approved',
@@ -344,6 +350,12 @@ it('lets the owner report payment without confirming it immediately', function (
     expect($paymentRecord->reconciliation_status)->toBe('reported');
     expect($paymentRecord->customer_reported_at)->not->toBeNull();
     expect($paymentRecord->customer_paid_at)->not->toBeNull();
+
+    $this->getJson('/api/olympiad/request/status?subject_id=' . $request->subject->public_id . '&child_profile_id=' . $request->childProfile->public_id)
+        ->assertOk()
+        ->assertJsonPath('status', 'approved')
+        ->assertJsonPath('payment_status', 'pending')
+        ->assertJsonPath('reconciliation_status', 'reported');
 });
 
 it('forbids reporting another users payment', function () {
@@ -365,7 +377,7 @@ it('matches imported kaspi csv rows by request id and stays idempotent on reimpo
 
     $csv = implode("\n", [
         'comment,amount,paid_at,reference',
-        "\"Оплата заявки {$request->public_id}\",{$paymentRecord->amount},2026-04-16 10:15:00,TX-REQUEST-ID",
+        "\"������ ������ {$request->public_id}\",{$paymentRecord->amount},2026-04-16 10:15:00,TX-REQUEST-ID",
     ]);
 
     importKaspiCsv($admin, $csv)
@@ -379,6 +391,12 @@ it('matches imported kaspi csv rows by request id and stays idempotent on reimpo
     expect($paymentRecord->status)->toBe('paid');
     expect($paymentRecord->reconciliation_status)->toBe('matched');
     expect($paymentRecord->external_reference)->toBe('TX-REQUEST-ID');
+
+    $this->getJson('/api/olympiad/request/status?subject_id=' . $subject->public_id . '&child_profile_id=' . $child->public_id)
+        ->assertOk()
+        ->assertJsonPath('status', 'approved')
+        ->assertJsonPath('payment_status', 'paid')
+        ->assertJsonPath('reconciliation_status', 'matched');
 
     Sanctum::actingAs($parent);
     $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
@@ -451,6 +469,12 @@ it('marks ambiguous imported rows for review without opening quiz access', funct
     expect($paymentB->reconciliation_status)->toBe('needs_review');
     expect(PaymentImportRow::query()->firstOrFail()->status)->toBe('needs_review');
 
+    $this->getJson('/api/olympiad/request/status?subject_id=' . $subjectA->public_id . '&child_profile_id=' . $childA->public_id)
+        ->assertOk()
+        ->assertJsonPath('status', 'approved')
+        ->assertJsonPath('payment_status', 'pending')
+        ->assertJsonPath('reconciliation_status', 'needs_review');
+
     Sanctum::actingAs($parentA);
     $this->getJson('/api/quiz/' . $subjectA->public_id . '?child_profile_id=' . $childA->public_id)
         ->assertStatus(402);
@@ -463,12 +487,12 @@ it('stores explanation text when admin creates a quiz', function () {
 
     $response = $this->postJson('/api/admin/quizzes', [
         'subject' => [
-            'name' => 'Физика',
-            'description' => 'Описание предмета',
+            'name' => '������',
+            'description' => '�������� ��������',
             'start_date' => '2026-04-21',
         ],
-        'title' => 'Олимпиада по физике',
-        'description' => 'Проверка знаний',
+        'title' => '��������� �� ������',
+        'description' => '�������� ������',
         'price' => 2990,
         'time_limit' => 45,
         'is_published' => false,
@@ -478,8 +502,8 @@ it('stores explanation text when admin creates a quiz', function () {
             'grade_to' => 8,
             'sort_order' => 1,
             'questions' => [[
-                'question' => 'Сколько будет 2 + 2?',
-                'explanation' => 'Потому что при сложении двух и двух получаем четыре.',
+                'question' => '������� ����� 2 + 2?',
+                'explanation' => '������ ��� ��� �������� ���� � ���� �������� ������.',
                 'position' => 1,
                 'correct_answer' => 'A',
                 'answers' => [
@@ -490,8 +514,8 @@ it('stores explanation text when admin creates a quiz', function () {
         ]],
     ])->assertCreated();
 
-    expect(Question::query()->firstOrFail()->explanation)->toBe('Потому что при сложении двух и двух получаем четыре.');
-    expect($response->json('categories.0.questions.0.explanation'))->toBe('Потому что при сложении двух и двух получаем четыре.');
+    expect(Question::query()->firstOrFail()->explanation)->toBe('������ ��� ��� �������� ���� � ���� �������� ������.');
+    expect($response->json('categories.0.questions.0.explanation'))->toBe('������ ��� ��� �������� ���� � ���� �������� ������.');
 });
 
 it('returns full review payload with correct answers and explanation text', function () {
@@ -499,7 +523,7 @@ it('returns full review payload with correct answers and explanation text', func
     ['child' => $child, 'subject' => $subject, 'quiz' => $quiz, 'question' => $question, 'correctAnswer' => $correctAnswer] = createOlympiadFixture($parent);
 
     $question->update([
-        'explanation' => 'Правильный ответ получается обычным сложением.',
+        'explanation' => '���������� ����� ���������� ������� ���������.',
     ]);
 
     $wrongAnswer = $question->answers()->create([
@@ -515,7 +539,7 @@ it('returns full review payload with correct answers and explanation text', func
         'subject_id' => $subject->public_id,
         'child_profile_id' => $child->public_id,
         'language' => 'ru',
-        'parent_name' => 'Родитель',
+        'parent_name' => '��������',
         'parent_phone' => '+77000000000',
         'parent_email' => 'parent@example.com',
     ])->assertOk();
@@ -543,5 +567,5 @@ it('returns full review payload with correct answers and explanation text', func
         ->assertJsonPath('items.0.status', 'wrong')
         ->assertJsonPath('items.0.correct_answer.label', 'A')
         ->assertJsonPath('items.0.selected_answer.label', 'B')
-        ->assertJsonPath('items.0.explanation', 'Правильный ответ получается обычным сложением.');
+        ->assertJsonPath('items.0.explanation', '���������� ����� ���������� ������� ���������.');
 });

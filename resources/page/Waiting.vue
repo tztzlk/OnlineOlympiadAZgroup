@@ -2,21 +2,15 @@
   <div class="waiting-page">
     <div class="waiting-card">
       <p class="eyebrow">Статус заявки</p>
-      <h1>Оплата и доступ к олимпиаде</h1>
+      <h1>{{ waitingTitle }}</h1>
 
       <p v-if="status === 'pending'" class="lead">
         Заявка ещё проходит модерацию. Как только статус обновится, здесь появятся следующие действия.
       </p>
 
       <template v-else-if="status === 'approved'">
-        <p class="lead">
-          <span v-if="paymentStatus === 'paid'">
-            Оплата подтверждена, доступ к олимпиаде уже открыт.
-          </span>
-          <span v-else>
-            Заявка оформлена. После оплаты нажмите «Я оплатил», и система начнёт автосверку платежа.
-          </span>
-        </p>
+        <p class="lead"><strong>{{ mainStatusLabel }}</strong></p>
+        <p class="lead">{{ statusDescription }}</p>
 
         <div v-if="paymentReference || paymentComment" class="payment-meta">
           <div class="payment-meta__item">
@@ -28,8 +22,8 @@
             <strong>{{ paymentComment || paymentReference || '—' }}</strong>
           </div>
           <div class="payment-meta__item">
-            <span>Сверка</span>
-            <strong>{{ reconciliationStatusLabel }}</strong>
+            <span>Статус</span>
+            <strong>{{ paymentMetaLabel }}</strong>
           </div>
         </div>
 
@@ -85,12 +79,44 @@ const reportingPayment = ref(false)
 
 let pollTimer = null
 
-const reconciliationStatusLabel = computed(() => ({
-  awaiting_payment: 'Ожидаем оплату',
-  reported: 'Платёж на сверке',
-  matched: 'Сверка завершена',
-  needs_review: 'Нужна ручная проверка',
-}[reconciliationStatus.value] || 'Ожидаем оплату'))
+const waitingTitle = '\u041E\u043F\u043B\u0430\u0442\u0430 \u0438 \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u043E\u043B\u0438\u043C\u043F\u0438\u0430\u0434\u0435'
+const waitingForPaymentLabel = '\u041E\u0436\u0438\u0434\u0430\u0435\u043C \u043E\u043F\u043B\u0430\u0442\u0443'
+const paymentReportedLabel = '\u041F\u043B\u0430\u0442\u0451\u0436 \u043E\u0442\u043C\u0435\u0447\u0435\u043D, \u0438\u0434\u0451\u0442 \u0430\u0432\u0442\u043E\u0441\u0432\u0435\u0440\u043A\u0430'
+const paymentReviewLabel = '\u0410\u0432\u0442\u043E\u0441\u0432\u0435\u0440\u043A\u0430 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u043B\u0430\u0441\u044C, \u043D\u0443\u0436\u043D\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430'
+const paymentConfirmedLabel = '\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430, \u0434\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442'
+const paymentConfirmedShortLabel = '\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430'
+const needsReviewShortLabel = '\u041D\u0443\u0436\u043D\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430'
+const autoCheckShortLabel = '\u0418\u0434\u0451\u0442 \u0430\u0432\u0442\u043E\u0441\u0432\u0435\u0440\u043A\u0430'
+
+const mainStatusLabel = computed(() => {
+  if (paymentStatus.value === 'paid') return paymentConfirmedLabel
+  if (reconciliationStatus.value === 'reported') return paymentReportedLabel
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') return paymentReviewLabel
+  return waitingForPaymentLabel
+})
+
+const paymentMetaLabel = computed(() => {
+  if (paymentStatus.value === 'paid') return paymentConfirmedShortLabel
+  if (reconciliationStatus.value === 'reported') return autoCheckShortLabel
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') return needsReviewShortLabel
+  return waitingForPaymentLabel
+})
+
+const statusDescription = computed(() => {
+  if (paymentStatus.value === 'paid') {
+    return 'Оплата подтверждена, доступ к олимпиаде уже открыт.'
+  }
+
+  if (reconciliationStatus.value === 'reported') {
+    return 'Платёж отмечен. Сейчас система автоматически сверяет его с выгрузкой Kaspi.'
+  }
+
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') {
+    return 'Автосверка не смогла однозначно найти платёж. Заявка ждёт проверки.'
+  }
+
+  return 'Оплатите участие и после этого нажмите «Я оплатил», чтобы запустить автосверку.'
+})
 
 const showPayButton = computed(() => Boolean(paymentUrl.value) && paymentStatus.value !== 'paid')
 const showReportButton = computed(() => Boolean(paymentReference.value) && status.value === 'approved' && paymentStatus.value !== 'paid')
@@ -242,15 +268,13 @@ h1 {
 
 .payment-meta__item span {
   display: block;
-  margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: 700;
+  margin-bottom: 4px;
   color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .payment-meta__item strong {
   color: var(--text);
-  word-break: break-word;
 }
 
 .actions {
@@ -259,44 +283,22 @@ h1 {
   gap: 12px;
 }
 
-.btn,
-.actions > a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 12px 18px;
+.btn {
+  border: 1px solid transparent;
   border-radius: 14px;
-  text-decoration: none;
-  border: 0;
-  cursor: pointer;
+  padding: 12px 16px;
   font-weight: 700;
+  cursor: pointer;
 }
 
-.btn-primary,
-.actions > a {
-  background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
   color: var(--text);
 }
 
 .btn-secondary {
   background: rgba(255,252,244,.82);
-  color: var(--accent-strong);
-  border: 1px solid var(--surface-border);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
-  .waiting-card {
-    padding: 22px 18px;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
+  color: var(--text);
+  border-color: var(--surface-border);
 }
 </style>

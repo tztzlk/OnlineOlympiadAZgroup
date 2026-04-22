@@ -245,6 +245,9 @@ it('creates training attempts without creating quiz results', function () {
         'quiz_id' => $quiz->id,
         'quiz_category_id' => $category->id,
         'question' => 'g = ?',
+        'explanation' => 'Acceleration due to gravity near Earth.',
+        'image_source' => 'url',
+        'image_url' => 'https://example.com/gravity.png',
         'position' => 1,
     ]);
     $correct = $question->answers()->create([
@@ -256,6 +259,10 @@ it('creates training attempts without creating quiz results', function () {
 
     Sanctum::actingAs($parent);
 
+    $this->getJson('/api/training/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
+        ->assertOk()
+        ->assertJsonPath('questions.0.image', 'https://example.com/gravity.png');
+
     $this->postJson('/api/training/' . $quiz->public_id . '/submit', [
         'child_profile_id' => $child->public_id,
         'answers' => [
@@ -263,7 +270,11 @@ it('creates training attempts without creating quiz results', function () {
         ],
     ])->assertOk()
         ->assertJsonPath('score', 1)
-        ->assertJsonPath('items.0.correct_answer', '9.8');
+        ->assertJsonPath('items.0.image', 'https://example.com/gravity.png')
+        ->assertJsonPath('items.0.correct_answer.label', 'A')
+        ->assertJsonPath('items.0.correct_answer.answer', '9.8')
+        ->assertJsonPath('items.0.selected_answer.label', 'A')
+        ->assertJsonPath('items.0.explanation', 'Acceleration due to gravity near Earth.');
 
     $this->assertDatabaseHas('training_attempts', [
         'child_profile_id' => $child->id,

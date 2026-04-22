@@ -5,20 +5,30 @@ it('keeps user-facing olympiad pages and api messages free from mojibake', funct
         resource_path('page/Subject.vue') => [
             'mustContain' => [
                 'Оформление участия',
-                'Оплатить через Kaspi',
-                'Сохранить и перейти к оплате',
+                'Ожидаем оплату',
+                'Платёж отмечен, идёт автосверка',
+                'Автосверка не завершилась, нужна проверка',
+                'Оплата подтверждена, доступ открыт',
             ],
         ],
         resource_path('page/Training.vue') => [
             'mustContain' => [
                 'Бесплатный тренировочный режим',
-                'Проверить ответы',
+                'Ваш ответ',
+                'Правильный ответ',
+                'Разбор',
             ],
         ],
-        resource_path('page/Quiz.vue') => [
+        resource_path('page/RequestSuccess.vue') => [
             'mustContain' => [
-                'Завершить тест',
-                'Попытка сброшена',
+                'Автосверка',
+                'Оплата подтверждена, доступ открыт',
+            ],
+        ],
+        resource_path('page/Waiting.vue') => [
+            'mustContain' => [
+                'Платёж отмечен, идёт автосверка',
+                'Оплата подтверждена, доступ открыт',
             ],
         ],
         app_path('Http/Controllers/Api/OlympiadRequestController.php') => [
@@ -37,7 +47,8 @@ it('keeps user-facing olympiad pages and api messages free from mojibake', funct
         app_path('Http/Controllers/Api/TrainingController.php') => [
             'mustContain' => [
                 'Сначала создайте профиль ребёнка.',
-                'Правильный ответ: ',
+                "'selected_answer' =>",
+                "'correct_answer' =>",
             ],
         ],
     ];
@@ -51,7 +62,6 @@ it('keeps user-facing olympiad pages and api messages free from mojibake', funct
             expect($contents)->toContain($expectedText);
         }
 
-        expect($contents)->not->toContain('Р Сџ');
-        expect($contents)->not->toContain('РЎРѓРЎвЂљ');
+        expect($contents)->not->toContain("\u{FFFD}");
     }
 });

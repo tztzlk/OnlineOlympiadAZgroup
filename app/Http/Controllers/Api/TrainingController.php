@@ -97,6 +97,7 @@ class TrainingController extends Controller
         foreach ($category->questions as $question) {
             $selectedId = isset($answers[$question->id]) ? (int) $answers[$question->id] : null;
             $correct = $question->answers->firstWhere('is_correct', true);
+            $selectedAnswer = $question->answers->firstWhere('id', $selectedId);
             $isCorrect = $correct && $selectedId === (int) $correct->id;
 
             if ($isCorrect) {
@@ -106,11 +107,21 @@ class TrainingController extends Controller
             $items[] = [
                 'question_id' => $question->id,
                 'question' => $question->question,
+                'image' => $question->image,
                 'selected_answer_id' => $selectedId,
                 'correct_answer_id' => $correct?->id,
-                'correct_answer' => $correct?->answer,
+                'selected_answer' => $selectedAnswer ? [
+                    'id' => $selectedAnswer->id,
+                    'label' => $selectedAnswer->label,
+                    'answer' => $selectedAnswer->answer,
+                ] : null,
+                'correct_answer' => $correct ? [
+                    'id' => $correct->id,
+                    'label' => $correct->label,
+                    'answer' => $correct->answer,
+                ] : null,
                 'is_correct' => (bool) $isCorrect,
-                'explanation' => 'Правильный ответ: ' . ($correct?->answer ?? 'не найден'),
+                'explanation' => $question->explanation,
             ];
         }
 

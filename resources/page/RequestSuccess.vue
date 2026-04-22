@@ -29,21 +29,21 @@
         <article class="step">
           <span class="step__index">2</span>
           <div>
-            <h2>Сверка</h2>
+            <h2>Автосверка</h2>
             <p>Нажмите «Я оплатил», и система начнёт искать платёж в импортированной Kaspi-выгрузке.</p>
           </div>
         </article>
         <article class="step">
           <span class="step__index">3</span>
           <div>
-            <h2>Автостарт</h2>
-            <p>Как только платёж будет сматчен, кнопка старта появится автоматически без ручного подтверждения.</p>
+            <h2>Доступ</h2>
+            <p>Как только платёж будет подтверждён, кнопка старта станет доступной автоматически.</p>
           </div>
         </article>
       </div>
 
       <div class="status-box" :class="statusTone">
-        <strong>{{ statusTitle }}</strong>
+        <strong>{{ mainStatusLabel }}</strong>
         <p>{{ statusDescription }}</p>
       </div>
 
@@ -57,8 +57,8 @@
           <strong>{{ paymentComment || paymentReference || '—' }}</strong>
         </div>
         <div class="payment-meta__item">
-          <span>Статус сверки</span>
-          <strong>{{ reconciliationStatusLabel }}</strong>
+          <span>Статус</span>
+          <strong>{{ paymentMetaLabel }}</strong>
         </div>
       </div>
 
@@ -123,25 +123,24 @@ const isPaid = computed(() => paymentStatus.value === 'paid')
 const showPayButton = computed(() => Boolean(paymentUrl.value) && paymentStatus.value !== 'paid')
 const showReportButton = computed(() => Boolean(paymentReference.value) && paymentStatus.value !== 'paid')
 
-const reconciliationStatusLabel = computed(() => ({
-  awaiting_payment: 'Ожидаем оплату',
-  reported: 'Платёж на сверке',
-  matched: 'Сверка завершена',
-  needs_review: 'Нужна ручная проверка',
-}[reconciliationStatus.value] || 'Ожидаем оплату'))
+const mainStatusLabel = computed(() => {
+  if (paymentStatus.value === 'paid') return 'Оплата подтверждена, доступ открыт'
+  if (reconciliationStatus.value === 'reported') return 'Платёж отмечен, идёт автосверка'
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') return 'Автосверка не завершилась, нужна проверка'
+  return 'Ожидаем оплату'
+})
+
+const paymentMetaLabel = computed(() => {
+  if (paymentStatus.value === 'paid') return 'Оплата подтверждена'
+  if (reconciliationStatus.value === 'reported') return 'Идёт автосверка'
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') return 'Нужна проверка'
+  return 'Ожидаем оплату'
+})
 
 const statusTone = computed(() => {
   if (paymentStatus.value === 'paid') return 'success'
   if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') return 'warning'
   return 'pending'
-})
-
-const statusTitle = computed(() => {
-  if (paymentStatus.value === 'paid') return 'Оплата подтверждена'
-  if (reconciliationStatus.value === 'reported') return 'Платёж на сверке'
-  if (reconciliationStatus.value === 'needs_review') return 'Нужна ручная проверка'
-  if (paymentStatus.value === 'failed') return 'Оплата требует повторной проверки'
-  return 'Ожидается оплата'
 })
 
 const statusDescription = computed(() => {
@@ -150,18 +149,14 @@ const statusDescription = computed(() => {
   }
 
   if (reconciliationStatus.value === 'reported') {
-    return 'Платёж отмечен пользователем и ждёт автоматического сопоставления с Kaspi-выгрузкой.'
+    return 'Платёж отмечен. Сейчас система автоматически сверяет его с выгрузкой Kaspi.'
   }
 
-  if (reconciliationStatus.value === 'needs_review') {
-    return 'Автосверка не нашла однозначное совпадение. Заявка сохранена и ждёт проверки.'
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') {
+    return 'Автосверка не смогла однозначно найти платёж. Заявка ждёт проверки.'
   }
 
-  if (paymentStatus.value === 'failed') {
-    return 'Если платёж уже прошёл, нажмите «Я оплатил» ещё раз или свяжитесь с поддержкой.'
-  }
-
-  return 'После оплаты нажмите «Я оплатил», чтобы запустить сверку и дождаться автоматического доступа.'
+  return 'Оплатите участие и после этого нажмите «Я оплатил», чтобы запустить автосверку.'
 })
 
 const applyStatusPayload = (data = {}) => {
@@ -254,34 +249,23 @@ onBeforeUnmount(() => {
 .funnel-progress__fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--info) 0%, #4d8bc9 100%); }
 .eyebrow { margin: 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: var(--accent-strong); }
 h1 { margin: 0; color: var(--text); font-size: 38px; }
-.lead { margin: 0; color: var(--text-secondary); line-height: 1.7; }
+.lead, .feedback { margin: 0; color: var(--text-secondary); line-height: 1.7; }
 .steps { display: grid; gap: 14px; }
 .step { display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 18px; border-radius: 18px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.82); }
 .step__index { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: rgba(201,171,99,.16); color: var(--accent-strong); font-weight: 800; }
-.step h2 { margin: 0 0 6px; color: var(--text); font-size: 18px; }
-.step p { margin: 0; color: var(--text-secondary); line-height: 1.6; }
-.status-box { padding: 18px; border-radius: 18px; border: 1px solid transparent; }
+.step h2, .payment-meta__item strong { margin: 0; color: var(--text); }
+.step p { margin: 6px 0 0; color: var(--text-secondary); line-height: 1.6; }
+.status-box { border-radius: 22px; padding: 18px; border: 1px solid var(--surface-border); }
 .status-box strong { display: block; margin-bottom: 6px; color: var(--text); }
-.status-box p { margin: 0; color: var(--text-secondary); line-height: 1.6; }
-.status-box.pending { background: rgba(201,171,99,.12); border-color: rgba(201,171,99,.18); }
-.status-box.success { background: rgba(79,167,116,.08); border-color: rgba(79,167,116,.16); }
-.status-box.warning { background: rgba(234,179,8,.08); border-color: rgba(234,179,8,.18); }
+.status-box p { margin: 0; color: var(--text-secondary); }
+.status-box.success { background: var(--success-bg); }
+.status-box.warning { background: var(--warning-bg); }
+.status-box.pending { background: rgba(232,223,200,.44); }
 .payment-meta { display: grid; gap: 12px; }
-.payment-meta__item { padding: 16px 18px; border-radius: 18px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.82); }
-.payment-meta__item span { display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 12px; font-weight: 700; }
-.payment-meta__item strong { color: var(--text); word-break: break-word; }
-.feedback { margin: 0; color: var(--text-secondary); line-height: 1.6; }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.payment-cta { display: flex; flex-wrap: wrap; gap: 12px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 18px; border-radius: 14px; text-decoration: none; font-weight: 700; border: 0; cursor: pointer; }
-.btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%); color: var(--text); }
-.btn-secondary { background: rgba(255,252,244,.82); color: var(--accent-strong); border: 1px solid var(--surface-border); }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
-@media (max-width: 640px) {
-  .success-card { padding: 24px 18px; }
-  .funnel-progress__top { flex-direction: column; align-items: flex-start; }
-  h1 { font-size: 30px; }
-  .actions,
-  .payment-cta { flex-direction: column; }
-}
+.payment-meta__item { padding: 16px; border-radius: 18px; border: 1px solid var(--surface-border); background: rgba(255,252,244,.82); }
+.payment-meta__item span { display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 13px; }
+.actions, .payment-cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; padding: 12px 16px; text-decoration: none; border: 1px solid transparent; cursor: pointer; font-weight: 700; }
+.btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); }
+.btn-secondary { background: rgba(255,252,244,.82); color: var(--text); border-color: var(--surface-border); }
 </style>

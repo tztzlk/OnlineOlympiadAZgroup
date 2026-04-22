@@ -47,276 +47,273 @@
       </StatePanel>
 
       <template v-else>
-      <div class="subjects-grid">
-        <div
-          v-for="subject in subjects"
-          :key="subject.id"
-          class="subject-card"
-          :class="{ selected: selectedSubject?.id === subject.id }"
-          @click="selectSubject(subject)"
-        >
-          <div class="subject-card__img-wrap">
-            <img :src="subject.image" :alt="subject.name" />
-          </div>
-          <h2 class="subject-card__name">{{ subject.name }}</h2>
-          <p class="subject-card__desc">{{ subject.description }}</p>
-          <p class="subject-card__price">Участие: {{ formatPrice(subject.price) }}</p>
-          <CountdownBadge :target="subject.start_date" label="До старта" />
-          <RouterLink
-            class="subject-card__link"
-            :to="`/subjects/${subject.id}`"
-            @click.stop
+        <div class="subjects-grid">
+          <div
+            v-for="subject in subjects"
+            :key="subject.id"
+            class="subject-card"
+            :class="{ selected: selectedSubject?.id === subject.id }"
+            @click="selectSubject(subject)"
           >
-            Страница предмета
-          </RouterLink>
-        </div>
-      </div>
-
-      <StatePanel
-        v-if="!subjects.length"
-        tone="empty"
-        eyebrow="Каталог"
-        title="Сейчас нет опубликованных олимпиад"
-        description="Как только организаторы откроют новый набор, карточки предметов появятся здесь."
-      />
-
-      <div v-if="selectedSubject" class="step-box">
-        <div class="step-box__header">
-          <div>
-            <p class="page-badge soft">Шаг 1 из 3</p>
-            <h2>Оформление участия</h2>
-            <p class="chosen">Предмет: <strong>{{ selectedSubject.name }}</strong></p>
-            <p v-if="registrationDeadlineLabel" class="deadline-copy">До закрытия регистрации: <strong>{{ registrationDeadlineLabel }}</strong></p>
+            <div class="subject-card__img-wrap">
+              <img :src="subject.image" :alt="subject.name" />
+            </div>
+            <h2 class="subject-card__name">{{ subject.name }}</h2>
+            <p class="subject-card__desc">{{ subject.description }}</p>
+            <p class="subject-card__price">Участие: {{ formatPrice(subject.price) }}</p>
+            <CountdownBadge :target="subject.start_date" label="До старта" />
+            <RouterLink
+              class="subject-card__link"
+              :to="`/subjects/${subject.id}`"
+              @click.stop
+            >
+              Страница предмета
+            </RouterLink>
           </div>
-          <CountdownBadge :target="selectedSubject.start_date" label="Старт олимпиады" />
         </div>
 
-        <div v-if="countdownStatusLabel" class="deadline-banner">
-          <div>
-            <p class="deadline-banner__eyebrow">Регистрация</p>
-            <strong>{{ countdownStatusLabel }}</strong>
-          </div>
-          <span v-if="countdownParts">{{ countdownParts }}</span>
-        </div>
+        <StatePanel
+          v-if="!subjects.length"
+          tone="empty"
+          eyebrow="Каталог"
+          title="Сейчас нет опубликованных олимпиад"
+          description="Как только организаторы откроют новый набор, карточки предметов появятся здесь."
+        />
 
-        <section class="rules-card">
-          <button
-            type="button"
-            class="rules-card__toggle"
-            :aria-expanded="String(rulesExpanded)"
-            @click="rulesExpanded = !rulesExpanded"
-          >
+        <div v-if="selectedSubject" class="step-box">
+          <div class="step-box__header">
             <div>
-              <p class="rules-card__eyebrow">Правила участия</p>
-              <h3>Правила теперь доступны прямо на странице оформления</h3>
-              <p class="rules-card__summary">Ознакомьтесь с условиями без перехода на отдельный экран.</p>
+              <p class="page-badge soft">Шаг 1 из 3</p>
+              <h2>Оформление участия</h2>
+              <p class="chosen">Предмет: <strong>{{ selectedSubject.name }}</strong></p>
+              <p v-if="registrationDeadlineLabel" class="deadline-copy">
+                До закрытия регистрации: <strong>{{ registrationDeadlineLabel }}</strong>
+              </p>
             </div>
-            <span class="rules-card__action">{{ rulesExpanded ? 'Скрыть' : 'Открыть' }}</span>
-          </button>
+            <CountdownBadge :target="selectedSubject.start_date" label="Старт олимпиады" />
+          </div>
 
-          <div v-if="rulesExpanded" class="rules-card__body">
-            <div class="rules-card__notice">
-              Нарушение правил может привести к аннулированию результатов. Участие в олимпиаде означает согласие с условиями платформы.
+          <div v-if="countdownStatusLabel" class="deadline-banner">
+            <div>
+              <p class="deadline-banner__eyebrow">Регистрация</p>
+              <strong>{{ countdownStatusLabel }}</strong>
             </div>
+            <span v-if="countdownParts">{{ countdownParts }}</span>
+          </div>
 
-            <div class="rules-list">
-              <article v-for="(rule, index) in participationRules" :key="rule.title" class="rule-item">
-                <span class="rule-item__index">{{ String(index + 1).padStart(2, '0') }}</span>
+          <section class="rules-card">
+            <button
+              type="button"
+              class="rules-card__toggle"
+              :aria-expanded="String(rulesExpanded)"
+              @click="rulesExpanded = !rulesExpanded"
+            >
+              <div>
+                <p class="rules-card__eyebrow">Правила участия</p>
+                <h3>Правила теперь доступны прямо на странице оформления</h3>
+                <p class="rules-card__summary">Ознакомьтесь с условиями без перехода на отдельный экран.</p>
+              </div>
+              <span class="rules-card__action">{{ rulesExpanded ? 'Скрыть' : 'Открыть' }}</span>
+            </button>
+
+            <div v-if="rulesExpanded" class="rules-card__body">
+              <div class="rules-card__notice">
+                Нарушение правил может привести к аннулированию результатов. Участие в олимпиаде означает согласие с условиями платформы.
+              </div>
+
+              <div class="rules-list">
+                <article v-for="(rule, index) in participationRules" :key="rule.title" class="rule-item">
+                  <span class="rule-item__index">{{ String(index + 1).padStart(2, '0') }}</span>
+                  <div>
+                    <h4>{{ rule.title }}</h4>
+                    <p>{{ rule.desc }}</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <StatePanel
+            v-if="!userStore.isAuthenticated"
+            tone="warning"
+            eyebrow="Нужен аккаунт"
+            title="Сначала войдите в кабинет"
+            description="После входа можно сохранить данные ребёнка, сразу перейти к оплате и отслеживать подтверждение платежа."
+          >
+            <template #actions>
+              <RouterLink to="/login" class="step-link">Войти</RouterLink>
+              <RouterLink to="/register" class="step-link secondary">Регистрация</RouterLink>
+            </template>
+          </StatePanel>
+
+          <template v-else>
+            <div class="flow-grid">
+              <article class="flow-step">
+                <span class="flow-step__index">1</span>
                 <div>
-                  <h4>{{ rule.title }}</h4>
-                  <p>{{ rule.desc }}</p>
+                  <h3>Выберите участника</h3>
+                  <p>Можно использовать уже созданный профиль ребёнка или заполнить форму ниже для нового участника.</p>
+                </div>
+              </article>
+              <article class="flow-step">
+                <span class="flow-step__index">2</span>
+                <div>
+                  <h3>Сохраните данные и оплатите</h3>
+                  <p>Укажите язык олимпиады и контакты родителя. После сохранения откроется ссылка на оплату Kaspi.</p>
+                </div>
+              </article>
+              <article class="flow-step">
+                <span class="flow-step__index">3</span>
+                <div>
+                  <h3>Дождитесь подтверждения оплаты</h3>
+                  <p>После оплаты нажмите «Я оплатил». Дальше статус автосверки появится прямо на этой странице.</p>
                 </div>
               </article>
             </div>
-          </div>
-        </section>
 
-        <StatePanel
-          v-if="!userStore.isAuthenticated"
-          tone="warning"
-          eyebrow="Нужен аккаунт"
-          title="Сначала войдите в кабинет"
-          description="После входа можно сохранить данные ребёнка, сразу перейти к оплате и отслеживать подтверждение платежа."
-        >
-          <template #actions>
-            <RouterLink to="/login" class="step-link">Войти</RouterLink>
-            <RouterLink to="/register" class="step-link secondary">Регистрация</RouterLink>
-          </template>
-        </StatePanel>
-
-        <template v-else>
-          <div class="flow-grid">
-            <article class="flow-step">
-              <span class="flow-step__index">1</span>
-              <div>
-                <h3>Выберите участника</h3>
-                <p>Можно использовать уже созданный профиль ребёнка или заполнить форму ниже для нового участника.</p>
-              </div>
-            </article>
-            <article class="flow-step">
-              <span class="flow-step__index">2</span>
-              <div>
-                <h3>Сохраните данные и оплатите</h3>
-                <p>Укажите язык олимпиады и контакты родителя. После сохранения откроется ссылка на оплату Kaspi.</p>
-              </div>
-            </article>
-            <article class="flow-step">
-              <span class="flow-step__index">3</span>
-              <div>
-                <h3>Дождитесь подтверждения оплаты</h3>
-                <p>Как только администратор отметит платёж, здесь появится кнопка для старта олимпиады.</p>
-              </div>
-            </article>
-          </div>
-
-          <div class="field">
-            <label>Ребёнок</label>
-            <select v-model="selectedChildId" class="step-input" @change="applyChildSelection">
-              <option value="">Создать или обновить профиль ребёнка из формы ниже</option>
-              <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
-                {{ child.full_name }} · {{ child.grade || 'без класса' }}
-              </option>
-            </select>
-            <small v-if="!userStore.children.length" class="helper">
-              У вас пока нет профилей детей. Заполните форму ниже, и профиль создастся автоматически вместе с участием.
-            </small>
-          </div>
-
-          <div class="form-section-label">Данные ребёнка</div>
-
-          <div class="fields-row">
             <div class="field">
-              <label>Имя</label>
-              <input v-model="form.first_name" placeholder="Введите имя" class="step-input" />
+              <label>Ребёнок</label>
+              <select v-model="selectedChildId" class="step-input" @change="applyChildSelection">
+                <option value="">Создать или обновить профиль ребёнка из формы ниже</option>
+                <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
+                  {{ child.full_name }} · {{ child.grade || 'без класса' }}
+                </option>
+              </select>
+              <small v-if="!userStore.children.length" class="helper">
+                У вас пока нет профилей детей. Заполните форму ниже, и профиль создастся автоматически вместе с участием.
+              </small>
             </div>
-            <div class="field">
-              <label>Фамилия</label>
-              <input v-model="form.last_name" placeholder="Введите фамилию" class="step-input" />
-            </div>
-          </div>
 
-          <div class="fields-row">
-            <div class="field">
-              <label>Дата рождения</label>
-              <input v-model="form.birth_date" type="date" class="step-input" />
+            <div class="form-section-label">Данные ребёнка</div>
+
+            <div class="fields-row">
+              <div class="field">
+                <label>Имя</label>
+                <input v-model="form.first_name" placeholder="Введите имя" class="step-input" />
+              </div>
+              <div class="field">
+                <label>Фамилия</label>
+                <input v-model="form.last_name" placeholder="Введите фамилию" class="step-input" />
+              </div>
             </div>
+
+            <div class="fields-row">
+              <div class="field">
+                <label>Дата рождения</label>
+                <input v-model="form.birth_date" type="date" class="step-input" />
+              </div>
+              <div class="field">
+                <label>Класс</label>
+                <select v-model.number="form.grade" class="step-input">
+                  <option disabled value="">Выберите класс</option>
+                  <option v-for="item in gradeOptions" :key="item" :value="item">{{ item }} класс</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="fields-row">
+              <div class="field">
+                <label>Школа</label>
+                <input v-model="form.school" placeholder="Название школы" class="step-input" />
+              </div>
+              <div class="field">
+                <label>Город</label>
+                <input v-model="form.city" placeholder="Город" class="step-input" />
+              </div>
+            </div>
+
             <div class="field">
-              <label>Класс</label>
-              <select v-model.number="form.grade" class="step-input">
-                <option disabled value="">Выберите класс</option>
-                <option v-for="item in gradeOptions" :key="item" :value="item">{{ item }} класс</option>
+              <label>Язык олимпиады</label>
+              <select v-model="form.language" class="step-input">
+                <option value="ru">Русский</option>
+                <option value="kk">Қазақша</option>
+                <option value="en">English</option>
               </select>
             </div>
-          </div>
 
-          <div class="fields-row">
-            <div class="field">
-              <label>Школа</label>
-              <input v-model="form.school" placeholder="Название школы" class="step-input" />
-            </div>
-            <div class="field">
-              <label>Город</label>
-              <input v-model="form.city" placeholder="Город" class="step-input" />
-            </div>
-          </div>
+            <div class="divider"><span>Данные родителя</span></div>
 
-          <div class="field">
-            <label>Язык олимпиады</label>
-            <select v-model="form.language" class="step-input">
-              <option value="ru">Русский</option>
-              <option value="kk">Қазақша</option>
-              <option value="en">English</option>
-            </select>
-          </div>
-
-          <div class="divider"><span>Данные родителя</span></div>
-
-          <div class="fields-row">
-            <div class="field">
-              <label>ФИО родителя</label>
-              <input v-model="form.parent_name" placeholder="Полное имя" class="step-input" />
-            </div>
-            <div class="field">
-              <label>Телефон</label>
-              <input v-model="form.parent_phone" placeholder="+7 (777) 777-77-77" class="step-input" />
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Email</label>
-            <input v-model="form.parent_email" placeholder="email@mail.ru" class="step-input" />
-          </div>
-
-          <div class="single-action">
-            <button :disabled="!canProceed || submitting" class="start-btn" @click="startOlympiad">
-              {{ submitting ? 'Сохраняем...' : 'Сохранить и перейти к оплате' }}
-            </button>
-          </div>
-
-          <StatePanel
-            v-if="requestStatus"
-            :tone="requestTone"
-            eyebrow="Статус участия"
-            :title="requestStatusLabel"
-            :description="requestHint"
-          >
-            <template #actions>
-              <StatusBadge :label="requestStatusLabel" :tone="requestTone" />
-              <StatusBadge :label="paymentStatusLabel" :tone="paymentTone" />
-              <StatusBadge
-                v-if="requestStatus === 'approved'"
-                :label="reconciliationStatusLabel"
-                :tone="reconciliationTone"
-              />
-              <KaspiPaymentAssist
-                v-if="showKaspiButton"
-                :payment-url="paymentUrl"
-                hint="Результат сразу после теста"
-                mobile-cta="Оплатить через Kaspi"
-                desktop-cta="Открыть ссылку оплаты"
-              />
-              <div v-if="showKaspiButton" class="payment-action">
-                <a :href="paymentUrl" target="_blank" rel="noopener" class="step-link">Оплатить через Kaspi</a>
-                <span class="payment-action__hint">Результат сразу после теста</span>
+            <div class="fields-row">
+              <div class="field">
+                <label>ФИО родителя</label>
+                <input v-model="form.parent_name" placeholder="Полное имя" class="step-input" />
               </div>
-              <button v-if="canStartOlympiad" class="step-link secondary" @click="goToQuiz">Начать олимпиаду</button>
-            </template>
-          </StatePanel>
-          <div
-            v-if="requestStatus && (paymentReference || paymentComment || showReportPaymentButton || paymentReportMessage)"
-            class="payment-followup"
-          >
-            <div v-if="paymentReference || paymentComment" class="payment-meta">
-              <div class="payment-meta__item">
-                <span>Request ID</span>
-                <strong>{{ paymentReference || '—' }}</strong>
-              </div>
-              <div class="payment-meta__item">
-                <span>Комментарий к оплате</span>
-                <strong>{{ paymentComment || paymentReference || '—' }}</strong>
-              </div>
-              <div class="payment-meta__item">
-                <span>Сверка</span>
-                <strong>{{ reconciliationDescription }}</strong>
+              <div class="field">
+                <label>Телефон</label>
+                <input v-model="form.parent_phone" placeholder="+7 (777) 777-77-77" class="step-input" />
               </div>
             </div>
 
-            <div v-if="showReportPaymentButton" class="payment-followup__actions">
-              <button
-                type="button"
-                class="step-link secondary"
-                :disabled="reportingPayment"
-                @click="reportPayment"
-              >
-                {{ reportingPayment ? 'Отмечаем оплату...' : 'Я оплатил' }}
+            <div class="field">
+              <label>Email</label>
+              <input v-model="form.parent_email" placeholder="email@mail.ru" class="step-input" />
+            </div>
+
+            <div class="single-action">
+              <button :disabled="!canProceed || submitting" class="start-btn" @click="startOlympiad">
+                {{ submitting ? 'Сохраняем...' : 'Сохранить и перейти к оплате' }}
               </button>
-              <span class="payment-action__hint">{{ reconciliationDescription }}</span>
             </div>
 
-            <p v-if="paymentReportMessage" class="payment-feedback">{{ paymentReportMessage }}</p>
-          </div>
-        </template>
-      </div>
+            <StatePanel
+              v-if="requestStatus"
+              :tone="requestTone"
+              eyebrow="Статус участия"
+              :title="requestStatusLabel"
+              :description="requestHint"
+            >
+              <template #actions>
+                <StatusBadge :label="requestStatusLabel" :tone="requestTone" />
+                <KaspiPaymentAssist
+                  v-if="showKaspiButton"
+                  :payment-url="paymentUrl"
+                  hint="Оплата открывается в Kaspi"
+                  mobile-cta="Оплатить через Kaspi"
+                  desktop-cta="Открыть ссылку оплаты"
+                />
+                <div v-if="showKaspiButton" class="payment-action">
+                  <a :href="paymentUrl" target="_blank" rel="noopener" class="step-link">Оплатить через Kaspi</a>
+                  <span class="payment-action__hint">Оплата открывается в Kaspi</span>
+                </div>
+                <button v-if="canStartOlympiad" class="step-link secondary" @click="goToQuiz">Начать олимпиаду</button>
+              </template>
+            </StatePanel>
+
+            <div
+              v-if="requestStatus && (paymentReference || paymentComment || showReportPaymentButton || paymentReportMessage)"
+              class="payment-followup"
+            >
+              <div v-if="paymentReference || paymentComment" class="payment-meta">
+                <div class="payment-meta__item">
+                  <span>Request ID</span>
+                  <strong>{{ paymentReference || '—' }}</strong>
+                </div>
+                <div class="payment-meta__item">
+                  <span>Комментарий к оплате</span>
+                  <strong>{{ paymentComment || paymentReference || '—' }}</strong>
+                </div>
+                <div class="payment-meta__item">
+                  <span>Автосверка</span>
+                  <strong>{{ reconciliationDescription }}</strong>
+                </div>
+              </div>
+
+              <div v-if="showReportPaymentButton" class="payment-followup__actions">
+                <button
+                  type="button"
+                  class="step-link secondary"
+                  :disabled="reportingPayment"
+                  @click="reportPayment"
+                >
+                  {{ reportingPayment ? 'Отмечаем оплату...' : 'Я оплатил' }}
+                </button>
+                <span class="payment-action__hint">{{ reconciliationDescription }}</span>
+              </div>
+
+              <p v-if="paymentReportMessage" class="payment-feedback">{{ paymentReportMessage }}</p>
+            </div>
+          </template>
+        </div>
       </template>
     </div>
   </div>
@@ -410,43 +407,38 @@ const canProceed = computed(() =>
   )
 )
 
-const requestStatusLabel = computed(() => ({
-  pending: 'Участие требует проверки',
-  approved: 'Участие оформлено',
-  rejected: 'Участие отклонено',
-}[requestStatus.value] || 'Участие ещё не оформлено'))
+const requestStatusLabel = computed(() => {
+  if (requestStatus.value === 'pending') return 'Участие требует проверки'
+  if (requestStatus.value === 'rejected') return 'Участие отклонено'
 
-const paymentStatusLabel = computed(() => ({
-  pending: 'Оплата ожидается',
-  paid: 'Оплата подтверждена',
-  failed: 'Оплата не прошла',
-}[paymentStatus.value] || 'Оплата ожидается'))
+  if (requestStatus.value === 'approved' && paymentStatus.value === 'paid') {
+    return 'Оплата подтверждена, доступ открыт'
+  }
 
-const requestTone = computed(() => ({
-  pending: 'warning',
-  approved: 'success',
-  rejected: 'danger',
-}[requestStatus.value] || 'neutral'))
+  if (requestStatus.value === 'approved' && reconciliationStatus.value === 'reported') {
+    return 'Платёж отмечен, идёт автосверка'
+  }
 
-const paymentTone = computed(() => ({
-  pending: 'warning',
-  paid: 'success',
-  failed: 'danger',
-}[paymentStatus.value] || 'neutral'))
+  if (requestStatus.value === 'approved' && reconciliationStatus.value === 'needs_review') {
+    return 'Автосверка не завершилась, нужна проверка'
+  }
 
-const reconciliationStatusLabel = computed(() => ({
-  awaiting_payment: 'Ожидаем оплату',
-  reported: 'Платёж на сверке',
-  matched: 'Сверка завершена',
-  needs_review: 'Нужна проверка',
-}[reconciliationStatus.value] || 'Ожидаем оплату'))
+  if (requestStatus.value === 'approved') {
+    return 'Ожидаем оплату'
+  }
 
-const reconciliationTone = computed(() => ({
-  awaiting_payment: 'warning',
-  reported: 'info',
-  matched: 'success',
-  needs_review: 'warning',
-}[reconciliationStatus.value] || 'neutral'))
+  return 'Участие ещё не оформлено'
+})
+
+const requestTone = computed(() => {
+  if (requestStatus.value === 'rejected') return 'danger'
+  if (requestStatus.value === 'pending') return 'warning'
+  if (requestStatus.value === 'approved' && reconciliationStatus.value === 'needs_review') return 'warning'
+  if (requestStatus.value === 'approved' && paymentStatus.value === 'paid') return 'success'
+  if (requestStatus.value === 'approved' && reconciliationStatus.value === 'reported') return 'info'
+  if (requestStatus.value === 'approved') return 'warning'
+  return 'neutral'
+})
 
 const showKaspiButton = computed(() =>
   Boolean(paymentUrl.value) &&
@@ -470,14 +462,14 @@ const reconciliationDescription = computed(() => {
   }
 
   if (reconciliationStatus.value === 'reported') {
-    return 'Платёж отмечен пользователем и сейчас проходит автоматическую сверку.'
+    return 'Платёж отмечен, идёт автосверка. Обычно подтверждение появляется автоматически.'
   }
 
   if (reconciliationStatus.value === 'needs_review') {
-    return 'Автосверка не смогла однозначно найти платёж. Запись ждёт проверки.'
+    return 'Автосверка не завершилась, нужна проверка администратора.'
   }
 
-  return 'После оплаты нажмите «Я оплатил», и система будет проверять сверку автоматически.'
+  return 'Ожидаем оплату. После перевода нажмите «Я оплатил», чтобы запустить автосверку.'
 })
 
 const registrationDeadline = computed(() => {
@@ -518,12 +510,20 @@ const requestHint = computed(() => {
     return 'Данные сохранены, но участие временно требует дополнительной проверки администратором.'
   }
 
-  if (requestStatus.value === 'approved' && paymentStatus.value === 'pending') {
-    return 'Участие оформлено. Оплатите олимпиаду и дождитесь подтверждения платежа администратором.'
-  }
-
   if (requestStatus.value === 'approved' && paymentStatus.value === 'paid') {
     return 'Оплата подтверждена. Доступ к олимпиаде открыт, можно начинать.'
+  }
+
+  if (requestStatus.value === 'approved' && reconciliationStatus.value === 'reported') {
+    return 'Платёж отмечен пользователем. Сейчас система выполняет автосверку.'
+  }
+
+  if (requestStatus.value === 'approved' && reconciliationStatus.value === 'needs_review') {
+    return 'Автосверка не смогла подтвердить перевод автоматически. Заявка ждёт ручной проверки.'
+  }
+
+  if (requestStatus.value === 'approved') {
+    return 'Участие оформлено. Перейдите к оплате, затем нажмите «Я оплатил».'
   }
 
   if (requestStatus.value === 'rejected') {
@@ -621,7 +621,7 @@ const reportPayment = async () => {
       payment_reference: paymentReference.value,
       payment_comment: paymentComment.value,
     })
-    paymentReportMessage.value = data.message || 'Платёж отмечен и отправлен на сверку.'
+    paymentReportMessage.value = data.message || 'Платёж отмечен, идёт автосверка.'
     syncPaymentPolling()
   } catch (error) {
     paymentReportMessage.value = getErrorMessage(error, 'Не удалось отметить платёж. Попробуйте ещё раз.')
