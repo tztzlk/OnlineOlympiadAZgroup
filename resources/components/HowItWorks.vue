@@ -178,17 +178,14 @@ const steps = [
   border: 1.5px solid var(--border);
   border-radius: 24px;
   padding: 32px 28px;
-  box-shadow: var(--shadow-card);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   overflow: hidden;
   min-height: 360px;
   padding: 22px;
   border-radius: 30px;
-  border: 1px solid rgba(117, 93, 41, 0.12);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 248, 236, 0.82)),
-    radial-gradient(circle at top right, rgba(208, 179, 107, 0.16), transparent 35%);
-  box-shadow: 0 22px 52px rgba(77, 61, 24, 0.08);
+  border: 1px solid var(--surface-border);
+  background: var(--card);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(12px);
   transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -196,7 +193,7 @@ const steps = [
 @media (hover: hover) and (pointer: fine) {
   .step-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 32px 64px rgba(77, 61, 24, 0.13);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 }
 .step-card::before {
@@ -207,13 +204,9 @@ const steps = [
   right: 0;
   height: 3px;
   border-radius: 24px 24px 0 0;
-  background: linear-gradient(90deg, var(--accent), var(--green));
+  background: var(--accent);
   opacity: 0;
   transition: opacity 0.22s ease;
-}
-.step-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 .step-card:hover::before { opacity: 1; }
 
@@ -301,7 +294,7 @@ const steps = [
 .hiw__btn:hover {
   background: var(--green-hover);
   transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(22, 163, 74, 0.36);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 .hiw__btn svg { transition: transform 0.22s; }
 .hiw__btn:hover svg { transform: translateX(4px); }

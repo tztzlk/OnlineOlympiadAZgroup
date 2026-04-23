@@ -14,13 +14,13 @@
 
 :root {
     /* Backgrounds — slightly off-white so white cards pop */
-    --bg: #f8fafc;
-    --bg-alt: #f1f5f9;
+    --bg: #fafafa;
+    --bg-alt: #f5f5f5;
     --bg-yellow: #fffbeb;
     --bg-green: #f0fdf4;
 
     /* Text */
-    --text: #111827;
+    --text: #1a1a1a;
     --text-secondary: #6b7280;
 
     /* Cards & Surfaces */
@@ -31,21 +31,21 @@
     --surface-strong: #e2e8f0;
 
     /* Yellow — highlights, accent shapes, decorative */
-    --accent: #f5c842;
-    --accent-hover: #e6b52e;
-    --accent-soft: #fef9e7;
-    --accent-strong: #d4a017;
+    --accent: #F2C94C;
+    --accent-hover: #e0bb45;
+    --accent-soft: #fdf6dd;
+    --accent-strong: #c6a337;
 
     /* Green — primary CTA, success states */
-    --green: #16a34a;
-    --green-hover: #15803d;
-    --green-soft: #dcfce7;
-    --green-strong: #166534;
+    --green: #3A9E3A;
+    --green-hover: #2f8730;
+    --green-soft: #e4f4e4;
+    --green-strong: #2a742a;
 
     /* Legacy aliases */
-    --success-soft: #16a34a;
-    --success-soft-hover: #15803d;
-    --success-bg: #dcfce7;
+    --success-soft: #3A9E3A;
+    --success-soft-hover: #2f8730;
+    --success-bg: #e4f4e4;
 
     /* Info / Danger */
     --info: #1a5fa8;
@@ -59,8 +59,8 @@
     /* Utility */
     --border: rgba(0, 0, 0, 0.08);
     --overlay: rgba(255, 255, 255, 0.92);
-    --shadow-soft: 0 20px 48px rgba(0, 0, 0, 0.06);
-    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
     --radius-sm: 12px;
     --radius-md: 16px;
     --radius-lg: 24px;
@@ -74,28 +74,28 @@
 }
 
 .dark {
-    --bg: #0f172a;
-    --bg-alt: #1e293b;
+    --bg: #111827;
+    --bg-alt: #1f2937;
     --bg-yellow: #1c1a0a;
     --bg-green: #0a1a10;
-    --text: #f1f5f9;
+    --text: #f3f4f6;
     --text-secondary: #94a3b8;
     --card: #1e293b;
     --surface: rgba(30, 41, 59, 0.95);
     --surface-border: rgba(255, 255, 255, 0.08);
     --surface-soft: rgba(255, 255, 255, 0.04);
     --surface-strong: #334155;
-    --accent: #f5c842;
-    --accent-hover: #e6b52e;
-    --accent-soft: #2a2006;
-    --accent-strong: #fde68a;
-    --green: #22c55e;
-    --green-hover: #16a34a;
-    --green-soft: #052e16;
-    --green-strong: #4ade80;
-    --success-soft: #22c55e;
-    --success-soft-hover: #16a34a;
-    --success-bg: #052e16;
+    --accent: #F2C94C;
+    --accent-hover: #e0bb45;
+    --accent-soft: #3a2f0d;
+    --accent-strong: #f7dc86;
+    --green: #58b658;
+    --green-hover: #469f46;
+    --green-soft: #102810;
+    --green-strong: #8cdb8c;
+    --success-soft: #58b658;
+    --success-soft-hover: #469f46;
+    --success-bg: #102810;
     --info: #3b82f6;
     --info-hover: #2563eb;
     --info-soft: #1e3a5f;
@@ -105,8 +105,8 @@
     --warning-bg: #1c1506;
     --border: rgba(255, 255, 255, 0.08);
     --overlay: rgba(15, 23, 42, 0.92);
-    --shadow-soft: 0 20px 48px rgba(0, 0, 0, 0.3);
-    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.24);
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.18);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.18);
     --bg-primary: var(--bg);
     --bg-surface: var(--card);
     --text-primary: var(--text);
@@ -274,23 +274,24 @@ select:focus {
 .ds-btn-green {
     background: var(--green);
     color: #ffffff;
-    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.24);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 .ds-btn-green:hover:not(:disabled) {
     background: var(--green-hover);
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(22, 163, 74, 0.32);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Yellow — accent / secondary CTA */
 .ds-btn-yellow {
     background: var(--accent);
-    color: #111827;
-    box-shadow: 0 6px 20px rgba(245, 200, 66, 0.22);
+    color: #1a1a1a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 .ds-btn-yellow:hover:not(:disabled) {
     background: var(--accent-hover);
     transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Ghost outline */
@@ -333,8 +334,8 @@ select:focus {
 .ds-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
 .ds-input:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.18);
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(58, 158, 58, 0.12);
 }
 .ds-input.is-error {
     border-color: var(--danger-soft);
@@ -416,7 +417,7 @@ select:focus {
     border-radius: 999px;
     background: var(--accent-soft);
     border: 1px solid rgba(245, 200, 66, 0.3);
-    color: #92660a;
+    color: #9b7a10;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.09em;

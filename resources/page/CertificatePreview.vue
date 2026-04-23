@@ -156,7 +156,7 @@ onMounted(loadPreview)
 
 .preview-brand {
   margin: 0 0 12px;
-  color: #8a6b25;
+  color: #9b7a10;
   letter-spacing: .18em;
   font-weight: 700;
 }
@@ -164,7 +164,7 @@ onMounted(loadPreview)
 .certificate-preview__inner h2 {
   margin: 0;
   font-size: clamp(34px, 6vw, 58px);
-  color: #6f5220;
+  color: var(--text);
 }
 
 .preview-lead {
@@ -225,9 +225,9 @@ onMounted(loadPreview)
 }
 
 .btn-outline {
-  background: rgba(255, 251, 243, 0.86);
-  color: var(--accent-strong);
-  border: 1px solid rgba(201, 171, 99, 0.28);
+  background: var(--card);
+  color: var(--green);
+  border: 1px solid var(--surface-border);
 }
 
 @media (max-width: 720px) {

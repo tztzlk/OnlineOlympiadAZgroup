@@ -115,7 +115,7 @@ onMounted(() => {
 .certificate-check-page {
   min-height: 100vh;
   padding: 110px 18px 48px;
-  background: radial-gradient(circle at top left, rgba(79, 167, 116, 0.12), transparent 22%), var(--bg);
+  background: var(--bg);
   display: grid;
   gap: 18px;
 }
@@ -152,7 +152,7 @@ onMounted(() => {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .12em;
-  color: var(--accent-strong);
+  color: #9b7a10;
 }
 
 .hero-card h1,
@@ -185,7 +185,7 @@ onMounted(() => {
   padding: 14px 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
+  background: var(--card);
   color: var(--text);
 }
 
@@ -200,7 +200,7 @@ onMounted(() => {
   padding: 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 244, 0.82);
+  background: var(--bg-alt);
   display: grid;
   gap: 8px;
 }
@@ -222,14 +222,15 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
+  background: var(--accent);
   color: var(--text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 .btn-outline {
-  background: rgba(255, 251, 243, 0.86);
-  color: var(--accent-strong);
-  border: 1px solid rgba(201, 171, 99, 0.28);
+  background: var(--card);
+  color: var(--green);
+  border: 1px solid var(--surface-border);
 }
 
 @media (max-width: 720px) {

@@ -146,10 +146,7 @@ const icons = [
 }
 
 /* Orbs */
-.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-.orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.3; }
-.orb-1 { width: 550px; height: 550px; background: radial-gradient(circle, rgba(208,179,107,0.14), transparent); top: -180px; right: -120px; }
-.orb-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(73,168,107,0.1), transparent); bottom: -120px; left: -80px; }
+.bg-orbs { display: none; }
 
 .rules-container {
   max-width: 1100px;
@@ -226,7 +223,7 @@ const icons = [
   padding: 24px;
   border-radius: 24px;
   border: 1px solid var(--surface-border);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   overflow: hidden;
   transition: all 0.3s ease;
   animation: fadeUp 0.5s ease both;
@@ -242,13 +239,13 @@ const icons = [
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 68%, var(--green)), var(--green));
+  background: var(--accent);
   opacity: 0;
   transition: opacity 0.3s;
 }
 .rule-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   border-color: color-mix(in srgb, var(--accent) 28%, var(--surface-border));
 }
 .rule-card:hover::before { opacity: 1; }
@@ -277,7 +274,7 @@ const icons = [
   transition: all 0.3s;
 }
 .rule-card:hover .rule-icon {
-  background: linear-gradient(135deg, var(--green), #59bd7f);
+  background: var(--green);
   color: white;
   box-shadow: 0 8px 18px rgba(73, 168, 107, 0.22);
 }
@@ -308,7 +305,7 @@ const icons = [
   border: 1px solid var(--surface-border);
   border-radius: 28px;
   padding: 28px 32px;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 .cta-check {
   width: 40px; height: 40px;
@@ -333,19 +330,19 @@ const icons = [
   min-height: 60px;
   padding: 14px 26px;
   border-radius: 18px;
-  background: linear-gradient(135deg, #d8b860, #cba84e);
+  background: var(--accent);
   color: #1a1408;
   font-size: 16px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 14px 30px rgba(104, 79, 28, 0.22);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   transition: all 0.2s;
   white-space: nowrap;
 }
 .cta-btn svg { transition: transform 0.2s; }
 .cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 38px rgba(104, 79, 28, 0.28);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 .cta-btn:hover svg { transform: translateX(4px); }
 

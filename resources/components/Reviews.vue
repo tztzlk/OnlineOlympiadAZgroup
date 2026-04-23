@@ -171,10 +171,7 @@ onUnmounted(() => {
 * { box-sizing: border-box; }
 
 .reviews-section {
-  background:
-    radial-gradient(circle at top left, rgba(245, 200, 66, 0.08), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(22, 163, 74, 0.08), transparent 32%),
-    var(--bg);
+  background: var(--bg);
   padding: 84px 0 96px;
   overflow: hidden;
 }
@@ -278,7 +275,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 14px 30px rgba(67, 55, 28, 0.09);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -286,7 +283,7 @@ onUnmounted(() => {
   .scroll-btn:hover {
     transform: translateY(-2px);
     border-color: rgba(22, 163, 74, 0.22);
-    box-shadow: 0 18px 36px rgba(22, 163, 74, 0.16);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -322,21 +319,17 @@ onUnmounted(() => {
   padding: 34px;
   border-radius: 28px;
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94));
-  box-shadow: 0 24px 50px rgba(67, 55, 28, 0.1);
+  background: var(--card);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   scroll-snap-align: start;
   transition: transform 0.24s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.24s ease, border-color 0.24s ease;
-}
-
-.dark .review-card {
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(30, 41, 59, 0.92));
 }
 
 @media (hover: hover) and (pointer: fine) {
   .review-card:hover {
     transform: translateY(-6px);
     border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
-    box-shadow: 0 34px 70px rgba(67, 55, 28, 0.14);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -387,11 +380,11 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--green), #12a150);
+  background: var(--green);
   color: #ffffff;
   font-size: 22px;
   font-weight: 800;
-  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.22);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .review-card__meta {
