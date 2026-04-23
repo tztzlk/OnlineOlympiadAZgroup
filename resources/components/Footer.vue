@@ -85,9 +85,9 @@
 .footer__logo span { font-size: 18px; font-weight: 700; color: var(--text); }
 .footer__desc { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }
 .footer__socials { display: flex; gap: 10px; flex-wrap: wrap; }
-.social-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; background: color-mix(in srgb, var(--text) 4%, transparent); border: 1px solid var(--border); border-radius: 10px; color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
-@media (hover: hover) and (pointer: fine) { .social-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 28%, transparent); } }
-.social-btn:active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.social-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; background: color-mix(in srgb, var(--green-soft) 82%, #ffffff); border: 1px solid color-mix(in srgb, var(--green) 24%, var(--border)); border-radius: 10px; color: var(--green-strong); text-decoration: none; font-size: 13px; font-weight: 700; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+@media (hover: hover) and (pointer: fine) { .social-btn:hover { background: var(--green); color: #ffffff; border-color: var(--green); transform: translateY(-1px); } }
+.social-btn:active { background: var(--green-hover); border-color: var(--green-hover); color: #ffffff; }
 .footer__title { margin-bottom: 20px; }
 .footer__title span { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
 .title-line { width: 28px; height: 2px; background: var(--accent); border-radius: 2px; margin-top: 8px; }
