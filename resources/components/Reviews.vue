@@ -20,6 +20,25 @@
             </svg>
           </button>
         </div>
+  <section class="reviews" ref="sectionRef" :class="{ visible: isVisible }">
+    <div class="reviews__header">
+      <div class="reviews__copy">
+        <span class="reviews__eyebrow">Отзывы</span>
+        <h2>Что говорят родители и участники</h2>
+        <p>Короткие впечатления тех, кто уже прошёл олимпиаду и получил результат.</p>
+      </div>
+
+      <div class="reviews__controls">
+        <button class="scroll-btn" type="button" aria-label="Назад" @click="scrollLeft">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <button class="scroll-btn" type="button" aria-label="Вперёд" @click="scrollRight">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       </div>
 
       <div class="trust-bar">
@@ -81,6 +100,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const scrollContainer = ref(null)
+const sectionRef = ref(null)
+const isVisible = ref(false)
 const activeDot = ref(0)
 
 const stats = [
@@ -113,8 +134,19 @@ const updateDot = () => {
   activeDot.value = Math.round(scrollContainer.value.scrollLeft / cardWidth)
 }
 
-onMounted(() => scrollContainer.value?.addEventListener('scroll', updateDot, { passive: true }))
-onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot))
+onMounted(() => {
+  scrollContainer.value?.addEventListener('scroll', updateDot, { passive: true })
+
+  const observer = new IntersectionObserver(
+    ([entry]) => { if (entry.isIntersecting) { isVisible.value = true; observer.disconnect() } },
+    { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+  )
+  if (sectionRef.value) observer.observe(sectionRef.value)
+})
+
+onUnmounted(() => {
+  scrollContainer.value?.removeEventListener('scroll', updateDot)
+})
 </script>
 
 <style scoped>
@@ -132,6 +164,18 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
 }
 
 /* Header */
+.reviews__header {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0s, transform 0s;
+}
+
+.reviews.visible .reviews__header {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .reviews__header {
   display: flex;
   align-items: flex-end;
@@ -175,40 +219,22 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: var(--shadow-card);
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 10px 24px rgba(76, 61, 24, 0.08);
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.scroll-btn:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(245, 200, 66, 0.2);
+@media (hover: hover) and (pointer: fine) {
+  .scroll-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(73, 168, 107, 0.26);
+    box-shadow: 0 16px 32px rgba(73, 168, 107, 0.14);
+  }
 }
 
-/* Trust bar */
-.trust-bar {
-  display: flex;
-  gap: 0;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--card);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-  margin-bottom: 32px;
-}
-
-.trust-stat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 18px 12px;
-  gap: 4px;
-  border-right: 1.5px solid var(--border);
-}
-
-.trust-stat:last-child {
-  border-right: none;
+.scroll-btn:active {
+  transform: scale(0.93);
+  box-shadow: 0 4px 12px rgba(76, 61, 24, 0.08);
+  transition-duration: 0.1s;
 }
 
 .trust-stat strong {
@@ -252,19 +278,14 @@ onUnmounted(() => scrollContainer.value?.removeEventListener('scroll', updateDot
   background: var(--card);
   box-shadow: var(--shadow-card);
   scroll-snap-align: start;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.review:hover {
-  border-color: rgba(245, 200, 66, 0.5);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  transform: translateY(-3px);
-}
-
-.review__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+@media (hover: hover) and (pointer: fine) {
+  .review:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 32px 64px rgba(67, 55, 28, 0.14);
+  }
 }
 
 .review__quote-icon {

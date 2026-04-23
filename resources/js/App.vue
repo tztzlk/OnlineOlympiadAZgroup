@@ -84,7 +84,7 @@ const acceptOffer = () => {
 }
 
 .offer-modal-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.22s ease;
 }
 
 .offer-modal-enter-from,
@@ -93,20 +93,20 @@ const acceptOffer = () => {
 }
 
 .offer-modal-enter-active .offer-modal-content {
-  animation: modalSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: modalSlideIn 0.45s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .offer-modal-leave-active .offer-modal-content {
-  animation: modalSlideOut 0.25s ease both;
+  animation: modalSlideOut 0.22s ease both;
 }
 
 @keyframes modalSlideIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
 @keyframes modalSlideOut {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(10px) scale(0.98); }
+  from { opacity: 1; transform: translateY(0)  scale(1); }
+  to   { opacity: 0; transform: translateY(12px) scale(0.97); }
 }
 </style>

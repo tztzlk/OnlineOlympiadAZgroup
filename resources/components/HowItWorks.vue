@@ -43,6 +43,19 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+
+const sectionRef = ref(null)
+const isVisible = ref(false)
+
+onMounted(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => { if (entry.isIntersecting) { isVisible.value = true; observer.disconnect() } },
+    { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
+  )
+  if (sectionRef.value) observer.observe(sectionRef.value)
+})
+
 const steps = [
   {
     id: 1,
@@ -146,6 +159,19 @@ const steps = [
 }
 
 /* ---- Step card ---- */
+.how-it-works__grid .step-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0s, transform 0s;
+}
+
+.how-it-works__grid.visible .step-card {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: calc(var(--i) * 80ms);
+}
+
 .step-card {
   position: relative;
   background: var(--card);
@@ -155,6 +181,23 @@ const steps = [
   box-shadow: var(--shadow-card);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   overflow: hidden;
+  min-height: 360px;
+  padding: 22px;
+  border-radius: 30px;
+  border: 1px solid rgba(117, 93, 41, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 248, 236, 0.82)),
+    radial-gradient(circle at top right, rgba(208, 179, 107, 0.16), transparent 35%);
+  box-shadow: 0 22px 52px rgba(77, 61, 24, 0.08);
+  backdrop-filter: blur(12px);
+  transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 32px 64px rgba(77, 61, 24, 0.13);
+  }
 }
 .step-card::before {
   content: '';

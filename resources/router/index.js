@@ -102,8 +102,22 @@ const router = createRouter({
     }
     // Always scroll to top on any new navigation
     return { top: 0, behavior: 'instant' }
+      return savedPosition;
+    }
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: "smooth",
+        top: getHeaderOffset(),
+      };
+    }
+    return { top: 0, behavior: "instant" };
   },
 });
+
+function getHeaderOffset() {
+  return document.querySelector(".header")?.offsetHeight ?? 72;
+}
 
 router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem("token");

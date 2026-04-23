@@ -158,6 +158,8 @@ export default { name: 'Hero' }
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
+  inset: 0;
+  background: url('/welcome.png') center/cover no-repeat;
   z-index: 0;
 }
 .hero__blob--yellow {
@@ -201,6 +203,19 @@ export default { name: 'Hero' }
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
+}
+
+.hero__eyebrow { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 0ms; }
+.hero__title   { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 70ms; }
+.hero__subheadline { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 140ms; }
+.hero__price   { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 200ms; }
+.hero__actions { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 260ms; }
+.hero__features { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 330ms; }
+.hero__stats   { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 410ms; }
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .hero__eyebrow {
@@ -296,6 +311,19 @@ export default { name: 'Hero' }
   background: var(--green-hover);
   transform: translateY(-2px);
   box-shadow: 0 14px 32px rgba(22, 163, 74, 0.36);
+  box-shadow: 0 18px 40px rgba(37, 26, 6, 0.24);
+  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s cubic-bezier(0.23, 1, 0.32, 1), background 0.18s ease;
+}
+
+.btn-primary svg { transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #d9b860, var(--accent));
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(139, 103, 20, 0.32);
+  }
+  .btn-primary:hover svg { transform: translateX(4px); }
 }
 .btn-cta svg { transition: transform 0.22s; }
 .btn-cta:hover svg { transform: translateX(4px); }
@@ -318,6 +346,10 @@ export default { name: 'Hero' }
   border-color: var(--accent);
   background: var(--accent-soft);
   color: #92660a;
+.btn-primary:active {
+  transform: scale(0.97);
+  box-shadow: 0 8px 20px rgba(37, 26, 6, 0.18);
+  transition-duration: 0.1s;
 }
 
 /* ---- Feature Chips ---- */

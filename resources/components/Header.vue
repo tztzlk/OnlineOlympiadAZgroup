@@ -297,7 +297,7 @@ onUnmounted(() => {
   text-decoration: none;
   padding: 7px 14px;
   border-radius: 10px;
-  transition: all 0.3s;
+  transition: color 0.25s ease, background 0.25s ease;
 }
 .header__link:hover,
 .header__link.router-link-active {
@@ -346,7 +346,7 @@ onUnmounted(() => {
   border-radius: 40px;
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--text) 4%, transparent);
-  transition: all 0.3s;
+  transition: border-color 0.25s ease, background 0.25s ease;
 }
 .header__profile:hover {
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
@@ -383,11 +383,19 @@ onUnmounted(() => {
   font-weight: 700;
   text-decoration: none;
   border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
-  transition: all 0.3s;
+  transition: background 0.25s ease;
   cursor: pointer;
 }
 .btn-ghost:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 /* btn-ghost: same on transparent — inherits normal styles */
+.btn-ghost:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.header.transparent .btn-ghost {
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  backdrop-filter: blur(6px);
+}
+.header.transparent .btn-ghost:hover { background: rgba(255,255,255,0.22); }
 
 .btn-primary {
   padding: 8px 18px;
@@ -406,6 +414,22 @@ onUnmounted(() => {
   background: var(--green-hover);
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(22, 163, 74, 0.34);
+  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
+  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s ease, background 0.18s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(104, 79, 28, 0.3);
+  }
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(104, 79, 28, 0.2);
+  transition-duration: 0.1s;
 }
 
 .btn-logout {
@@ -420,10 +444,18 @@ onUnmounted(() => {
   font-weight: 700;
   border: 1px solid rgba(73, 168, 107, 0.26);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.25s ease;
 }
 .btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
 /* btn-logout: inherits same green style on light background */
+.btn-logout:active { background: rgba(73, 168, 107, 0.24); }
+.header.transparent .btn-logout {
+  background: rgba(255,80,80,0.15);
+  color: rgba(255,200,200,1);
+  border-color: rgba(255,100,100,0.3);
+  backdrop-filter: blur(6px);
+}
+.header.transparent .btn-logout:hover { background: rgba(255,80,80,0.25); }
 
 /* Skeleton */
 .skeleton-user {
@@ -452,7 +484,7 @@ onUnmounted(() => {
   background: transparent;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 .burger:hover { background: var(--accent-soft); border-color: rgba(245, 200, 66, 0.4); }
 .burger span {
@@ -460,7 +492,7 @@ onUnmounted(() => {
   height: 2px;
   background: var(--text);
   border-radius: 2px;
-  transition: all 0.3s;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
   transform-origin: center;
 }
 .burger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -513,7 +545,7 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   color: var(--text-muted-on-surface);
-  transition: all 0.2s;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .mobile-close:hover { background: rgba(208, 179, 107, 0.14); color: var(--accent); border-color: rgba(208, 179, 107, 0.28); }
 
@@ -565,7 +597,7 @@ onUnmounted(() => {
   font-weight: 600;
   padding: 12px 14px;
   border-radius: 14px;
-  transition: all 0.2s;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 .mobile-link svg { color: var(--text-muted-on-surface); flex-shrink: 0; }
 .mobile-link:hover,
@@ -597,7 +629,7 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 .mobile-theme-toggle:hover {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -618,9 +650,10 @@ onUnmounted(() => {
   border: 1px solid rgba(73, 168, 107, 0.26);
   border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s ease;
 }
 .mobile-btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
+.mobile-btn-logout:active { background: rgba(73, 168, 107, 0.26); }
 
 .mobile-btn-ghost {
   display: block;
@@ -633,9 +666,10 @@ onUnmounted(() => {
   border: 2px solid rgba(208, 179, 107, 0.45);
   border-radius: 14px;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: background 0.2s ease;
 }
 .mobile-btn-ghost:hover { background: rgba(208, 179, 107, 0.14); }
+.mobile-btn-ghost:active { background: rgba(208, 179, 107, 0.22); }
 
 .mobile-btn-primary {
   display: block;
@@ -651,6 +685,11 @@ onUnmounted(() => {
   transition: all 0.2s;
 }
 .mobile-btn-primary:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34); }
+  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
+  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s ease, background 0.18s ease;
+}
+.mobile-btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(104, 79, 28, 0.3); }
+.mobile-btn-primary:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(104, 79, 28, 0.2); transition-duration: 0.1s; }
 
 /* Transitions */
 .slide-enter-active, .slide-leave-active { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
