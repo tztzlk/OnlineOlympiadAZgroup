@@ -9,31 +9,6 @@
             Создайте аккаунт, добавьте ребёнка и переходите к олимпиаде без лишних шагов.
           </p>
         </div>
-
-        <div class="journey-steps" aria-label="Шаги регистрации">
-          <article
-            v-for="(step, index) in journeySteps"
-            :key="step.title"
-            class="journey-step"
-            :class="{ 'is-active': index === currentStep - 1 }"
-          >
-            <div class="journey-step__icon">{{ step.icon }}</div>
-            <div class="journey-step__body">
-              <span class="journey-step__meta">Шаг {{ index + 1 }}</span>
-              <strong>{{ step.title }}</strong>
-              <p>{{ step.text }}</p>
-            </div>
-          </article>
-        </div>
-
-        <div class="benefit-card">
-          <strong>После регистрации вы сможете</strong>
-          <ul class="benefit-list">
-            <li>Добавить профиль ребёнка</li>
-            <li>Выбрать предмет и оплатить участие</li>
-            <li>Отслеживать статус, результаты и сертификаты</li>
-          </ul>
-        </div>
       </aside>
 
       <section class="register-card">
@@ -41,7 +16,7 @@
           <div>
             <p class="eyebrow">Регистрация</p>
             <h2>Откройте личный кабинет</h2>
-            <p class="register-copy">{{ currentStepDescription }}</p>
+            <p class="register-copy">Заполните данные для входа и контакты родителя.</p>
           </div>
 
           <div class="step-summary">
@@ -49,26 +24,6 @@
             <strong>{{ currentStep }} / 2</strong>
           </div>
         </header>
-
-        <div class="progress-card" aria-label="Прогресс регистрации">
-          <div class="progress-card__top">
-            <strong>{{ currentStepTitle }}</strong>
-            <span>{{ progressPercent }}%</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div>
-          </div>
-          <div class="progress-steps">
-            <div class="progress-step" :class="{ 'is-current': currentStep === 1, 'is-done': currentStep > 1 }">
-              <span>1</span>
-              <small>Доступ</small>
-            </div>
-            <div class="progress-step" :class="{ 'is-current': currentStep === 2 }">
-              <span>2</span>
-              <small>Данные родителя</small>
-            </div>
-          </div>
-        </div>
 
         <div v-if="success" class="message success">
           <span class="message__icon" aria-hidden="true">✓</span>
@@ -269,24 +224,6 @@ const cityTouched = ref(false)
 const schoolTouched = ref(false)
 const rulesTouched = ref(false)
 const rulesAccepted = ref(false)
-
-const journeySteps = [
-  { icon: '01', title: 'Регистрация', text: 'Укажите email и пароль для входа в кабинет.' },
-  { icon: '02', title: 'Добавление ребёнка', text: 'После входа заполните профиль участника за минуту.' },
-  { icon: '03', title: 'Участие', text: 'Выберите олимпиаду, оплатите и следите за статусом.' },
-]
-
-const currentStepTitle = computed(() => (
-  currentStep.value === 1 ? 'Шаг 1. Доступ к кабинету' : 'Шаг 2. Данные родителя'
-))
-
-const currentStepDescription = computed(() => (
-  currentStep.value === 1
-    ? 'Сначала создайте безопасный вход в личный кабинет.'
-    : 'Осталось указать контакты, чтобы можно было оформить участие.'
-))
-
-const progressPercent = computed(() => (currentStep.value === 1 ? 50 : 100))
 
 const emailError = computed(() => {
   const value = email.value.trim()
@@ -496,10 +433,7 @@ watch(rulesAccepted, () => {
   min-height: 100vh;
   padding: 32px 20px;
   padding-top: 100px;
-  background:
-    radial-gradient(circle at top left, rgba(245, 200, 66, 0.10), transparent 26%),
-    radial-gradient(circle at bottom right, rgba(22, 163, 74, 0.07), transparent 26%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .register-shell {
@@ -522,10 +456,9 @@ watch(rulesAccepted, () => {
 .register-side {
   padding: 32px;
   display: grid;
-  gap: 20px;
-  background:
-    linear-gradient(160deg, rgba(245, 200, 66, 0.06), rgba(22, 163, 74, 0.04)),
-    var(--card);
+  gap: 12px;
+  align-content: start;
+  background: var(--card);
 }
 
 .side-copy {
@@ -546,71 +479,10 @@ watch(rulesAccepted, () => {
 .register-copy,
 .field-message,
 .form-footer,
-.journey-step__body p,
-.benefit-list,
 .step-summary__label,
 .summary-copy,
 .form-section__head p {
   color: var(--text-secondary);
-}
-
-.journey-steps {
-  display: grid;
-  gap: 14px;
-}
-
-.journey-step {
-  display: grid;
-  grid-template-columns: 52px 1fr;
-  gap: 14px;
-  padding: 16px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  background: var(--bg-alt);
-}
-
-.journey-step.is-active {
-  border-color: rgba(245, 200, 66, 0.4);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-.journey-step__icon {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.journey-step__body {
-  display: grid;
-  gap: 4px;
-}
-
-.journey-step__meta {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.benefit-card {
-  padding: 18px 20px;
-  border-radius: var(--radius-md);
-  background: rgba(79, 167, 116, 0.08);
-  border: 1px solid rgba(79, 167, 116, 0.16);
-  display: grid;
-  gap: 10px;
-}
-
-.benefit-list {
-  margin: 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 8px;
 }
 
 .register-card {
@@ -634,72 +506,6 @@ watch(rulesAccepted, () => {
   border: 1.5px solid var(--border);
   display: grid;
   gap: 4px;
-}
-
-.progress-card {
-  padding: 18px 20px;
-  border-radius: var(--radius-md);
-  background: var(--bg-alt);
-  border: 1.5px solid var(--border);
-  display: grid;
-  gap: 14px;
-}
-
-.progress-card__top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.progress-track {
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--border);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--green);
-  transition: width 0.3s ease;
-}
-
-.progress-steps {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.progress-step {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-secondary);
-}
-
-.progress-step span {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--bg-alt);
-  border: 1.5px solid var(--border);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.progress-step.is-current,
-.progress-step.is-done {
-  color: var(--text);
-}
-
-.progress-step.is-current span,
-.progress-step.is-done span {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
 }
 
 .register-form,
@@ -730,7 +536,7 @@ watch(rulesAccepted, () => {
 }
 
 .field:hover {
-  border-color: rgba(245, 200, 66, 0.4);
+  border-color: rgba(17, 24, 39, 0.16);
 }
 
 .field.is-active {
@@ -761,8 +567,8 @@ watch(rulesAccepted, () => {
 }
 .field input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.16);
+  border-color: rgba(22, 163, 74, 0.34);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
 }
 
 .field-message {
@@ -789,7 +595,7 @@ watch(rulesAccepted, () => {
   transform: translateY(-50%);
   border: 0;
   background: transparent;
-  color: var(--accent-strong);
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -831,8 +637,8 @@ watch(rulesAccepted, () => {
 }
 
 .strength-badge.is-good {
-  background: rgba(201, 171, 99, 0.16);
-  color: var(--accent-strong);
+  background: rgba(22, 163, 74, 0.1);
+  color: #166534;
 }
 
 .strength-badge.is-strong {
@@ -957,8 +763,8 @@ watch(rulesAccepted, () => {
 
 .secondary-btn:hover {
   transform: translateY(-1px);
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: rgba(17, 24, 39, 0.14);
+  background: var(--bg-alt);
 }
 
 .submit-btn:disabled {
@@ -987,7 +793,7 @@ watch(rulesAccepted, () => {
 }
 
 .form-footer a {
-  color: var(--accent-strong);
+  color: var(--green);
   font-weight: 700;
   text-decoration: none;
 }

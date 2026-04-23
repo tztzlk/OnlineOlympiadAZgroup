@@ -2,31 +2,18 @@
   <div class="auth-page">
     <div class="auth-shell">
       <section class="auth-side">
-        <p class="eyebrow">Online Olympiad</p>
-        <h1>Возвращайтесь в кабинет без лишнего стресса</h1>
+        <p class="eyebrow">Eurica</p>
+        <h1>Войдите в личный кабинет</h1>
         <p class="lead">
-          Здесь родители и участники отслеживают заявки, оплаты, тренировки, результаты и сертификаты в одной понятной системе.
+          Все заявки, оплаты, результаты и сертификаты собраны в одном месте.
         </p>
-
-        <div class="benefit-list">
-          <article v-for="item in benefits" :key="item.title" class="benefit-card">
-            <strong>{{ item.title }}</strong>
-            <span>{{ item.text }}</span>
-          </article>
-        </div>
-
-        <div class="auth-side-footer">
-          <span>Безопасный вход</span>
-          <span>Поддержка через Help Desk</span>
-          <span>Результаты и сертификаты в одном профиле</span>
-        </div>
       </section>
 
       <section class="auth-card">
         <div class="form-header">
           <p class="eyebrow">Вход</p>
           <h2>Войдите в аккаунт</h2>
-          <p>Введите email и пароль, чтобы открыть родительский кабинет и продолжить путь участника.</p>
+          <p>Введите email и пароль, чтобы открыть кабинет.</p>
         </div>
 
         <form @submit.prevent="handleLogin" class="auth-form" novalidate>
@@ -62,10 +49,6 @@
             <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
           </div>
 
-          <div class="next-step-box">
-            После входа вы сразу увидите текущий статус, последние уведомления и следующий шаг по участию.
-          </div>
-
           <div v-if="error" class="message error">{{ error }}</div>
 
           <button type="submit" class="submit-btn" :disabled="loading">
@@ -96,21 +79,6 @@ const password = ref('')
 const error = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
-
-const benefits = [
-  {
-    title: 'Понятный личный кабинет',
-    text: 'Все заявки, дети, оплаты и результаты собраны в одном месте.',
-  },
-  {
-    title: 'Прозрачный статус участия',
-    text: 'Сразу видно, где заявка ожидает проверки, а где уже открыт доступ.',
-  },
-  {
-    title: 'Поддержка без ожидания',
-    text: 'Если нужен вход, оплата или помощь с тестом, можно быстро написать в поддержку.',
-  },
-]
 
 async function handleLogin() {
   error.value = ''
@@ -149,10 +117,7 @@ async function handleLogin() {
   justify-content: center;
   padding: 32px 20px;
   padding-top: 100px;
-  background:
-    radial-gradient(circle at top left, rgba(245, 200, 66, 0.10), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(22, 163, 74, 0.08), transparent 26%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .auth-shell {
@@ -174,10 +139,9 @@ async function handleLogin() {
 .auth-side {
   padding: 40px;
   display: grid;
-  gap: 22px;
-  background:
-    linear-gradient(160deg, rgba(245, 200, 66, 0.06), rgba(22, 163, 74, 0.04)),
-    var(--card);
+  gap: 12px;
+  align-content: center;
+  background: var(--card);
 }
 
 .eyebrow {
@@ -188,44 +152,13 @@ async function handleLogin() {
   letter-spacing: 0.12em;
   font-size: 12px;
   font-weight: 800;
-  color: var(--accent-strong);
+  color: var(--green);
 }
 
 .lead {
   max-width: 56ch;
   color: var(--text-secondary);
   font-size: 17px;
-}
-
-.benefit-list {
-  display: grid;
-  gap: 14px;
-}
-
-.benefit-card {
-  padding: 18px 20px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  background: var(--bg-alt);
-  display: grid;
-  gap: 6px;
-}
-
-.benefit-card strong {
-  color: var(--text);
-  font-size: 18px;
-}
-
-.benefit-card span,
-.auth-side-footer {
-  color: var(--text-secondary);
-}
-
-.auth-side-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 18px;
-  font-size: 14px;
 }
 
 .auth-card {
@@ -270,8 +203,8 @@ async function handleLogin() {
 }
 .field input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.16);
+  border-color: rgba(22, 163, 74, 0.34);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
 }
 
 .password-wrap {
@@ -289,7 +222,7 @@ async function handleLogin() {
   transform: translateY(-50%);
   border: 0;
   background: transparent;
-  color: var(--accent-strong);
+  color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
 }
@@ -304,22 +237,15 @@ async function handleLogin() {
 
 .helper-row a,
 .form-footer a {
-  color: var(--accent-strong);
+  color: var(--green);
   font-weight: 700;
   text-decoration: none;
 }
 
-.next-step-box,
 .message {
   border-radius: var(--radius-sm);
   padding: 13px 14px;
   font-size: 14px;
-}
-
-.next-step-box {
-  background: var(--green-soft);
-  border: 1px solid rgba(22, 163, 74, 0.18);
-  color: var(--green-strong);
 }
 
 .message.error {

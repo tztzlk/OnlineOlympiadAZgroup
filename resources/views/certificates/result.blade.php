@@ -26,7 +26,7 @@
     <div class="sheet">
         <div class="frame">
             <div class="inner">
-                <p class="brand">ONLINE OLYMPIAD</p>
+                <p class="brand">EURICA</p>
                 <h1 class="title">СЕРТИФИКАТ</h1>
                 <div class="accent"></div>
                 <p class="lead">Подтверждает участие и получение результата</p>
@@ -42,7 +42,7 @@
                         <td><span class="meta-label">Результат</span><span class="meta-value">{{ $scoreLine }}</span></td>
                     </tr>
                 </table>
-                <p class="footnote">Сертификат сгенерирован автоматически системой Online Olympiad.</p>
+                <p class="footnote">Сертификат сгенерирован автоматически системой Eurica.</p>
                 <p class="result-id">ID результата #{{ $resultId }} · {{ $date }}</p>
             </div>
         </div>

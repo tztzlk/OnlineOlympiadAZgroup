@@ -168,19 +168,19 @@ const icons = [
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6c5a2f;
-  background: rgba(208, 179, 107, 0.18);
+  color: #8b6c11;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(208, 179, 107, 0.28);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
   margin-bottom: 18px;
 }
 .page-title {
-  font-size: 30px;
-  font-weight: 600;
+  font-size: clamp(32px, 4.4vw, 52px);
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 14px;
-  line-height: 1.25;
+  line-height: 1.06;
 }
 .page-subtitle { font-size: 16px; font-weight: 400; color: var(--text-secondary); margin: 0; line-height: 1.6; }
 
@@ -226,7 +226,7 @@ const icons = [
   padding: 24px;
   border-radius: 24px;
   border: 1px solid var(--surface-border);
-  box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   overflow: hidden;
   transition: all 0.3s ease;
   animation: fadeUp 0.5s ease both;
@@ -242,14 +242,14 @@ const icons = [
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #d6bc77, #cdb169, #49a86b);
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 68%, var(--green)), var(--green));
   opacity: 0;
   transition: opacity 0.3s;
 }
 .rule-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 18px 42px rgba(104, 79, 28, 0.14);
-  border-color: rgba(208, 179, 107, 0.32);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--surface-border));
 }
 .rule-card:hover::before { opacity: 1; }
 
@@ -270,14 +270,14 @@ const icons = [
 
 .rule-icon {
   width: 42px; height: 42px;
-  background: rgba(208, 179, 107, 0.16);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  color: #6c5a2f;
+  color: #8b6c11;
   transition: all 0.3s;
 }
 .rule-card:hover .rule-icon {
-  background: linear-gradient(135deg, #49a86b, #7fc894);
+  background: linear-gradient(135deg, var(--green), #59bd7f);
   color: white;
   box-shadow: 0 8px 18px rgba(73, 168, 107, 0.22);
 }
@@ -301,49 +301,51 @@ const icons = [
 .rules-cta {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 18px;
   flex-wrap: wrap;
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  border-radius: 20px;
-  padding: 22px 32px;
-  box-shadow: 0 16px 40px rgba(67, 55, 28, 0.09);
+  border-radius: 28px;
+  padding: 28px 32px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
 }
 .cta-check {
-  width: 32px; height: 32px;
-  background: #dcfce7;
+  width: 40px; height: 40px;
+  background: var(--green-soft);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #16a34a;
+  color: var(--green);
   flex-shrink: 0;
 }
 .rules-cta span {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-on-surface);
   flex: 1;
-  min-width: 200px;
+  min-width: 260px;
 }
 .cta-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #d2b261, #bea25a);
-  color: #18120a;
-  font-size: 14px;
+  justify-content: center;
+  min-height: 60px;
+  padding: 14px 26px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d8b860, #cba84e);
+  color: #1a1408;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 10px 24px rgba(104, 79, 28, 0.22);
+  box-shadow: 0 14px 30px rgba(104, 79, 28, 0.22);
   transition: all 0.2s;
   white-space: nowrap;
 }
 .cta-btn svg { transition: transform 0.2s; }
 .cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(104, 79, 28, 0.28);
+  box-shadow: 0 18px 38px rgba(104, 79, 28, 0.28);
 }
 .cta-btn:hover svg { transform: translateX(4px); }
 
@@ -356,6 +358,8 @@ const icons = [
   .page-title { font-size: 30px; }
   .rules-list { grid-template-columns: 1fr 1fr; gap: 14px; }
   .notice { flex-direction: column; text-align: center; }
+  .rules-cta { padding: 24px 20px; }
+  .rules-cta span { font-size: 16px; min-width: 0; }
 }
 @media (max-width: 520px) {
   .rules-list { grid-template-columns: 1fr; }

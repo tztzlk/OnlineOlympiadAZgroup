@@ -696,7 +696,7 @@ class ProfileController extends Controller
         $ops[] = '1 1 1 rg';
         $ops[] = '/F1 10 Tf';
         $ops[] = '1 0 0 1 268 540 Tm';
-        $ops[] = '(O N L I N E   O L Y M P I A D) Tj';
+        $ops[] = '(E U R I C A) Tj';
         $ops[] = '/F2 36 Tf';
         $ops[] = '1 0 0 1 228 475 Tm';
         $ops[] = '(CERTIFICATE) Tj';
@@ -715,7 +715,7 @@ class ProfileController extends Controller
         $ops[] = '0.40 0.40 0.40 rg';
         $ops[] = '/F1 11 Tf';
         $ops[] = '1 0 0 1 48 369 Tm';
-        $ops[] = '(has participated in the Online Olympiad) Tj';
+        $ops[] = '(has participated on Eurica) Tj';
         $ops[] = '0.07 0.07 0.07 rg';
         $ops[] = '/F2 17 Tf';
         $ops[] = '1 0 0 1 48 341 Tm';
@@ -758,7 +758,7 @@ class ProfileController extends Controller
         $ops[] = '1 0 0 1 330 50 Tm';
         $ops[] = "(Date: {$date}) Tj";
         $ops[] = '1 0 0 1 598 50 Tm';
-        $ops[] = '(onlineolympiad.kz) Tj';
+        $ops[] = '(eurica.kz) Tj';
         $ops[] = 'ET';
 
         $stream = implode("\n", $ops);

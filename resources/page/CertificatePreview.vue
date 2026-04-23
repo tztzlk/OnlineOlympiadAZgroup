@@ -21,7 +21,7 @@
       <section class="certificate-preview">
         <div class="certificate-preview__frame">
           <div class="certificate-preview__inner">
-            <p class="preview-brand">ONLINE OLYMPIAD</p>
+            <p class="preview-brand">EURICA</p>
             <h2>СЕРТИФИКАТ</h2>
             <p class="preview-lead">Подтверждает участие и получение результата</p>
             <h3>{{ certificate.participant_name }}</h3>
@@ -99,7 +99,7 @@ onMounted(loadPreview)
 .certificate-page {
   min-height: 100vh;
   padding: 110px 18px 42px;
-  background: radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%), var(--bg);
+  background: var(--bg);
 }
 
 .certificate-shell {
@@ -143,8 +143,8 @@ onMounted(loadPreview)
 .certificate-preview__frame {
   padding: 18px;
   border-radius: 28px;
-  background: linear-gradient(135deg, #fffaf2 0%, #f6ebcb 100%);
-  border: 1px solid rgba(201, 171, 99, 0.34);
+  background: #faf7ef;
+  border: 1px solid rgba(201, 171, 99, 0.24);
 }
 
 .certificate-preview__inner {
@@ -158,6 +158,7 @@ onMounted(loadPreview)
   margin: 0 0 12px;
   color: #8a6b25;
   letter-spacing: .18em;
+  font-weight: 700;
 }
 
 .certificate-preview__inner h2 {
@@ -219,8 +220,8 @@ onMounted(loadPreview)
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
-  color: var(--text);
+  background: var(--green);
+  color: #ffffff;
 }
 
 .btn-outline {
