@@ -20,6 +20,9 @@
             </svg>
           </button>
         </div>
+      </div>
+    </div>
+        
   <section class="reviews" ref="sectionRef" :class="{ visible: isVisible }">
     <div class="reviews__header">
       <div class="reviews__copy">
@@ -93,6 +96,7 @@
       </div>
 
     </div>
+   </section>
   </section>
 </template>
 
