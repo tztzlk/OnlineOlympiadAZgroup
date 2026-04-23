@@ -414,21 +414,19 @@ onUnmounted(() => {
   background: var(--green-hover);
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(22, 163, 74, 0.34);
-  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
-  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s ease, background 0.18s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .btn-primary:hover {
-    background: var(--accent-hover);
+    background: var(--green-hover);
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(104, 79, 28, 0.3);
+    box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34);
   }
 }
 
 .btn-primary:active {
   transform: scale(0.96);
-  box-shadow: 0 4px 12px rgba(104, 79, 28, 0.2);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.22);
   transition-duration: 0.1s;
 }
 
@@ -685,11 +683,7 @@ onUnmounted(() => {
   transition: all 0.2s;
 }
 .mobile-btn-primary:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34); }
-  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
-  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s ease, background 0.18s ease;
-}
-.mobile-btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(104, 79, 28, 0.3); }
-.mobile-btn-primary:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(104, 79, 28, 0.2); transition-duration: 0.1s; }
+.mobile-btn-primary:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.22); transition-duration: 0.1s; }
 
 /* Transitions */
 .slide-enter-active, .slide-leave-active { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }

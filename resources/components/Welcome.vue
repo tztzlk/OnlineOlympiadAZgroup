@@ -311,21 +311,18 @@ export default { name: 'Hero' }
   background: var(--green-hover);
   transform: translateY(-2px);
   box-shadow: 0 14px 32px rgba(22, 163, 74, 0.36);
-  box-shadow: 0 18px 40px rgba(37, 26, 6, 0.24);
-  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s cubic-bezier(0.23, 1, 0.32, 1), background 0.18s ease;
 }
 
-.btn-primary svg { transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
+.btn-cta svg { transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
 
 @media (hover: hover) and (pointer: fine) {
-  .btn-primary:hover {
-    background: linear-gradient(135deg, #d9b860, var(--accent));
+  .btn-cta:hover {
+    background: var(--green-hover);
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(139, 103, 20, 0.32);
+    box-shadow: 0 14px 32px rgba(22, 163, 74, 0.36);
   }
-  .btn-primary:hover svg { transform: translateX(4px); }
+  .btn-cta:hover svg { transform: translateX(4px); }
 }
-.btn-cta svg { transition: transform 0.22s; }
 .btn-cta:hover svg { transform: translateX(4px); }
 
 .btn-outline {
@@ -346,9 +343,11 @@ export default { name: 'Hero' }
   border-color: var(--accent);
   background: var(--accent-soft);
   color: #92660a;
-.btn-primary:active {
+}
+
+.btn-cta:active {
   transform: scale(0.97);
-  box-shadow: 0 8px 20px rgba(37, 26, 6, 0.18);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.2);
   transition-duration: 0.1s;
 }
 
