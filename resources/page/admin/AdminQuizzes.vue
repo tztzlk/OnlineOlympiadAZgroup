@@ -114,10 +114,21 @@
               <span>Описание предмета</span>
               <textarea v-model="form.subject.description" rows="2"></textarea>
             </label>
-            <label class="field full">
-              <span>Ссылка на изображение предмета</span>
-              <input v-model="form.subject.image" type="text" />
-            </label>
+            <div class="field full">
+              <span>Баннер предмета</span>
+              <div class="upload-row">
+                <label class="upload-btn">
+                  <input type="file" accept="image/*" @change="uploadSubjectImage" />
+                  <span>{{ form.subject.uploading ? 'Загрузка...' : 'Загрузить изображение с устройства' }}</span>
+                </label>
+                <span class="upload-note">
+                  {{ form.subject.image_path ? 'Файл загружен' : 'PNG, JPG, WEBP до 4 МБ' }}
+                </span>
+              </div>
+              <div v-if="form.subject.image" class="image-preview subject-preview">
+                <img :src="form.subject.image" alt="Превью баннера предмета" />
+              </div>
+            </div>
           </template>
         </div>
 
@@ -335,6 +346,8 @@ const createForm = () => ({
     name: '',
     description: '',
     image: '',
+    image_path: '',
+    uploading: false,
     start_date: '',
   },
   title: '',
@@ -416,6 +429,8 @@ const editQuiz = async (quiz) => {
       name: '',
       description: '',
       image: '',
+      image_path: '',
+      uploading: false,
       start_date: '',
     },
     title: data.title,
@@ -523,6 +538,33 @@ const uploadQuestionImage = async (event, question) => {
   }
 }
 
+const uploadSubjectImage = async (event) => {
+  const [file] = event.target.files || []
+  if (!file) return
+
+  form.value.subject.uploading = true
+  formError.value = ''
+
+  try {
+    const payload = new FormData()
+    payload.append('image', file)
+
+    const { data } = await api.post('/admin/quizzes/upload-subject-image', payload, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    form.value.subject.image_path = data.path || ''
+    form.value.subject.image = data.url || ''
+  } catch (error) {
+    formError.value = error.response?.data?.message || 'Не удалось загрузить баннер предмета.'
+  } finally {
+    form.value.subject.uploading = false
+    event.target.value = ''
+  }
+}
+
 const validateForm = () => {
   if (!form.value.title.trim()) return 'Введите название олимпиады.'
   if (!form.value.subject_id && !form.value.subject.name.trim()) return 'Введите название предмета.'
@@ -567,7 +609,9 @@ const normalizePayload = () => ({
   subject: form.value.subject_id
     ? undefined
     : {
-        ...form.value.subject,
+        name: form.value.subject.name,
+        description: form.value.subject.description,
+        image: form.value.subject.image_path || form.value.subject.image,
         start_date: form.value.subject.start_date || new Date().toISOString().slice(0, 10),
       },
   title: form.value.title.trim(),

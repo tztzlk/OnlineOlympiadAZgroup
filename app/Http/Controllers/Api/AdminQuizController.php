@@ -114,6 +114,20 @@ class AdminQuizController extends Controller
         ]);
     }
 
+    public function uploadSubjectImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:4096',
+        ]);
+
+        $path = $request->file('image')->store('subject-images', 'public');
+
+        return response()->json([
+            'path' => $path,
+            'url' => asset('storage/' . $path),
+        ]);
+    }
+
     protected function validatePayload(Request $request): array
     {
         $data = $request->validate([
@@ -308,5 +322,4 @@ class AdminQuizController extends Controller
         ];
     }
 }
-
 

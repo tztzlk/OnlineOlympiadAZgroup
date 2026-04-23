@@ -10,7 +10,7 @@
 
       <!-- Steps grid -->
       <div class="hiw__grid">
-        <article v-for="step in steps" :key="step.id" class="step-card">
+        <article v-for="step in steps" :key="step.id" :class="['step-card', `step-card--${step.id}`]">
           <div class="step-card__num">{{ String(step.id).padStart(2, '0') }}</div>
 
           <div class="step-card__icon-wrap">
@@ -190,6 +190,21 @@ const steps = [
   transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+.step-card--1 {
+  background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+
+.step-card--2 {
+  background: color-mix(in srgb, var(--green-soft) 42%, #ffffff);
+  border-color: color-mix(in srgb, var(--green) 20%, var(--border));
+}
+
+.step-card--3 {
+  background: color-mix(in srgb, #eef4ff 58%, #ffffff);
+  border-color: color-mix(in srgb, #9fb8de 28%, var(--border));
+}
+
 @media (hover: hover) and (pointer: fine) {
   .step-card:hover {
     transform: translateY(-4px);
@@ -208,6 +223,15 @@ const steps = [
   opacity: 0;
   transition: opacity 0.22s ease;
 }
+
+.step-card--2::before {
+  background: var(--green);
+}
+
+.step-card--3::before {
+  background: #8aa8cf;
+}
+
 .step-card:hover::before { opacity: 1; }
 
 .step-card__num {
@@ -233,6 +257,18 @@ const steps = [
   background: var(--accent-soft);
   color: #92660a;
   border: 1.5px solid rgba(245, 200, 66, 0.3);
+}
+
+.step-card--2 .step-card__icon {
+  background: color-mix(in srgb, var(--green-soft) 90%, #ffffff);
+  color: var(--green-strong);
+  border-color: color-mix(in srgb, var(--green) 28%, transparent);
+}
+
+.step-card--3 .step-card__icon {
+  background: color-mix(in srgb, #e8f0fb 92%, #ffffff);
+  color: #6f89ad;
+  border-color: color-mix(in srgb, #9fb8de 36%, transparent);
 }
 .step-card__icon :deep(svg) {
   width: 32px;
@@ -270,6 +306,21 @@ const steps = [
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
+}
+
+.step-card--1 .tag {
+  background: color-mix(in srgb, var(--accent-soft) 55%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+
+.step-card--2 .tag {
+  background: color-mix(in srgb, var(--green-soft) 68%, #ffffff);
+  border-color: color-mix(in srgb, var(--green) 16%, var(--border));
+}
+
+.step-card--3 .tag {
+  background: color-mix(in srgb, #eef4ff 76%, #ffffff);
+  border-color: color-mix(in srgb, #9fb8de 18%, var(--border));
 }
 
 /* ---- Bottom CTA ---- */

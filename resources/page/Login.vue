@@ -2,7 +2,7 @@
   <div class="auth-page">
     <div class="auth-shell">
       <section class="auth-side">
-        <p class="eyebrow">Eurica</p>
+        <p class="eyebrow">EUrica!</p>
         <h1>Войдите в личный кабинет</h1>
         <p class="lead">
           Все заявки, оплаты, результаты и сертификаты собраны в одном месте.
