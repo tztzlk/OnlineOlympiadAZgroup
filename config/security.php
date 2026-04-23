@@ -15,7 +15,7 @@ return [
         'permissions_policy' => env('SECURITY_PERMISSIONS_POLICY', 'camera=(), microphone=(), geolocation=()'),
         'csp' => env(
             'SECURITY_CSP',
-            "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://kaspi.kz; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https: wss:;"
+            "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://kaspi.kz; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https: wss:;"
         ),
     ],
 

@@ -139,10 +139,16 @@ const startEditChild = (child) => {
 const saveChild = async () => {
   savingChild.value = true
   try {
+    const payload = {
+      ...childForm,
+      grade: childForm.grade !== '' ? parseInt(childForm.grade) : null,
+      birth_date: childForm.birth_date || null,
+    }
+
     if (editingChildId.value) {
-      await api.put(`/profile/children/${editingChildId.value}`, childForm)
+      await api.put(`/profile/children/${editingChildId.value}`, payload)
     } else {
-      await api.post('/profile/children', childForm)
+      await api.post('/profile/children', payload)
     }
 
     await userStore.fetchUser()

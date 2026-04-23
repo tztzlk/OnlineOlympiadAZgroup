@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="/theme-init.js"></script>
-    <script>
+    <script nonce="{{ $cspNonce ?? '' }}">
         window.__SEO_DEFAULTS__ = @json($seoDefaults);
         window.__SEO_ROUTE_MAP__ = @json($seoRouteMap);
         window.__SEO_SERVER__ = @json($seo);
