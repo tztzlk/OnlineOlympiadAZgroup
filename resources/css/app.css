@@ -7,41 +7,65 @@
 @source '../**/*.js';
 
 @theme {
+    --font-sans: 'Inter', 'Segoe UI', Arial, sans-serif;
     --font-sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
     --font-display: 'Golos Text', 'Arial', sans-serif;
 }
 
 :root {
-    --bg: #f5f0e8;
-    --bg-alt: #efe7da;
-    --text: #2c2c2a;
-    --text-secondary: #5f5a51;
-    --card: #e8dfc8;
-    --surface: rgba(232, 223, 200, 0.84);
-    --surface-border: rgba(108, 93, 55, 0.16);
-    --surface-soft: rgba(110, 94, 58, 0.08);
-    --surface-strong: #e1d2a4;
-    --accent: #c9a84c;
-    --accent-hover: #b79133;
-    --accent-soft: #efe2b5;
-    --accent-strong: #8d6b19;
-    --success-soft: #2c7a4b;
-    --success-soft-hover: #23643d;
-    --success-bg: #dcecdf;
+    /* Backgrounds — slightly off-white so white cards pop */
+    --bg: #f8fafc;
+    --bg-alt: #f1f5f9;
+    --bg-yellow: #fffbeb;
+    --bg-green: #f0fdf4;
+
+    /* Text */
+    --text: #111827;
+    --text-secondary: #6b7280;
+
+    /* Cards & Surfaces */
+    --card: #ffffff;
+    --surface: rgba(255, 255, 255, 0.96);
+    --surface-border: rgba(0, 0, 0, 0.09);
+    --surface-soft: rgba(0, 0, 0, 0.03);
+    --surface-strong: #e2e8f0;
+
+    /* Yellow — highlights, accent shapes, decorative */
+    --accent: #f5c842;
+    --accent-hover: #e6b52e;
+    --accent-soft: #fef9e7;
+    --accent-strong: #d4a017;
+
+    /* Green — primary CTA, success states */
+    --green: #16a34a;
+    --green-hover: #15803d;
+    --green-soft: #dcfce7;
+    --green-strong: #166534;
+
+    /* Legacy aliases */
+    --success-soft: #16a34a;
+    --success-soft-hover: #15803d;
+    --success-bg: #dcfce7;
+
+    /* Info / Danger */
     --info: #1a5fa8;
     --info-hover: #154f8d;
     --info-soft: #dfeaf7;
     --info-bg: #e7f0fb;
-    --danger-soft: #c65a5a;
-    --danger-bg: #f8e4e0;
-    --warning-bg: #f2e6c4;
-    --border: rgba(74, 57, 22, 0.14);
-    --overlay: rgba(245, 240, 232, 0.88);
-    --shadow-soft: 0 20px 48px rgba(88, 68, 28, 0.08);
-    --shadow-card: 0 18px 42px rgba(77, 58, 18, 0.07);
-    --radius-sm: 14px;
-    --radius-md: 20px;
-    --radius-lg: 28px;
+    --danger-soft: #dc2626;
+    --danger-bg: #fee2e2;
+    --warning-bg: #fef3c7;
+
+    /* Utility */
+    --border: rgba(0, 0, 0, 0.08);
+    --overlay: rgba(255, 255, 255, 0.92);
+    --shadow-soft: 0 20px 48px rgba(0, 0, 0, 0.06);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+
+    /* Aliases */
     --bg-primary: var(--bg);
     --bg-surface: var(--card);
     --text-primary: var(--text);
@@ -50,33 +74,39 @@
 }
 
 .dark {
-    --bg: #f0e8dc;
-    --bg-alt: #e6dccb;
-    --text: #2c2c2a;
-    --text-secondary: #5d564d;
-    --card: #efe6d1;
-    --surface: rgba(239, 230, 209, 0.88);
-    --surface-border: rgba(109, 89, 42, 0.15);
-    --surface-soft: rgba(100, 83, 41, 0.06);
-    --surface-strong: #e7d7aa;
-    --accent: #c9a84c;
-    --accent-hover: #b79133;
-    --accent-soft: #ead8a8;
-    --accent-strong: #876a2f;
-    --success-soft: #2c7a4b;
-    --success-soft-hover: #23643d;
-    --success-bg: #d8e8db;
-    --info: #1a5fa8;
-    --info-hover: #154f8d;
-    --info-soft: #dbe8f8;
-    --info-bg: #e3eefb;
-    --danger-soft: #b96565;
-    --danger-bg: #f5dfd8;
-    --warning-bg: #f1e3be;
-    --border: rgba(95, 74, 28, 0.14);
-    --overlay: rgba(244, 236, 219, 0.86);
-    --shadow-soft: 0 20px 48px rgba(88, 68, 28, 0.08);
-    --shadow-card: 0 18px 42px rgba(77, 58, 18, 0.07);
+    --bg: #0f172a;
+    --bg-alt: #1e293b;
+    --bg-yellow: #1c1a0a;
+    --bg-green: #0a1a10;
+    --text: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --card: #1e293b;
+    --surface: rgba(30, 41, 59, 0.95);
+    --surface-border: rgba(255, 255, 255, 0.08);
+    --surface-soft: rgba(255, 255, 255, 0.04);
+    --surface-strong: #334155;
+    --accent: #f5c842;
+    --accent-hover: #e6b52e;
+    --accent-soft: #2a2006;
+    --accent-strong: #fde68a;
+    --green: #22c55e;
+    --green-hover: #16a34a;
+    --green-soft: #052e16;
+    --green-strong: #4ade80;
+    --success-soft: #22c55e;
+    --success-soft-hover: #16a34a;
+    --success-bg: #052e16;
+    --info: #3b82f6;
+    --info-hover: #2563eb;
+    --info-soft: #1e3a5f;
+    --info-bg: #1e3a5f;
+    --danger-soft: #f87171;
+    --danger-bg: #450a0a;
+    --warning-bg: #1c1506;
+    --border: rgba(255, 255, 255, 0.08);
+    --overlay: rgba(15, 23, 42, 0.92);
+    --shadow-soft: 0 20px 48px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.24);
     --bg-primary: var(--bg);
     --bg-surface: var(--card);
     --text-primary: var(--text);
@@ -90,7 +120,7 @@ html {
 
 body {
     margin: 0;
-    font-family: var(--font-sans);
+    font-family: 'Inter', var(--font-sans);
     font-size: 16px;
     font-weight: 400;
     line-height: 1.65;
@@ -108,6 +138,15 @@ h4,
 h5,
 h6 {
     margin: 0;
+    font-family: 'Inter', var(--font-sans);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+
+h1 { font-size: clamp(40px, 5.5vw, 64px); }
+h2 { font-size: clamp(28px, 3.4vw, 40px); }
+h3 { font-size: clamp(20px, 2.4vw, 24px); }
     font-family: var(--font-display);
     font-weight: 700;
 }
@@ -149,7 +188,7 @@ button,
 .btn-ghost,
 .start-btn,
 a[class*="btn"] {
-    font-family: var(--font-sans);
+    font-family: 'Inter', var(--font-sans);
     font-weight: 600;
 }
 
@@ -166,7 +205,7 @@ a[class*="btn"] {
 input,
 textarea,
 select {
-    font-family: var(--font-sans);
+    font-family: 'Inter', var(--font-sans);
     font-size: 16px;
     font-weight: 400;
 }
@@ -201,11 +240,254 @@ input:focus,
 textarea:focus,
 select:focus {
     outline: none;
-    border-color: color-mix(in srgb, var(--info) 75%, white 25%);
-    box-shadow: 0 0 0 4px rgba(26, 95, 168, 0.16);
+    border-color: var(--info);
+    box-shadow: 0 0 0 3px rgba(26, 95, 168, 0.14);
 }
 
 ::selection {
-    background: rgba(201, 168, 76, 0.28);
+    background: rgba(245, 200, 66, 0.28);
     color: var(--text);
+}
+
+/* ==========================================================
+   EURICA DESIGN SYSTEM — Global Utility Classes
+   Use these across pages for consistency.
+   ========================================================== */
+
+/* ---- Button base ---- */
+.ds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    border-radius: 14px;
+    font-family: 'Inter', var(--font-sans);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+}
+.ds-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+/* Green — primary CTA */
+.ds-btn-green {
+    background: var(--green);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.24);
+}
+.ds-btn-green:hover:not(:disabled) {
+    background: var(--green-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(22, 163, 74, 0.32);
+}
+
+/* Yellow — accent / secondary CTA */
+.ds-btn-yellow {
+    background: var(--accent);
+    color: #111827;
+    box-shadow: 0 6px 20px rgba(245, 200, 66, 0.22);
+}
+.ds-btn-yellow:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+/* Ghost outline */
+.ds-btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+}
+.ds-btn-ghost:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: #92660a;
+}
+
+/* Danger */
+.ds-btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger-soft);
+    border: 1px solid rgba(220, 38, 38, 0.15);
+}
+.ds-btn-danger:hover:not(:disabled) {
+    background: #fecaca;
+}
+
+/* ---- Input ---- */
+.ds-input {
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: 'Inter', var(--font-sans);
+    font-size: 15px;
+    font-weight: 400;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.ds-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+.ds-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.18);
+}
+.ds-input.is-error {
+    border-color: var(--danger-soft);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10);
+}
+.ds-input.is-valid {
+    border-color: var(--green);
+}
+
+/* ---- Card ---- */
+.ds-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+}
+.ds-card-sm {
+    padding: 16px;
+    border-radius: var(--radius-md);
+}
+
+/* ---- Form message / alert ---- */
+.ds-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    border: 1px solid transparent;
+}
+.ds-msg.success {
+    background: var(--green-soft);
+    border-color: rgba(22, 163, 74, 0.2);
+    color: var(--green-strong);
+}
+.ds-msg.error {
+    background: var(--danger-bg);
+    border-color: rgba(220, 38, 38, 0.15);
+    color: #b91c1c;
+}
+.ds-msg.warning {
+    background: var(--warning-bg);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #92400e;
+}
+.ds-msg.info {
+    background: var(--info-bg);
+    border-color: rgba(26, 95, 168, 0.15);
+    color: var(--info);
+}
+
+/* ---- Section / page layout ---- */
+.ds-section {
+    padding: 80px 28px;
+}
+.ds-section-sm {
+    padding: 48px 28px;
+}
+.ds-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.ds-page {
+    min-height: 100vh;
+    background: var(--bg);
+    padding-top: 88px; /* clears fixed header */
+}
+
+/* ---- Eyebrow label ---- */
+.ds-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(245, 200, 66, 0.3);
+    color: #92660a;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+/* ---- Badge / tag ---- */
+.ds-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.ds-badge.green  { background: var(--green-soft);  border-color: rgba(22,163,74,0.2);  color: var(--green-strong); }
+.ds-badge.yellow { background: var(--accent-soft); border-color: rgba(245,200,66,0.3); color: #92660a; }
+.ds-badge.red    { background: var(--danger-bg);   border-color: rgba(220,38,38,0.15); color: #b91c1c; }
+
+/* ---- Progress bar ---- */
+.ds-progress-track {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+.ds-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--green);
+    transition: width 0.3s ease;
+}
+
+/* ---- Divider with label ---- */
+.ds-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.ds-divider::before,
+.ds-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ---- Loading spinner ---- */
+.ds-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(0, 0, 0, 0.12);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: ds-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes ds-spin {
+    to { transform: rotate(360deg); }
 }

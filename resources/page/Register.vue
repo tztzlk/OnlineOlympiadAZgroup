@@ -495,9 +495,10 @@ watch(rulesAccepted, () => {
 .register-page {
   min-height: 100vh;
   padding: 32px 20px;
+  padding-top: 100px;
   background:
-    radial-gradient(circle at top left, rgba(201, 168, 76, 0.14), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(79, 167, 116, 0.08), transparent 24%),
+    radial-gradient(circle at top left, rgba(245, 200, 66, 0.10), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(22, 163, 74, 0.07), transparent 26%),
     var(--bg);
 }
 
@@ -523,8 +524,8 @@ watch(rulesAccepted, () => {
   display: grid;
   gap: 20px;
   background:
-    linear-gradient(160deg, rgba(255, 249, 238, 0.96), rgba(240, 232, 214, 0.84)),
-    var(--surface);
+    linear-gradient(160deg, rgba(245, 200, 66, 0.06), rgba(22, 163, 74, 0.04)),
+    var(--card);
 }
 
 .side-copy {
@@ -564,13 +565,13 @@ watch(rulesAccepted, () => {
   gap: 14px;
   padding: 16px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(141, 111, 49, 0.14);
-  background: rgba(255, 252, 244, 0.78);
+  border: 1.5px solid var(--border);
+  background: var(--bg-alt);
 }
 
 .journey-step.is-active {
-  border-color: rgba(201, 171, 99, 0.26);
-  box-shadow: 0 16px 38px rgba(141, 107, 25, 0.08);
+  border-color: rgba(245, 200, 66, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .journey-step__icon {
@@ -629,8 +630,8 @@ watch(rulesAccepted, () => {
   min-width: 120px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(255, 252, 244, 0.82);
-  border: 1px solid rgba(201, 171, 99, 0.18);
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
   display: grid;
   gap: 4px;
 }
@@ -638,8 +639,8 @@ watch(rulesAccepted, () => {
 .progress-card {
   padding: 18px 20px;
   border-radius: var(--radius-md);
-  background: rgba(255, 252, 244, 0.82);
-  border: 1px solid rgba(201, 171, 99, 0.18);
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
   display: grid;
   gap: 14px;
 }
@@ -652,17 +653,17 @@ watch(rulesAccepted, () => {
 
 .progress-track {
   width: 100%;
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
-  background: rgba(100, 83, 41, 0.12);
+  background: var(--border);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  transition: width 0.25s ease;
+  background: var(--green);
+  transition: width 0.3s ease;
 }
 
 .progress-steps {
@@ -684,7 +685,8 @@ watch(rulesAccepted, () => {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(141, 111, 49, 0.12);
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
   font-size: 13px;
   font-weight: 700;
 }
@@ -722,23 +724,23 @@ watch(rulesAccepted, () => {
   gap: 8px;
   padding: 16px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .field:hover {
-  transform: translateY(-1px);
+  border-color: rgba(245, 200, 66, 0.4);
 }
 
 .field.is-active {
-  border-color: rgba(201, 171, 99, 0.3);
-  box-shadow: 0 14px 36px rgba(201, 171, 99, 0.1);
+  border-color: rgba(22, 163, 74, 0.35);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
 }
 
 .field.is-error {
-  border-color: rgba(198, 90, 90, 0.34);
-  box-shadow: 0 12px 28px rgba(198, 90, 90, 0.08);
+  border-color: rgba(220, 38, 38, 0.4);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.07);
 }
 
 .field-wide {
@@ -747,12 +749,20 @@ watch(rulesAccepted, () => {
 
 .field input {
   width: 100%;
-  min-height: 52px;
-  border: 1px solid var(--surface-border);
-  border-radius: 16px;
-  background: rgba(255, 252, 245, 0.95);
-  padding: 0 16px;
+  min-height: 48px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-alt);
+  padding: 0 14px;
   color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.16);
 }
 
 .field-message {
@@ -788,8 +798,8 @@ watch(rulesAccepted, () => {
 .password-helper {
   padding: 18px 20px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(201, 171, 99, 0.18);
-  background: rgba(255, 252, 244, 0.82);
+  border: 1.5px solid var(--border);
+  background: var(--bg-alt);
   display: grid;
   gap: 14px;
 }
@@ -860,9 +870,9 @@ watch(rulesAccepted, () => {
   gap: 12px;
   align-items: flex-start;
   padding: 16px 18px;
-  border-radius: 20px;
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
   color: var(--text-secondary);
 }
 
@@ -932,27 +942,36 @@ watch(rulesAccepted, () => {
 
 .submit-btn {
   min-width: 180px;
-  border: 0;
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  color: var(--text);
-  box-shadow: 0 18px 40px rgba(201, 171, 99, 0.24);
+  border: none;
+  background: var(--green);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.28);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.submit-btn:hover:not(:disabled),
+.submit-btn:hover:not(:disabled) {
+  background: var(--green-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(22, 163, 74, 0.34);
+}
+
 .secondary-btn:hover {
   transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .submit-btn:disabled {
-  opacity: 0.72;
+  opacity: 0.65;
   cursor: not-allowed;
+  transform: none;
   box-shadow: none;
 }
 
 .secondary-btn {
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
-  color: var(--accent-strong);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text-secondary);
 }
 
 .button-loader {

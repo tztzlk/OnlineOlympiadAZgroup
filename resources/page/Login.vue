@@ -148,9 +148,10 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
+  padding-top: 100px;
   background:
-    radial-gradient(circle at top left, rgba(201, 171, 99, 0.18), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(79, 167, 116, 0.14), transparent 24%),
+    radial-gradient(circle at top left, rgba(245, 200, 66, 0.10), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(22, 163, 74, 0.08), transparent 26%),
     var(--bg);
 }
 
@@ -175,8 +176,8 @@ async function handleLogin() {
   display: grid;
   gap: 22px;
   background:
-    linear-gradient(160deg, rgba(255, 249, 238, 0.95), rgba(243, 229, 191, 0.76)),
-    var(--surface);
+    linear-gradient(160deg, rgba(245, 200, 66, 0.06), rgba(22, 163, 74, 0.04)),
+    var(--card);
 }
 
 .eyebrow {
@@ -204,8 +205,8 @@ async function handleLogin() {
 .benefit-card {
   padding: 18px 20px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(141, 111, 49, 0.14);
-  background: rgba(255, 252, 244, 0.76);
+  border: 1.5px solid var(--border);
+  background: var(--bg-alt);
   display: grid;
   gap: 6px;
 }
@@ -260,10 +261,17 @@ async function handleLogin() {
   width: 100%;
   min-height: 54px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
+  border: 1.5px solid var(--border);
+  background: var(--card);
   padding: 14px 16px;
   color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.16);
 }
 
 .password-wrap {
@@ -309,36 +317,40 @@ async function handleLogin() {
 }
 
 .next-step-box {
-  background: rgba(79, 167, 116, 0.08);
-  border: 1px solid rgba(79, 167, 116, 0.16);
-  color: var(--text-secondary);
+  background: var(--green-soft);
+  border: 1px solid rgba(22, 163, 74, 0.18);
+  color: var(--green-strong);
 }
 
 .message.error {
   background: var(--danger-bg);
-  color: #8f3b3b;
-  border: 1px solid rgba(198, 90, 90, 0.18);
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.15);
 }
 
 .submit-btn {
   min-height: 54px;
-  border: 0;
+  border: none;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent) 0%, #e1c16f 100%);
-  color: var(--text);
-  box-shadow: 0 14px 30px rgba(201, 171, 99, 0.26);
+  background: var(--green);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.28);
   font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, #d5b56d 0%, #e6c778 100%);
+  background: var(--green-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(22, 163, 74, 0.34);
 }
 
 .submit-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   cursor: not-allowed;
+  transform: none;
 }
 
 .form-footer {

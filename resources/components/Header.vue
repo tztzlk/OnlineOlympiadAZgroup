@@ -9,7 +9,7 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </div>
-        <span>Онлайн-олимпиада</span>
+        <span>Eurica</span>
       </router-link>
 
       <!-- Навигация -->
@@ -75,7 +75,7 @@
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
-          <span class="mobile-menu__title">Олимпиада</span>
+          <span class="mobile-menu__title">Eurica</span>
           <button class="mobile-close" @click="closeMenu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -231,13 +231,13 @@ onUnmounted(() => {
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Only transparent on homepage before scroll */
+/* Transparent on homepage before scroll — light hero, so keep dark text */
 .header.transparent {
-  background: transparent;
-  border-bottom: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .header__container {
@@ -266,18 +266,18 @@ onUnmounted(() => {
   white-space: nowrap;
   transition: color 0.4s ease;
 }
-.header.transparent .header__logo span { color: white; }
+/* transparent header inherits normal dark text — no override needed */
 .logo-icon {
   width: 36px;
   height: 36px;
-  background: var(--accent);
+  background: var(--green);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 8px 18px rgba(104, 79, 28, 0.22);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.28);
 }
 .logo-icon.small {
   width: 28px; height: 28px;
@@ -304,13 +304,7 @@ onUnmounted(() => {
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.header.transparent .header__link { color: rgba(255,255,255,0.85); }
-.header.transparent .header__link:hover,
-.header.transparent .header__link.router-link-active {
-  
-  color: white;
-  background: rgba(255,255,255,0.15);
-}
+/* nav links use normal theme colors on transparent header */
 
 /* User area */
 .header__user {
@@ -341,15 +335,7 @@ onUnmounted(() => {
 .theme-icon {
   flex-shrink: 0;
 }
-.header.transparent .header__theme-toggle {
-  border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
-.header.transparent .header__theme-toggle:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.4);
-}
+/* theme toggle: same as scrolled state on light background */
 
 .header__profile {
   display: flex;
@@ -372,16 +358,7 @@ onUnmounted(() => {
   color: var(--text);
   transition: color 0.3s;
 }
-.header.transparent .header__profile {
-  border-color: rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-}
-.header.transparent .header__profile:hover {
-  background: rgba(255,255,255,0.22);
-  border-color: rgba(255,255,255,0.5);
-}
-.header.transparent .header__profile span { color: white; }
+/* profile pill: same as scrolled state on light background */
 
 .header__avatar {
   width: 30px;
@@ -410,6 +387,7 @@ onUnmounted(() => {
   cursor: pointer;
 }
 .btn-ghost:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+/* btn-ghost: same on transparent — inherits normal styles */
 .btn-ghost:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .header.transparent .btn-ghost {
   background: rgba(255,255,255,0.12);
@@ -422,13 +400,20 @@ onUnmounted(() => {
 .btn-primary {
   padding: 8px 18px;
   border-radius: 12px;
-  background: var(--accent);
-  color: #18120a;
+  background: var(--green);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
   border: none;
   cursor: pointer;
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.28);
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: var(--green-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.34);
   box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
   transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s ease, background 0.18s ease;
 }
@@ -462,6 +447,7 @@ onUnmounted(() => {
   transition: background 0.25s ease;
 }
 .btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
+/* btn-logout: inherits same green style on light background */
 .btn-logout:active { background: rgba(73, 168, 107, 0.24); }
 .header.transparent .btn-logout {
   background: rgba(255,80,80,0.15);
@@ -495,27 +481,20 @@ onUnmounted(() => {
   height: 40px;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
-.burger:hover { background: rgba(208, 179, 107, 0.16); border-color: rgba(208, 179, 107, 0.28); }
+.burger:hover { background: var(--accent-soft); border-color: rgba(245, 200, 66, 0.4); }
 .burger span {
   display: block;
   height: 2px;
-  background: var(--accent);
+  background: var(--text);
   border-radius: 2px;
   transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
   transform-origin: center;
 }
-.header.transparent .burger {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.25);
-  backdrop-filter: blur(6px);
-}
-.header.transparent .burger:hover { background: rgba(255,255,255,0.22); }
-.header.transparent .burger span { background: white; }
 .burger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .burger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
@@ -696,12 +675,16 @@ onUnmounted(() => {
   display: block;
   text-align: center;
   padding: 12px;
-  background: var(--accent);
-  color: #18120a;
+  background: var(--green);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 700;
   border-radius: 14px;
   text-decoration: none;
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28);
+  transition: all 0.2s;
+}
+.mobile-btn-primary:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34); }
   box-shadow: 0 8px 18px rgba(104, 79, 28, 0.24);
   transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s ease, background 0.18s ease;
 }
@@ -732,12 +715,12 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-  color: #18120a;
+  background: var(--green);
+  color: #ffffff;
   font-size: 15px;
   font-weight: 800;
   text-decoration: none;
-  box-shadow: 0 18px 32px rgba(139, 103, 20, 0.28);
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.32);
   z-index: 1400;
 }
 
