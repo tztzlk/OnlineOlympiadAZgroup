@@ -18,6 +18,7 @@ class SubjectController extends Controller
                     ->withCount([
                         'quizzes as published_quizzes_count' => fn ($query) => $query->where('is_published', true),
                     ])
+                    ->with(['quizzes' => fn ($q) => $q->where('is_published', true)->orderByDesc('id')])
                     ->orderBy('name')
                     ->get()
                     ->map(fn (Subject $subject) => $this->mapSubject($subject))
@@ -86,7 +87,9 @@ class SubjectController extends Controller
             'description' => $subject->description,
             'start_date' => optional($subject->start_date)->toDateString(),
             'published_quizzes_count' => $subject->published_quizzes_count ?? 0,
-            'price' => $subject->quizzes()->where('is_published', true)->latest('id')->value('price'),
+            'price' => $subject->relationLoaded('quizzes')
+                ? $subject->quizzes->first()?->price
+                : $subject->quizzes()->where('is_published', true)->latest('id')->value('price'),
         ];
     }
 

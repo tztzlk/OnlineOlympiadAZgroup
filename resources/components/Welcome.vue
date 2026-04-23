@@ -86,7 +86,7 @@ export default { name: 'Hero' }
 .hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/.png') center/cover no-repeat;
+  background: url('/welcome.png') center/cover no-repeat;
   z-index: 0;
 }
 
@@ -111,6 +111,19 @@ export default { name: 'Hero' }
   padding: 24px 0;
 }
 
+.hero__eyebrow { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 0ms; }
+.hero__title   { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 70ms; }
+.hero__subheadline { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 140ms; }
+.hero__price   { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 200ms; }
+.hero__actions { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 260ms; }
+.hero__features { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 330ms; }
+.hero__stats   { animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both; animation-delay: 410ms; }
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .hero__eyebrow {
   margin: 0 0 14px;
   padding: 8px 14px;
@@ -127,12 +140,11 @@ export default { name: 'Hero' }
 .hero__title {
   max-width: 980px;
   font-size: clamp(48px, 6vw, 74px);
-  font-weight: 700;
-  font-family: "Segoe UI Variable Display", "Trebuchet MS", "Arial Narrow", sans-serif;
+  font-weight: 900;
   color: #fff;
-  line-height: 1.08;
+  line-height: 1.06;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   text-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
 }
 
@@ -185,18 +197,25 @@ export default { name: 'Hero' }
   border: none;
   cursor: pointer;
   box-shadow: 0 18px 40px rgba(37, 26, 6, 0.24);
-  transition: all 0.25s ease;
+  transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.18s cubic-bezier(0.23, 1, 0.32, 1), background 0.18s ease;
 }
 
-.btn-primary svg { transition: transform 0.25s; }
+.btn-primary svg { transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
 
-.btn-primary:hover {
-  background: linear-gradient(135deg, #d9b860, var(--accent));
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(139, 103, 20, 0.32);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #d9b860, var(--accent));
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(139, 103, 20, 0.32);
+  }
+  .btn-primary:hover svg { transform: translateX(4px); }
 }
 
-.btn-primary:hover svg { transform: translateX(4px); }
+.btn-primary:active {
+  transform: scale(0.97);
+  box-shadow: 0 8px 20px rgba(37, 26, 6, 0.18);
+  transition-duration: 0.1s;
+}
 
 .hero__features {
   display: flex;

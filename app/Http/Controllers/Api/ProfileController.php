@@ -8,6 +8,7 @@ use App\Models\ChildProfile;
 use App\Models\OlympiadRequest;
 use App\Models\PaymentRecord;
 use App\Models\PlatformNotification;
+use App\Models\Quiz;
 use App\Models\QuizResult;
 use App\Models\TrainingAttempt;
 use App\Support\OnboardingProgress;
@@ -30,8 +31,11 @@ class ProfileController extends Controller
         $children = $user->childProfiles->map(fn (ChildProfile $child) => $this->mapChild($child));
         $olympiads = $this->buildOlympiadsPayload($request);
         $resultsCount = QuizResult::where('user_id', $user->id)->count();
-        $paymentsCount = PaymentRecord::where('parent_id', $user->id)->count();
         $trainingCount = TrainingAttempt::where('parent_id', $user->id)->count();
+        $paymentStats = PaymentRecord::where('parent_id', $user->id)
+            ->selectRaw('COUNT(*) as total, SUM(status = "pending") as pending_count, SUM(status = "paid") as paid_count, SUM(status = "failed") as failed_count')
+            ->first();
+        $paymentsCount = (int) $paymentStats->total;
         $notifications = PlatformNotification::query()
             ->where('user_id', $user->id)
             ->latest()
@@ -59,12 +63,12 @@ class ProfileController extends Controller
                     'rejected' => $olympiads->where('status', 'rejected')->count(),
                 ],
                 'payments' => [
-                    'pending' => PaymentRecord::where('parent_id', $user->id)->where('status', 'pending')->count(),
-                    'paid' => PaymentRecord::where('parent_id', $user->id)->where('status', 'paid')->count(),
-                    'failed' => PaymentRecord::where('parent_id', $user->id)->where('status', 'failed')->count(),
+                    'pending' => (int) $paymentStats->pending_count,
+                    'paid' => (int) $paymentStats->paid_count,
+                    'failed' => (int) $paymentStats->failed_count,
                 ],
             ],
-            'current_task' => $this->resolveCurrentTask($user, $children, $olympiads),
+            'current_task' => $this->resolveCurrentTask($user, $children, $olympiads, $resultsCount),
             'notifications_preview' => $notifications,
         ]);
     }
@@ -360,12 +364,12 @@ class ProfileController extends Controller
         ]);
     }
 
-    protected function buildOlympiadsPayload(Request $request, ?int $limit = null)
+    protected function buildOlympiadsPayload(Request $request, ?int $limit = null): \Illuminate\Support\Collection
     {
         $user = $request->user();
 
         if (!$user) {
-            return [];
+            return collect();
         }
 
         $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
@@ -379,20 +383,40 @@ class ProfileController extends Controller
             $query->limit($limit);
         }
 
-        return $query->get()->map(fn ($item) => $this->mapOlympiadRequest($item));
+        $requests = $query->get();
+
+        if ($requests->isEmpty()) {
+            return $requests;
+        }
+
+        $subjectIds = $requests->pluck('subject_id')->filter()->unique();
+        $quizIdBySubject = Quiz::whereIn('subject_id', $subjectIds)
+            ->select('id', 'subject_id')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('subject_id')
+            ->map(fn ($group) => $group->first()->id);
+
+        $quizIds = $quizIdBySubject->values()->filter();
+        $completedSet = $quizIds->isNotEmpty()
+            ? QuizResult::where('user_id', $user->id)
+                ->whereIn('quiz_id', $quizIds)
+                ->select('quiz_id', 'child_profile_id')
+                ->get()
+                ->mapWithKeys(fn ($r) => ["{$r->quiz_id}:{$r->child_profile_id}" => true])
+                ->all()
+            : [];
+
+        return $requests->map(fn ($item) => $this->mapOlympiadRequest($item, $quizIdBySubject, $completedSet));
     }
 
-    protected function mapOlympiadRequest($item): array
+    protected function mapOlympiadRequest($item, \Illuminate\Support\Collection $quizIdBySubject = null, array $completedSet = []): array
     {
-        $quizId = $item->subject?->quizzes()->value('id');
-        $completed = false;
+        $quizId = $quizIdBySubject
+            ? $quizIdBySubject->get($item->subject_id)
+            : $item->subject?->quizzes()->value('id');
 
-        if ($quizId) {
-            $completed = QuizResult::where('user_id', $item->user_id)
-                ->where('child_profile_id', $item->child_profile_id)
-                ->where('quiz_id', $quizId)
-                ->exists();
-        }
+        $completed = $quizId && isset($completedSet["{$quizId}:{$item->child_profile_id}"]);
 
         $countdownTarget = optional($item->subject?->start_date)->toDateString();
         $requestMeta = StatusPresenter::request($item->status);
@@ -457,7 +481,7 @@ class ProfileController extends Controller
         ];
     }
 
-    protected function resolveCurrentTask($user, $children, $olympiads): array
+    protected function resolveCurrentTask($user, $children, $olympiads, int $resultsCount = 0): array
     {
         if ($children->isEmpty()) {
             return [
@@ -516,7 +540,7 @@ class ProfileController extends Controller
             ];
         }
 
-        if (QuizResult::where('user_id', $user->id)->exists()) {
+        if ($resultsCount > 0) {
             return [
                 'key' => 'review_results',
                 'title' => 'Результаты уже доступны',

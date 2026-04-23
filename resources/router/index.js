@@ -91,7 +91,24 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: "smooth",
+        top: getHeaderOffset(),
+      };
+    }
+    return { top: 0, behavior: "instant" };
+  },
 });
+
+function getHeaderOffset() {
+  return document.querySelector(".header")?.offsetHeight ?? 72;
+}
 
 router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem("token");

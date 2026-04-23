@@ -1,5 +1,5 @@
 <template>
-  <section class="how-it-works">
+  <section class="how-it-works" ref="sectionRef">
     <div class="how-it-works__heading">
       <span class="how-it-works__eyebrow">Как всё работает</span>
       <h2>От выбора предмета до результата и разбора ошибок</h2>
@@ -12,8 +12,8 @@
       <span></span>
     </div>
 
-    <div class="how-it-works__grid">
-      <article v-for="step in steps" :key="step.id" class="step-card" :class="`step-card--${step.id}`">
+    <div class="how-it-works__grid" :class="{ visible: isVisible }">
+      <article v-for="step in steps" :key="step.id" class="step-card" :class="`step-card--${step.id}`" :style="`--i: ${step.id - 1}`">
         <div class="step-card__top">
           <span class="step-card__number">0{{ step.id }}</span>
           <span class="step-card__chip">{{ step.chip }}</span>
@@ -64,6 +64,19 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+
+const sectionRef = ref(null)
+const isVisible = ref(false)
+
+onMounted(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => { if (entry.isIntersecting) { isVisible.value = true; observer.disconnect() } },
+    { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
+  )
+  if (sectionRef.value) observer.observe(sectionRef.value)
+})
+
 const steps = [
   {
     id: 1,
@@ -192,6 +205,19 @@ const steps = [
   gap: 18px;
 }
 
+.how-it-works__grid .step-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0s, transform 0s;
+}
+
+.how-it-works__grid.visible .step-card {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: calc(var(--i) * 80ms);
+}
+
 .step-card {
   position: relative;
   overflow: hidden;
@@ -204,6 +230,14 @@ const steps = [
     radial-gradient(circle at top right, rgba(208, 179, 107, 0.16), transparent 35%);
   box-shadow: 0 22px 52px rgba(77, 61, 24, 0.08);
   backdrop-filter: blur(12px);
+  transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 32px 64px rgba(77, 61, 24, 0.13);
+  }
 }
 
 .step-card::before {

@@ -85,19 +85,26 @@
 .footer__logo span { font-size: 18px; font-weight: 700; color: var(--text); }
 .footer__desc { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }
 .footer__socials { display: flex; gap: 10px; flex-wrap: wrap; }
-.social-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; background: color-mix(in srgb, var(--text) 4%, transparent); border: 1px solid var(--border); border-radius: 10px; color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 600; }
+.social-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; background: color-mix(in srgb, var(--text) 4%, transparent); border: 1px solid var(--border); border-radius: 10px; color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+@media (hover: hover) and (pointer: fine) { .social-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 28%, transparent); } }
+.social-btn:active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .footer__title { margin-bottom: 20px; }
 .footer__title span { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
 .title-line { width: 28px; height: 2px; background: var(--accent); border-radius: 2px; margin-top: 8px; }
 .footer__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
-.footer__link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; padding: 8px 10px; border-radius: 10px; }
+.footer__link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; padding: 8px 10px; border-radius: 10px; transition: background 0.2s ease, color 0.2s ease; }
+@media (hover: hover) and (pointer: fine) { .footer__link:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent-strong); } }
+.footer__link:active { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .footer__contacts { display: flex; flex-direction: column; gap: 14px; }
-.contact-item { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 10px 12px; background: color-mix(in srgb, var(--text) 3%, transparent); border: 1px solid var(--border); border-radius: 12px; }
+.contact-item { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 10px 12px; background: color-mix(in srgb, var(--text) 3%, transparent); border: 1px solid var(--border); border-radius: 12px; transition: background 0.2s ease, border-color 0.2s ease; }
+@media (hover: hover) and (pointer: fine) { .contact-item:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); border-color: color-mix(in srgb, var(--accent) 22%, transparent); } }
+.contact-item:active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .contact-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 2px; }
 .contact-value { font-size: 14px; font-weight: 600; color: var(--text); }
 .footer__bottom { border-top: 1px solid var(--border); }
 .footer__bottom-inner { max-width: 1200px; margin: 0 auto; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.footer__bottom span, .footer__bottom-links a { font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+.footer__bottom span, .footer__bottom-links a { font-size: 13px; color: var(--text-secondary); text-decoration: none; transition: color 0.2s ease; }
+@media (hover: hover) and (pointer: fine) { .footer__bottom-links a:hover { color: var(--accent-strong); } }
 .footer__bottom-links { display: flex; align-items: center; gap: 10px; }
 .divider { color: var(--text-secondary); opacity: 0.7; }
 @media (max-width: 900px) { .footer__container { grid-template-columns: 1fr 1fr; gap: 36px; } .footer__block--brand { grid-column: 1 / -1; } }

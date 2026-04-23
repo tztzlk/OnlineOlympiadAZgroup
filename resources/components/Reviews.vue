@@ -1,5 +1,5 @@
 <template>
-  <section class="reviews">
+  <section class="reviews" ref="sectionRef" :class="{ visible: isVisible }">
     <div class="reviews__header">
       <div class="reviews__copy">
         <span class="reviews__eyebrow">Отзывы</span>
@@ -65,6 +65,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const scrollContainer = ref(null)
+const sectionRef = ref(null)
+const isVisible = ref(false)
 const activeDot = ref(0)
 
 const reviews = ref([
@@ -97,6 +99,12 @@ const updateDot = () => {
 
 onMounted(() => {
   scrollContainer.value?.addEventListener('scroll', updateDot, { passive: true })
+
+  const observer = new IntersectionObserver(
+    ([entry]) => { if (entry.isIntersecting) { isVisible.value = true; observer.disconnect() } },
+    { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+  )
+  if (sectionRef.value) observer.observe(sectionRef.value)
 })
 
 onUnmounted(() => {
@@ -111,6 +119,18 @@ onUnmounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 28px 28px 92px;
+}
+
+.reviews__header {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0s, transform 0s;
+}
+
+.reviews.visible .reviews__header {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .reviews__header {
@@ -172,13 +192,21 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(76, 61, 24, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.scroll-btn:hover {
-  transform: translateY(-2px);
-  border-color: rgba(73, 168, 107, 0.26);
-  box-shadow: 0 16px 32px rgba(73, 168, 107, 0.14);
+@media (hover: hover) and (pointer: fine) {
+  .scroll-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(73, 168, 107, 0.26);
+    box-shadow: 0 16px 32px rgba(73, 168, 107, 0.14);
+  }
+}
+
+.scroll-btn:active {
+  transform: scale(0.93);
+  box-shadow: 0 4px 12px rgba(76, 61, 24, 0.08);
+  transition-duration: 0.1s;
 }
 
 .reviews__scroll-container {
@@ -212,6 +240,14 @@ onUnmounted(() => {
   box-shadow: 0 20px 50px rgba(67, 55, 28, 0.09);
   backdrop-filter: blur(12px);
   scroll-snap-align: start;
+  transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .review:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 32px 64px rgba(67, 55, 28, 0.14);
+  }
 }
 
 .review::after {

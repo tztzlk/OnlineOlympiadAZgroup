@@ -3,11 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
     public function index()
+    {
+        $leaderboard = Cache::remember('leaderboard:top10', 300, fn () => $this->buildLeaderboard());
+
+        return response()->json($leaderboard);
+    }
+
+    private function buildLeaderboard(): \Illuminate\Support\Collection
     {
         $percentExpression = 'CASE WHEN qr.total > 0 THEN ROUND((qr.score * 100.0) / qr.total) ELSE 0 END';
 
@@ -65,8 +73,9 @@ class LeaderboardController extends Controller
                 ];
             });
 
-        return response()->json($leaderboard);
+        return $leaderboard;
     }
+
     protected function maskParticipantName(?string $value): string
     {
         $parts = preg_split('/\s+/u', trim((string) $value), -1, PREG_SPLIT_NO_EMPTY);
