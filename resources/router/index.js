@@ -103,8 +103,8 @@ const router = createRouter({
       };
     }
     return { top: 0, behavior: "instant" };
-  },
-});
+  }
+})
 
 function getHeaderOffset() {
   return document.querySelector(".header")?.offsetHeight ?? 72;
