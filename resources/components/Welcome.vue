@@ -15,7 +15,7 @@
 
         <h1 class="hero__title">
           Проверь знания<br>
-          <span class="hero__title-highlight">на EUrica!</span>
+          <span class="hero__title-highlight">на Eurica!</span>
         </h1>
 
         <p class="hero__sub">

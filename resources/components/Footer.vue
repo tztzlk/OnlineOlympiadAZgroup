@@ -6,11 +6,11 @@
       <div class="footer__block footer__block--brand">
         <router-link to="/" class="footer__logo">
           <div class="logo-icon">E</div>
-          <span>EUrica!</span>
+          <span>Eurica!</span>
         </router-link>
 
         <p class="footer__desc">
-          EUrica! — онлайн-олимпиады по математике и другим предметам. Мгновенный результат, сертификат и разбор ошибок.
+          Eurica! — онлайн-олимпиады по математике и другим предметам. Мгновенный результат, сертификат и разбор ошибок.
         </p>
 
         <div class="footer__socials">
@@ -64,7 +64,7 @@
 
     <div class="footer__bottom">
       <div class="footer__bottom-inner">
-        <span>© 2026 EUrica!. Все права защищены.</span>
+        <span>© 2026 Eurica!. Все права защищены.</span>
         <div class="footer__bottom-links">
           <router-link to="/help-desk">Help Desk</router-link>
           <span class="divider">·</span>
