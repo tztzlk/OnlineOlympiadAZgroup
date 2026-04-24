@@ -449,7 +449,7 @@ onMounted(hydrate)
 * { box-sizing: border-box; }
 
 .profile-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 110px 20px 56px;
   background: radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%), var(--bg);
   color: var(--text);
@@ -545,12 +545,23 @@ onMounted(hydrate)
 .stat-card span,
 .progress-value {
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .stat-card strong {
-  font-size: 34px;
+  font-size: 36px;
   line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.stat-card small {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .panel-head,
@@ -676,11 +687,17 @@ onMounted(hydrate)
   padding: 18px;
   display: grid;
   gap: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.child-card:hover {
+  border-color: rgba(201, 171, 99, 0.28);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 
 .child-card.selected {
-  border-color: rgba(201, 171, 99, 0.34);
-  box-shadow: 0 0 0 4px rgba(201, 171, 99, 0.12);
+  border-color: rgba(201, 171, 99, 0.45);
+  box-shadow: 0 0 0 3px rgba(201, 171, 99, 0.12);
 }
 
 .badge-stack {
@@ -748,19 +765,28 @@ onMounted(hydrate)
 .btn-primary {
   background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
   color: var(--text);
-  box-shadow: 0 14px 30px rgba(201, 171, 99, 0.22);
+  box-shadow: 0 8px 22px rgba(201, 171, 99, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(201, 171, 99, 0.28); }
+.btn-primary:active { transform: scale(0.98); box-shadow: 0 4px 12px rgba(201, 171, 99, 0.15); transition-duration: 0.08s; }
 
 .btn-outline {
   background: rgba(255, 251, 243, 0.86);
   color: var(--accent-strong);
   border: 1px solid rgba(201, 171, 99, 0.28);
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
+.btn-outline:hover { background: var(--accent-soft); border-color: rgba(201, 171, 99, 0.45); }
+.btn-outline:active { transform: scale(0.98); transition-duration: 0.08s; }
 
 .btn-ghost {
-  background: rgba(79, 167, 116, 0.1);
+  background: rgba(79, 167, 116, 0.10);
   color: #316a49;
+  transition: background 0.18s ease, transform 0.18s ease;
 }
+.btn-ghost:hover { background: rgba(79, 167, 116, 0.16); }
+.btn-ghost:active { transform: scale(0.98); transition-duration: 0.08s; }
 
 @media (max-width: 980px) {
   .stats-grid,

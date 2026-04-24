@@ -67,7 +67,7 @@
 
         <div class="intro-grid">
           <div class="intro-item"><span>Категория</span><strong>{{ quiz.category?.label }}</strong></div>
-          <div class="intro-item"><span>Классы</span><strong>{{ quiz.category?.display_range }}</strong></div>
+          <div v-if="quiz.category?.display_range && quiz.category.display_range !== quiz.category.label" class="intro-item"><span>Классы</span><strong>{{ quiz.category.display_range }}</strong></div>
           <div class="intro-item"><span>Вопросов</span><strong>{{ quiz.questions.length }}</strong></div>
           <div class="intro-item"><span>Время</span><strong>{{ quiz.time_limit }} минут</strong></div>
         </div>

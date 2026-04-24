@@ -14,6 +14,7 @@ use App\Models\TrainingAttempt;
 use App\Support\OnboardingProgress;
 use App\Support\StatusPresenter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProfileController extends Controller
 {
@@ -26,51 +27,57 @@ class ProfileController extends Controller
             return response()->json(['message' => 'Пользователь не авторизован.'], 401);
         }
 
-        $user->load('childProfiles');
+        $cacheKey = "profile:me:{$user->id}";
 
-        $children = $user->childProfiles->map(fn (ChildProfile $child) => $this->mapChild($child));
-        $olympiads = $this->buildOlympiadsPayload($request);
-        $resultsCount = QuizResult::where('user_id', $user->id)->count();
-        $trainingCount = TrainingAttempt::where('parent_id', $user->id)->count();
-        $paymentStats = PaymentRecord::where('parent_id', $user->id)
-            ->selectRaw('COUNT(*) as total, SUM(status = "pending") as pending_count, SUM(status = "paid") as paid_count, SUM(status = "failed") as failed_count')
-            ->first();
-        $paymentsCount = (int) $paymentStats->total;
-        $notifications = PlatformNotification::query()
-            ->where('user_id', $user->id)
-            ->latest()
-            ->limit(5)
-            ->get()
-            ->map(fn (PlatformNotification $notification) => $this->mapNotification($notification));
+        $data = Cache::remember($cacheKey, 60, function () use ($user, $request) {
+            $user->load('childProfiles');
 
-        return response()->json([
-            'user' => $user,
-            'children' => $children,
-            'stats' => [
-                'children' => $children->count(),
-                'olympiads' => $olympiads->count(),
-                'results' => $resultsCount,
-                'training_attempts' => $trainingCount,
-                'payments' => $paymentsCount,
-                'pending_requests' => $olympiads->where('status', 'pending')->count(),
-                'ready_to_start' => $olympiads->filter(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] === 'paid' && ($item['reconciliation_status'] ?? '') === 'matched' && !$item['completed'])->count(),
-            ],
-            'onboarding' => OnboardingProgress::payloadFor($user),
-            'summary' => [
-                'requests' => [
-                    'pending' => $olympiads->where('status', 'pending')->count(),
-                    'approved' => $olympiads->where('status', 'approved')->count(),
-                    'rejected' => $olympiads->where('status', 'rejected')->count(),
+            $children = $user->childProfiles->map(fn (ChildProfile $child) => $this->mapChild($child));
+            $olympiads = $this->buildOlympiadsPayload($request);
+            $resultsCount = QuizResult::where('user_id', $user->id)->count();
+            $trainingCount = TrainingAttempt::where('parent_id', $user->id)->count();
+            $paymentStats = PaymentRecord::where('parent_id', $user->id)
+                ->selectRaw('COUNT(*) as total, SUM(status = "pending") as pending_count, SUM(status = "paid") as paid_count, SUM(status = "failed") as failed_count')
+                ->first();
+            $paymentsCount = (int) $paymentStats->total;
+            $notifications = PlatformNotification::query()
+                ->where('user_id', $user->id)
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(fn (PlatformNotification $notification) => $this->mapNotification($notification));
+
+            return [
+                'user' => $user,
+                'children' => $children,
+                'stats' => [
+                    'children' => $children->count(),
+                    'olympiads' => $olympiads->count(),
+                    'results' => $resultsCount,
+                    'training_attempts' => $trainingCount,
+                    'payments' => $paymentsCount,
+                    'pending_requests' => $olympiads->where('status', 'pending')->count(),
+                    'ready_to_start' => $olympiads->filter(fn (array $item) => $item['status'] === 'approved' && $item['payment_status'] === 'paid' && ($item['reconciliation_status'] ?? '') === 'matched' && !$item['completed'])->count(),
                 ],
-                'payments' => [
-                    'pending' => (int) $paymentStats->pending_count,
-                    'paid' => (int) $paymentStats->paid_count,
-                    'failed' => (int) $paymentStats->failed_count,
+                'onboarding' => OnboardingProgress::payloadFor($user),
+                'summary' => [
+                    'requests' => [
+                        'pending' => $olympiads->where('status', 'pending')->count(),
+                        'approved' => $olympiads->where('status', 'approved')->count(),
+                        'rejected' => $olympiads->where('status', 'rejected')->count(),
+                    ],
+                    'payments' => [
+                        'pending' => (int) $paymentStats->pending_count,
+                        'paid' => (int) $paymentStats->paid_count,
+                        'failed' => (int) $paymentStats->failed_count,
+                    ],
                 ],
-            ],
-            'current_task' => $this->resolveCurrentTask($user, $children, $olympiads, $resultsCount),
-            'notifications_preview' => $notifications,
-        ]);
+                'current_task' => $this->resolveCurrentTask($user, $children, $olympiads, $resultsCount),
+                'notifications_preview' => $notifications,
+            ];
+        });
+
+        return response()->json($data);
     }
 
     public function update(Request $request)
@@ -90,6 +97,8 @@ class ProfileController extends Controller
         ]);
 
         $user->update($validated);
+
+        Cache::forget("profile:me:{$user->id}");
 
         return response()->json([
             'message' => 'Профиль обновлён.',

@@ -26,7 +26,9 @@
         </header>
 
         <div v-if="success" class="message success">
-          <span class="message__icon" aria-hidden="true">✓</span>
+          <span class="message__icon" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
           <div>
             <strong>Аккаунт создан</strong>
             <p>Перенаправляем в личный кабинет...</p>
@@ -101,7 +103,8 @@
               </div>
               <ul class="password-checklist">
                 <li v-for="item in passwordChecklist" :key="item.label" :class="{ 'is-met': item.met }">
-                  <span aria-hidden="true">{{ item.met ? '✓' : '•' }}</span>
+                  <svg v-if="item.met" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
                   {{ item.label }}
                 </li>
               </ul>
@@ -165,8 +168,7 @@
           <div v-if="error" class="message error">
             <span class="message__icon" aria-hidden="true">!</span>
             <div>
-              <strong>Проверьте форму</strong>
-              <p>{{ error }}</p>
+              <p style="margin:0"><strong>Проверьте форму:</strong> {{ error }}</p>
             </div>
           </div>
 
@@ -430,7 +432,7 @@ watch(rulesAccepted, () => {
 * { box-sizing: border-box; }
 
 .register-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 32px 20px;
   padding-top: 100px;
   background: var(--bg);
@@ -561,9 +563,8 @@ watch(rulesAccepted, () => {
   background: var(--bg-alt);
   padding: 0 14px;
   color: var(--text);
-  font-family: 'Inter', sans-serif;
   font-size: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .field input:focus {
   outline: none;
@@ -657,18 +658,24 @@ watch(rulesAccepted, () => {
 .password-checklist li {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13px;
 }
 
-.password-checklist li span {
-  width: 18px;
-  text-align: center;
+.password-checklist li svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  opacity: 0.5;
 }
 
 .password-checklist li.is-met {
   color: #15803d;
+}
+
+.password-checklist li.is-met svg {
+  color: #15803d;
+  opacity: 1;
 }
 
 .agreement-box {
@@ -761,14 +768,25 @@ watch(rulesAccepted, () => {
   box-shadow: 0 14px 32px rgba(22, 163, 74, 0.34);
 }
 
+.submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);
+  transition-duration: 0.08s;
+}
+
 .secondary-btn:hover {
   transform: translateY(-1px);
   border-color: rgba(17, 24, 39, 0.14);
   background: var(--bg-alt);
 }
 
+.secondary-btn:active {
+  transform: scale(0.98);
+  transition-duration: 0.08s;
+}
+
 .submit-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
