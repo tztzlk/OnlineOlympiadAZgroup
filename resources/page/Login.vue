@@ -1,98 +1,56 @@
 <template>
   <div class="auth-page">
-    <div class="auth-shell">
-      <section class="auth-side">
-        <p class="eyebrow">Eurica</p>
-        <h1>Войдите в личный кабинет</h1>
-        <p class="lead">
-          Все заявки, оплаты, результаты и сертификаты собраны в одном месте.
-        </p>
+    <div class="auth-card">
+      <div class="form-header">
+        <p class="eyebrow">Вход</p>
+        <h2>Войдите в аккаунт</h2>
+        <p class="form-sub">Введите email и пароль, чтобы открыть кабинет.</p>
+      </div>
 
-        <div class="side-chips">
-          <span class="side-chip">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            1 247+ участников
-          </span>
-          <span class="side-chip">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Мгновенный результат
-          </span>
-          <span class="side-chip">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Сертификат участника
-          </span>
-        </div>
+      <form @submit.prevent="handleLogin" class="auth-form" novalidate>
+        <label class="field">
+          <span>Email</span>
+          <input
+            v-model="email"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+        </label>
 
-        <div class="side-stats">
-          <div class="side-stat">
-            <strong>97.4%</strong>
-            <span>рекомендуют</span>
-          </div>
-          <div class="side-stat-div"></div>
-          <div class="side-stat">
-            <strong>8 мин</strong>
-            <span>до результата</span>
-          </div>
-          <div class="side-stat-div"></div>
-          <div class="side-stat">
-            <strong>3 предмета</strong>
-            <span>на выбор</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="auth-card">
-        <div class="form-header">
-          <p class="eyebrow">Вход</p>
-          <h2>Войдите в аккаунт</h2>
-          <p>Введите email и пароль, чтобы открыть кабинет.</p>
-        </div>
-
-        <form @submit.prevent="handleLogin" class="auth-form" novalidate>
-          <label class="field">
-            <span>Email</span>
+        <label class="field">
+          <span>Пароль</span>
+          <div class="password-wrap">
             <input
-              v-model="email"
-              type="email"
-              placeholder="you@example.com"
-              autocomplete="email"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Введите пароль"
+              autocomplete="current-password"
               required
             />
-          </label>
-
-          <label class="field">
-            <span>Пароль</span>
-            <div class="password-wrap">
-              <input
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="Введите пароль"
-                autocomplete="current-password"
-                required
-              />
-              <button type="button" class="toggle-btn" @click="showPassword = !showPassword">
-                {{ showPassword ? 'Скрыть' : 'Показать' }}
-              </button>
-            </div>
-          </label>
-
-          <div class="helper-row">
-            <RouterLink to="/forgot-password">Забыли пароль?</RouterLink>
-            <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
+            <button type="button" class="toggle-btn" @click="showPassword = !showPassword">
+              {{ showPassword ? 'Скрыть' : 'Показать' }}
+            </button>
           </div>
+        </label>
 
-          <div v-if="error" class="message error">{{ error }}</div>
-
-          <button type="submit" class="submit-btn" :disabled="loading">
-            {{ loading ? 'Входим...' : 'Войти в аккаунт' }}
-          </button>
-        </form>
-
-        <div class="form-footer">
-          <p>Нет аккаунта? <RouterLink to="/register">Зарегистрироваться</RouterLink></p>
-          <p>Для сотрудников: <RouterLink to="/admin-login">перейти в админ-панель</RouterLink></p>
+        <div class="helper-row">
+          <RouterLink to="/forgot-password">Забыли пароль?</RouterLink>
+          <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
         </div>
-      </section>
+
+        <div v-if="error" class="message error">{{ error }}</div>
+
+        <button type="submit" class="submit-btn" :disabled="loading">
+          {{ loading ? 'Входим...' : 'Войти в аккаунт' }}
+        </button>
+      </form>
+
+      <div class="form-footer">
+        <p>Нет аккаунта? <RouterLink to="/register">Зарегистрироваться</RouterLink></p>
+        <p>Для сотрудников: <RouterLink to="/admin-login">перейти в админ-панель</RouterLink></p>
+      </div>
     </div>
   </div>
 </template>
@@ -152,114 +110,35 @@ async function handleLogin() {
   background: var(--bg);
 }
 
-.auth-shell {
-  width: min(1100px, 100%);
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 20px;
-  align-items: stretch;
-}
-
-.auth-side,
 .auth-card {
+  width: min(440px, 100%);
   border-radius: var(--radius-lg);
   border: 1px solid var(--surface-border);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+  padding: 36px 32px;
+  display: grid;
+  gap: 22px;
 }
 
-.auth-side {
-  padding: 44px 40px;
-  display: grid;
-  gap: 20px;
-  align-content: center;
-  background: var(--card);
-}
+.form-header { display: grid; gap: 6px; }
 
 .eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 11px;
   font-weight: 800;
   color: var(--green);
-}
-
-.lead {
-  max-width: 52ch;
-  color: var(--text-secondary);
-  font-size: 16px;
-  line-height: 1.65;
   margin: 0;
 }
 
-.side-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.form-header h2 { margin: 0; }
 
-.side-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 13px;
-  border-radius: 999px;
-  background: var(--bg-alt);
-  border: 1.5px solid var(--border);
-  font-size: 12px;
-  font-weight: 500;
+.form-sub {
   color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
 }
-.side-chip svg { color: var(--green); flex-shrink: 0; }
-
-.side-stats {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  padding: 14px 22px;
-  border-radius: 16px;
-  background: var(--bg-alt);
-  border: 1.5px solid var(--border);
-  width: fit-content;
-}
-
-.side-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.side-stat strong {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.02em;
-}
-.side-stat span {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-.side-stat-div {
-  width: 1px;
-  height: 28px;
-  background: var(--border);
-  flex-shrink: 0;
-}
-
-.auth-card {
-  padding: 34px;
-  display: grid;
-  align-content: center;
-  gap: 22px;
-}
-
-.form-header { display: grid; gap: 8px; }
-.form-header p:last-child { color: var(--text-secondary); font-size: 14px; margin: 0; }
 
 .auth-form { display: grid; gap: 16px; }
 
@@ -330,6 +209,7 @@ async function handleLogin() {
 }
 
 .submit-btn {
+  width: 100%;
   min-height: 52px;
   border: none;
   border-radius: 13px;
@@ -355,18 +235,13 @@ async function handleLogin() {
 
 .form-footer {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   color: var(--text-secondary);
   font-size: 13px;
 }
 
-@media (max-width: 900px) {
-  .auth-shell { grid-template-columns: 1fr; }
-  .side-stats { width: 100%; }
-}
-
-@media (max-width: 640px) {
-  .auth-page { padding: 18px 14px; }
-  .auth-side, .auth-card { padding: 22px 18px; }
+@media (max-width: 480px) {
+  .auth-page { padding: 16px 14px; }
+  .auth-card { padding: 24px 18px; }
 }
 </style>

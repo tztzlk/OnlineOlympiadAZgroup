@@ -1,16 +1,6 @@
 <template>
   <div class="register-page">
     <div class="register-shell">
-      <aside class="register-side">
-        <div class="side-copy">
-          <p class="eyebrow">Регистрация</p>
-          <h1>Личный кабинет для родителя</h1>
-          <p class="lead">
-            Создайте аккаунт, добавьте ребёнка и переходите к олимпиаде без лишних шагов.
-          </p>
-        </div>
-      </aside>
-
       <section class="register-card">
         <header class="register-header">
           <div>
@@ -433,39 +423,16 @@ watch(rulesAccepted, () => {
 
 .register-page {
   min-height: 100dvh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
   padding: 32px 20px;
   padding-top: 100px;
   background: var(--bg);
 }
 
 .register-shell {
-  width: min(1180px, 100%);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.register-side,
-.register-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-
-.register-side {
-  padding: 32px;
-  display: grid;
-  gap: 12px;
-  align-content: start;
-  background: var(--card);
-}
-
-.side-copy {
-  display: grid;
-  gap: 12px;
+  width: min(640px, 100%);
 }
 
 .eyebrow {
@@ -474,10 +441,9 @@ watch(rulesAccepted, () => {
   letter-spacing: 0.14em;
   font-size: 12px;
   font-weight: 800;
-  color: var(--accent-strong);
+  color: var(--green);
 }
 
-.lead,
 .register-copy,
 .field-message,
 .form-footer,
@@ -488,6 +454,10 @@ watch(rulesAccepted, () => {
 }
 
 .register-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
   padding: 32px;
   display: grid;
   gap: 22px;
@@ -820,18 +790,11 @@ watch(rulesAccepted, () => {
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 980px) {
-  .register-shell {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 640px) {
   .register-page {
     padding: 16px 12px 28px;
   }
 
-  .register-side,
   .register-card {
     padding: 22px 18px;
   }
