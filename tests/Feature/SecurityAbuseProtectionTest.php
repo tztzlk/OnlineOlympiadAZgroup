@@ -94,6 +94,14 @@ it('limits authenticated api endpoints to one hundred requests per minute per us
     $this->getJson('/api/profile')->assertStatus(429);
 });
 
+it('returns a json 401 for unauthenticated api profile requests', function () {
+    $this->getJson('/api/profile')
+        ->assertStatus(401)
+        ->assertJson([
+            'message' => 'Требуется авторизация.',
+        ]);
+});
+
 it('enforces ai generation quota for free plan users', function () {
     $user = User::factory()->create(['plan' => 'free']);
     Sanctum::actingAs($user);

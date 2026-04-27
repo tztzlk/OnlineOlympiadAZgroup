@@ -29,8 +29,12 @@ if grep -q '^MAIL_MAILER=log$' .env; then
   exit 1
 fi
 
-composer install --no-dev --optimize-autoloader
-npm ci
+export COMPOSER_NO_INTERACTION=1
+export NPM_CONFIG_FUND=false
+export NPM_CONFIG_AUDIT=false
+
+composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+npm ci --no-audit --no-fund
 npm run build
 
 php artisan deploy:check-db --connection=mysql

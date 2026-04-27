@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Invoke-WebRequest *)",
+      "PowerShell(git log *)",
+      "PowerShell(git diff *)",
+      "PowerShell(gh *)",
+      "Bash(curl *)",
+      "Bash(claude mcp *)",
+      "Bash(npx playwright *)"
+    ]
+  }
+}

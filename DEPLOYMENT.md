@@ -91,8 +91,12 @@ Notes:
 ```bash
 cd /home/forge/your-domain.com
 
-composer install --no-dev --optimize-autoloader
-npm ci
+export COMPOSER_NO_INTERACTION=1
+export NPM_CONFIG_FUND=false
+export NPM_CONFIG_AUDIT=false
+
+composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+npm ci --no-audit --no-fund
 npm run build
 
 php artisan key:generate --force
@@ -111,6 +115,8 @@ php artisan queue:restart
 ```
 
 The repository also ships `deploy/forge-deploy.sh` for Forge-based deployments.
+
+If Forge shows `Deployment cancelled automatically because it was queued for too long`, the usual cause is that a previous deployment is still running or stuck. Open the site in Forge, inspect the latest active deployment log first, and only then retry or redeploy.
 
 ## Queue Worker
 
