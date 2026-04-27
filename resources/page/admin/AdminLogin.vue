@@ -6,14 +6,7 @@
 
     <div class="card">
       <div class="card__header">
-        <div class="logo">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect x="2" y="2" width="11" height="11" rx="2.5" fill="#3B82F6"/>
-            <rect x="15" y="2" width="11" height="11" rx="2.5" fill="#3B82F6" opacity="0.5"/>
-            <rect x="2" y="15" width="11" height="11" rx="2.5" fill="#3B82F6" opacity="0.5"/>
-            <rect x="15" y="15" width="11" height="11" rx="2.5" fill="#3B82F6" opacity="0.3"/>
-          </svg>
-        </div>
+        <div class="logo">OO</div>
         <h1 class="card__title">Панель управления</h1>
         <p class="card__subtitle">Войдите, чтобы продолжить</p>
       </div>
@@ -154,7 +147,7 @@ const login = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eef4ff;
+  background: linear-gradient(160deg, var(--bg-yellow) 0%, var(--bg-alt) 100%);
   position: relative;
   overflow: hidden;
   padding: 24px;
@@ -170,43 +163,43 @@ const login = async () => {
 .bg-orb--1 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, #bfdbfe 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(242, 201, 76, 0.28) 0%, transparent 70%);
   top: -100px;
   right: -100px;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .bg-orb--2 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #c7d2fe 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(58, 158, 58, 0.14) 0%, transparent 70%);
   bottom: -80px;
   left: -80px;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .bg-orb--3 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, #bae6fd 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(201, 171, 99, 0.18) 0%, transparent 70%);
   top: 50%;
   left: 30%;
   transform: translate(-50%, -50%);
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 252, 244, 0.88);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 24px;
+  border: 1px solid rgba(201, 171, 99, 0.22);
+  border-radius: var(--radius-lg);
   padding: 48px 44px;
   width: 100%;
   max-width: 420px;
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.03),
-    0 20px 60px rgba(0, 0, 0, 0.07),
+    0 20px 60px rgba(201, 171, 99, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -227,17 +220,19 @@ const login = async () => {
   justify-content: center;
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #1531a1 0%, #5d76f3 100%);
-  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #e1c06f 100%);
+  border-radius: 16px;
   margin-bottom: 20px;
-  border: 1px solid rgba(200, 169, 110, 0.2);
-  box-shadow: 0 2px 12px rgba(200, 169, 110, 0.15);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  box-shadow: 0 12px 24px rgba(201, 171, 99, 0.28);
 }
 
 .card__title {
   font-size: 28px;
-  font-weight: 600;
-  color: #2c2417;
+  font-weight: 700;
+  color: var(--text);
   letter-spacing: -0.3px;
   line-height: 1.2;
   margin-bottom: 6px;
@@ -245,8 +240,8 @@ const login = async () => {
 
 .card__subtitle {
   font-size: 13.5px;
-  color: #6672cf;
-  font-weight: 300;
+  color: var(--text-secondary);
+  font-weight: 500;
   letter-spacing: 0.1px;
 }
 
@@ -264,15 +259,15 @@ const login = async () => {
 
 .field__label {
   font-size: 12px;
-  font-weight: 500;
-  color: #7a6e63;
+  font-weight: 700;
+  color: var(--text-secondary);
   letter-spacing: 0.5px;
   text-transform: uppercase;
   transition: color 0.2s;
 }
 
 .field--focused .field__label {
-  color: #5a65b8;
+  color: var(--accent-strong);
 }
 
 .field__wrapper {
@@ -284,7 +279,7 @@ const login = async () => {
 .field__icon {
   position: absolute;
   left: 14px;
-  color: #b8a898;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -292,29 +287,30 @@ const login = async () => {
 }
 
 .field--focused .field__icon {
-  color: #c8a96e;
+  color: var(--accent-strong);
 }
 
 .field__wrapper input {
   width: 100%;
   padding: 13px 14px 13px 42px;
-  background: rgba(247, 244, 239, 0.8);
-  border: 1.5px solid #e8e0d5;
-  border-radius: 12px;
+  background: rgba(255, 252, 245, 0.95);
+  border: 1.5px solid var(--surface-border);
+  border-radius: var(--radius-sm);
   font-size: 14px;
-  color: #2c2417;
+  color: var(--text);
   outline: none;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .field__wrapper input::placeholder {
-  color: #c4b8ac;
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 .field__wrapper input:focus {
-  border-color: #c8a96e;
+  border-color: color-mix(in srgb, var(--accent) 75%, white 25%);
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.1);
+  box-shadow: 0 0 0 4px rgba(201, 171, 99, 0.16);
 }
 
 .field__toggle {
@@ -323,7 +319,7 @@ const login = async () => {
   background: none;
   border: none;
   cursor: pointer;
-  color: #b8a898;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   padding: 4px;
@@ -332,7 +328,7 @@ const login = async () => {
 }
 
 .field__toggle:hover {
-  color: #8a7a6a;
+  color: var(--text);
   background: rgba(0, 0, 0, 0.04);
 }
 
@@ -341,11 +337,11 @@ const login = async () => {
   align-items: center;
   gap: 8px;
   padding: 11px 14px;
-  background: #fef1ef;
-  border: 1px solid #f5c9c1;
-  border-radius: 10px;
+  background: var(--danger-bg);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: var(--radius-sm);
   font-size: 13px;
-  color: #c0442a;
+  color: #8f3b3b;
 }
 
 .error-enter-active,
@@ -362,16 +358,15 @@ const login = async () => {
 .submit-btn {
   margin-top: 6px;
   padding: 14px;
-  background: linear-gradient(135deg, #7d5ad4 0%, #4b4fcd 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
+  color: var(--text);
   border: none;
-  border-radius: 12px;
-  font-size: 14.5px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 800;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
-  box-shadow: 0 4px 16px rgba(0, 38, 255, 0.35);
+  box-shadow: 0 12px 26px rgba(201, 171, 99, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -380,25 +375,25 @@ const login = async () => {
 
 .submit-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(90, 121, 200, 0.45);
-  filter: brightness(1.05);
+  box-shadow: 0 16px 32px rgba(201, 171, 99, 0.36);
+  filter: brightness(1.04);
 }
 
 .submit-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(122, 105, 236, 0.3);
+  box-shadow: 0 6px 14px rgba(201, 171, 99, 0.22);
 }
 
 .submit-btn--loading {
   pointer-events: none;
-  filter: brightness(0.95);
+  opacity: 0.75;
 }
 
 .loader {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+  border: 2px solid rgba(26, 26, 26, 0.25);
+  border-top-color: var(--text);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -411,7 +406,7 @@ const login = async () => {
   text-align: center;
   margin-top: 28px;
   font-size: 12px;
-  color: #c1b9f3;
+  color: var(--text-secondary);
   letter-spacing: 0.2px;
 }
 </style>
