@@ -263,10 +263,6 @@ class QuizController extends Controller
             return response()->json(['message' => 'Олимпиада пока не опубликована.'], 403);
         }
 
-        if ($requestRecord->disqualified_at) {
-            return response()->json(['message' => 'Попытка уже аннулирована.'], 403);
-        }
-
         $submitLockKey = 'quiz_submit:' . $user->id . ':' . $quiz->id . ':' . ($requestRecord->child_profile_id ?? 0);
         $lock = Cache::lock($submitLockKey, 30);
 
@@ -275,6 +271,14 @@ class QuizController extends Controller
         }
 
         try {
+            // Refresh after acquiring the lock so a concurrent violateAttempt
+            // that ran between the pre-lock checks and here is visible.
+            $requestRecord->refresh();
+
+            if ($requestRecord->disqualified_at) {
+                return response()->json(['message' => 'Попытка уже аннулирована.'], 403);
+            }
+
             $exists = QuizResult::query()
                 ->where('user_id', $user->id)
                 ->where('quiz_id', $quiz->id)

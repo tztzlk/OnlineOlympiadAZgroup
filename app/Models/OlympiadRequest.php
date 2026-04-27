@@ -106,6 +106,15 @@ class OlympiadRequest extends Model
     // Allowed violation reasons — client cannot invent arbitrary strings
     public static function allowedViolationReasons(): array
     {
-        return ['window_focus_lost', 'tab_switch', 'copy_paste', 'devtools_open', 'idle_timeout'];
+        return [
+            'tab_hidden',        // document.visibilitychange → hidden
+            'window_blur',       // window blur event
+            'fullscreen_exit',   // fullscreenchange → not fullscreen
+            'window_focus_lost', // legacy / generic fallback
+            'tab_switch',
+            'copy_paste',
+            'devtools_open',
+            'idle_timeout',
+        ];
     }
 }
