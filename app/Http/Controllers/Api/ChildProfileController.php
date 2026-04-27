@@ -7,6 +7,7 @@ use App\Models\ChildProfile;
 use App\Support\NotificationWorkflow;
 use App\Support\OnboardingProgress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ChildProfileController extends Controller
 {
@@ -43,6 +44,7 @@ class ChildProfileController extends Controller
             'language_preference' => $data['language_preference'] ?? 'ru',
         ]);
 
+        Cache::forget("profile:me:{$user->id}");
         OnboardingProgress::syncStep($user, 'child_profile');
 
         NotificationWorkflow::createForUser(
@@ -93,6 +95,7 @@ class ChildProfileController extends Controller
 
         $childProfile->update($data);
         $childProfile->loadCount(['olympiadRequests', 'quizResults', 'trainingAttempts']);
+        Cache::forget("profile:me:{$request->user()->id}");
 
         return response()->json([
             'message' => 'Профиль ребёнка обновлён.',
@@ -104,6 +107,7 @@ class ChildProfileController extends Controller
     {
         $this->authorizeChild($request, $childProfile);
         $childProfile->delete();
+        Cache::forget("profile:me:{$request->user()->id}");
 
         return response()->json([
             'message' => 'Профиль ребёнка удалён.',

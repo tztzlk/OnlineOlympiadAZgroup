@@ -229,26 +229,6 @@ let timerId = null
 let heartbeatId = null
 let violated = false
 
-const storageKey = computed(() => `quiz_draft_${route.params.subjectId}`)
-
-const saveAnswers = () => {
-  if (!examStarted.value || violated || result.value) return
-  try { localStorage.setItem(storageKey.value, JSON.stringify(userAnswers.value)) } catch {}
-}
-
-const restoreAnswers = () => {
-  try {
-    const saved = localStorage.getItem(storageKey.value)
-    if (saved) userAnswers.value = JSON.parse(saved)
-  } catch {}
-}
-
-const clearSavedAnswers = () => {
-  try { localStorage.removeItem(storageKey.value) } catch {}
-}
-
-watch(userAnswers, saveAnswers, { deep: true })
-
 const clearHeartbeat = () => {
   if (heartbeatId) { clearInterval(heartbeatId); heartbeatId = null }
 }
@@ -298,6 +278,26 @@ const progressPercent = computed(() => {
 })
 
 const activeChildId = computed(() => String(route.query.childId || userStore.selectedChildId || '') || null)
+
+const storageKey = computed(() => `quiz_draft_${route.params.subjectId}_${activeChildId.value || 'self'}`)
+
+const saveAnswers = () => {
+  if (!examStarted.value || violated || result.value) return
+  try { localStorage.setItem(storageKey.value, JSON.stringify(userAnswers.value)) } catch {}
+}
+
+const restoreAnswers = () => {
+  try {
+    const saved = localStorage.getItem(storageKey.value)
+    if (saved) userAnswers.value = JSON.parse(saved)
+  } catch {}
+}
+
+const clearSavedAnswers = () => {
+  try { localStorage.removeItem(storageKey.value) } catch {}
+}
+
+watch(userAnswers, saveAnswers, { deep: true })
 
 const formatTime = (seconds) => {
   const safeSeconds = Math.max(seconds, 0)

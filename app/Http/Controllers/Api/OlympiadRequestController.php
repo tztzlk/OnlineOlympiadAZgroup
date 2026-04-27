@@ -15,6 +15,7 @@ use App\Support\NotificationWorkflow;
 use App\Support\OnboardingProgress;
 use App\Support\OlympiadStatusNotifier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class OlympiadRequestController extends Controller
 {
@@ -294,6 +295,7 @@ class OlympiadRequestController extends Controller
 
         $olympiadRequest->update(['status' => $newStatus]);
         $olympiadRequest->load(['subject', 'user', 'childProfile', 'paymentRecord']);
+        Cache::forget("profile:me:{$olympiadRequest->user_id}");
 
         if ($olympiadRequest->user) {
             $isApproved = $olympiadRequest->status === 'approved';
@@ -371,6 +373,7 @@ class OlympiadRequestController extends Controller
             'customer_paid_at' => $status === 'pending' ? null : $payment->customer_paid_at,
         ]);
         $payment->save();
+        Cache::forget("profile:me:{$olympiadRequest->user_id}");
 
         $olympiadRequest->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
