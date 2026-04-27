@@ -18,7 +18,9 @@ class SecurityHeadersMiddleware
         $csp = config('security.headers.csp');
         $csp = str_replace("script-src 'self'", "script-src 'self' 'nonce-{$nonce}'", $csp);
 
-        $response->headers->set('X-Frame-Options', config('security.headers.x_frame_options', 'DENY'));
+        // X-Frame-Options removed: CSP frame-ancestors 'none' is the modern equivalent
+        // and Cloudflare was adding its own SAMEORIGIN on top, creating conflicting DENY,SAMEORIGIN
+        $response->headers->remove('X-Frame-Options');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', config('security.headers.referrer_policy', 'strict-origin-when-cross-origin'));
         $response->headers->set('Permissions-Policy', config('security.headers.permissions_policy', 'camera=(), microphone=(), geolocation=()'));

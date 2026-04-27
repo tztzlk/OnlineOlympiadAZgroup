@@ -115,35 +115,13 @@ function getHeaderOffset() {
 }
 router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("user");
-  const sessionType = localStorage.getItem("session_type");
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
   const requiredCapability = to.matched.find((record) => record.meta.adminCapability)?.meta.adminCapability;
-
-  if (to.path === "/admin-login" && token && sessionType === "admin") {
-    try {
-      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-      return next(firstAdminRoute(parsedUser));
-    } catch {
-      return next({ name: "Home" });
-    }
-  }
 
   if (requiresAdmin) {
     if (!token) return next("/admin-login");
 
-    try {
-      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-
-      if (hasAdminAccess(parsedUser) && sessionType === "admin") {
-        if (!requiredCapability || hasAdminCapability(parsedUser, requiredCapability)) {
-          return next();
-        }
-
-        return next(firstAdminRoute(parsedUser));
-      }
-    } catch {}
-
+    // Always verify admin status server-side — never trust localStorage alone
     try {
       const res = await api.get("/profile", {
         headers: { Authorization: `Bearer ${token}` },
@@ -154,6 +132,10 @@ router.beforeEach(async (to, from, next) => {
       if (hasAdminAccess(freshUser)) {
         localStorage.setItem("user", JSON.stringify(freshUser));
         localStorage.setItem("session_type", "admin");
+
+        if (to.path === "/admin-login") {
+          return next(firstAdminRoute(freshUser));
+        }
 
         if (!requiredCapability || hasAdminCapability(freshUser, requiredCapability)) {
           return next();
@@ -166,6 +148,18 @@ router.beforeEach(async (to, from, next) => {
     } catch {
       return next("/admin-login");
     }
+  }
+
+  if (to.path === "/admin-login" && token) {
+    try {
+      const res = await api.get("/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const freshUser = res.data?.user ?? res.data;
+      if (hasAdminAccess(freshUser)) {
+        return next(firstAdminRoute(freshUser));
+      }
+    } catch {}
   }
 
   next();

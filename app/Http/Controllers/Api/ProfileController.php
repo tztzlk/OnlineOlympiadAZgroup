@@ -231,6 +231,11 @@ class ProfileController extends Controller
     public function payments(Request $request)
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Пользователь не авторизован.'], 401);
+        }
+
         $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
 
         $payments = PaymentRecord::with(['childProfile', 'subject', 'olympiadRequest'])
@@ -260,6 +265,11 @@ class ProfileController extends Controller
     public function trainings(Request $request)
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Пользователь не авторизован.'], 401);
+        }
+
         $childId = $this->resolveChildId($user->id, $request->input('child_profile_id'));
 
         $attempts = TrainingAttempt::with(['quiz.subject', 'childProfile', 'category'])
