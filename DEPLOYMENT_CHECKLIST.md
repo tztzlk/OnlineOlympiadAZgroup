@@ -1,82 +1,164 @@
-# Online Olympiad Deployment Checklist
+# Deployment Checklist - Current Repository
 
-## Infrastructure
+Use this checklist for the current codebase, not for older deployment notes.
 
-- Ubuntu 24.04 server provisioned
-- Nginx installed
-- PHP-FPM 8.4 installed
-- MySQL 8 installed
-- domain A record points to the server
-- SSL certificate installed and working
-- site root points to `public/`
+## 1. Infrastructure
 
-## Production Environment
+- Ubuntu 24.04 server or equivalent is provisioned
+- Nginx is installed
+- PHP-FPM 8.4 is installed
+- MySQL 8 is installed and reachable from the app server
+- Node/npm is installed for frontend builds
+- domain points to the server
+- SSL certificate is active
+- document root points to `public/`
+
+## 2. Environment File
+
+The repository currently does not ship `.env.example`, so the production `.env` must be prepared carefully.
+
+Required minimum values:
 
 - `APP_ENV=production`
 - `APP_DEBUG=false`
 - `APP_URL=https://your-domain.com`
 - `FRONTEND_URL=https://your-domain.com`
+- `APP_KEY` is generated
+
 - `DB_CONNECTION=mysql`
-- `QUEUE_CONNECTION=database`
-- `CACHE_STORE=database` or `redis`
+- `DB_HOST=127.0.0.1`
+- `DB_PORT=3306`
+- `DB_DATABASE=...`
+- `DB_USERNAME=...`
+- `DB_PASSWORD=...`
+
 - `SESSION_DRIVER=database` or `redis`
 - `SESSION_SECURE_COOKIE=true`
+- `SESSION_HTTP_ONLY=true`
+- `SESSION_SAME_SITE=lax`
 - `SESSION_DOMAIN=your-domain.com`
+
+- `CACHE_STORE=database` or `redis`
+- `QUEUE_CONNECTION=database` unless you intentionally deploy Redis workers
+
 - `CORS_ALLOWED_ORIGINS=https://your-domain.com`
 - `SANCTUM_STATEFUL_DOMAINS=your-domain.com`
 - `VITE_API_URL=https://your-domain.com/api`
+
 - `MAIL_MAILER` is real and not `log`
-- webhook secrets configured
+- `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` are set
+- webhook secrets are configured
+
+Validation rules:
+
 - no duplicate critical keys in `.env`
+- `SANCTUM_STATEFUL_DOMAINS` contains hosts, not paths
+- `VITE_API_URL` is set before frontend build
 
-## Deploy Commands
+## 3. Deploy Commands
 
-1. `composer install --no-dev --optimize-autoloader`
-2. `npm ci`
+Run the canonical deploy flow from `deploy/forge-deploy.sh` or keep Forge inline commands identical to it.
+
+Order:
+
+1. `composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction`
+2. `npm ci --no-audit --no-fund`
 3. `npm run build`
-4. `php artisan key:generate --force` on first deploy only
-5. `php artisan deploy:check-db --connection=mysql`
-6. `php artisan migrate --force`
-7. `php artisan storage:link || true`
-8. `php artisan config:cache`
-9. `php artisan route:cache`
-10. `php artisan view:cache`
-11. `php artisan queue:restart`
+4. `php artisan deploy:check-db --connection=mysql`
+5. `php artisan migrate --force`
+6. `php artisan storage:link || true`
+7. `php artisan config:clear`
+8. `php artisan route:clear`
+9. `php artisan view:clear`
+10. `php artisan config:cache`
+11. `php artisan route:cache`
+12. `php artisan view:cache`
+13. `php artisan queue:restart`
 
-## Queue And Scheduler
+First deploy only:
 
-- Supervisor is running database queue workers
-- worker command matches `.env` queue driver
-- cron or Forge scheduler runs `php artisan schedule:run` every minute
+- `php artisan key:generate --force`
 
-## Nginx And PHP
+## 4. Queue And Scheduler
 
-- using `deploy/nginx/online-olympiad.conf.example` or equivalent
-- `try_files $uri $uri/ /index.php?$query_string;`
-- hidden files denied
+- queue worker is running under Supervisor or Forge worker management
+- worker command matches the actual queue driver
+- if using database queues, worker command is based on `queue:work database`
+- scheduler runs `php artisan schedule:run` every minute
+- failed jobs are monitored
+- queue backlog is visible somewhere operationally
+
+## 5. Nginx / PHP
+
+- using `deploy/nginx/online-olympiad.conf.example` or an equivalent config
+- `try_files $uri $uri/ /index.php?$query_string;` is present
+- hidden files are denied
 - `client_max_body_size` is at least `16m`
-- PHP `upload_max_filesize` and `post_max_size` exceed Laravel upload requirements
+- PHP `upload_max_filesize` and `post_max_size` are aligned with quiz image uploads
+- `storage/` and `bootstrap/cache/` are writable
 
-## Functional Checks
+## 6. Security Checks
+
+- HTTPS redirect works
+- security headers are present
+- `APP_DEBUG=false`
+- `APP_KEY` is set
+- production DB is not publicly open
+- imported users do not share a predictable password
+- local token auth risk is understood and CSP/XSS protections are taken seriously
+
+## 7. Functional Smoke Test
+
+Public:
 
 - home page loads on HTTPS
 - SPA routes survive hard refresh
-- register, login, logout work
-- forgot-password email works
-- help desk submission sends mail
+- subjects list works
+- leaderboard works
+- certificate check works
+
+Auth:
+
+- register works
+- login works
+- logout works
+- forgot-password mail sends
+- reset password flow works
+- unauthenticated `/api/profile` returns JSON `401`, not HTML redirect or `500`
+
+User flow:
+
+- parent can create/update profile
+- parent can add child
 - parent can submit olympiad request
+- payment status can be updated through the intended admin flow
+- approved and paid participant can open quiz
+- quiz submission creates result
+- certificate preview/download works
+- result mistakes page works when available
+
+Admin flow:
+
+- admin login works
+- admin dashboard loads
+- admin requests page loads
 - admin can approve request
 - admin can mark payment as paid
-- approved and paid participant can open quiz
-- quiz submission creates a result
-- certificate download works
-- admin image upload works
+- admin quiz image upload works
 
-## Security And Operations
+Operational:
 
-- imported users do not receive a shared default password
-- logs are writable in `storage/logs`
-- `security.log` and `anomaly.log` are being watched
-- daily database backups are enabled
-- at least one restore test has been completed
-- production database is not publicly open to the internet
+- queue worker keeps processing after deploy
+- `storage/logs/laravel.log` is writable
+- `storage/logs/security.log` is writable
+- `storage/logs/anomaly.log` is writable
+
+## 8. Pre-Wider-Launch Extras
+
+Before broad public traffic, not just a soft launch:
+
+- CI/CD pipeline exists
+- `.env.example` is committed
+- backup restore test has been performed
+- queue / scheduler health checks exist
+- at least one scripted smoke suite exists

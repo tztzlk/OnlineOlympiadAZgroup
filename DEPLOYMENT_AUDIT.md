@@ -1,181 +1,227 @@
-# Deployment Audit — Senior DevOps Review
+# Deployment Audit - Current State
 
-**Project:** Online Olympiad (Laravel 12 + Vue 3 SPA)  
-**Audit focus:** Hidden deployment bugs that could break production.
-
----
+Project: Online Olympiad (Laravel 12 + Vue 3 SPA)
+Audit date: 2026-04-27
+Scope: current repository state, not historical assumptions
 
 ## Executive Summary
 
-Several **critical** and **high**‑impact issues were found that would cause production outages or broken behavior. One critical bug was fixed in-code; the rest are documented with mitigations below.
+The deployment story is materially better than the older audit suggested:
+
+- the default database connection is now `mysql`
+- Sanctum stateful hosts are normalized from `APP_URL` / `FRONTEND_URL`
+- a production deploy script exists
+- a predeploy database validation command exists
+- API authentication failures are explicitly rendered as JSON
 
----
+The project is deployable, but it still has several operational and release-management gaps that make a broad public launch risky without careful manual monitoring.
 
-## Critical Findings (Would Break Production)
+## What Was Verified In The Current Codebase
 
-### 1. ✅ FIXED: Admin middleware on every request (HTTP Kernel)
+### Confirmed Good
 
-**Location:** `app/Http/kernel.php`
+1. `config/database.php`
+   - Default connection is `env('DB_CONNECTION', 'mysql')`.
+   - This removes the older "fallback to sqlite in production" risk.
 
-**Issue:** `AdminMiddleware` was listed in the **global** `$middleware` array (as `'admin' => AdminMiddleware::class`). In Laravel, global middleware runs on every request. Result: **all requests** (including public API and login) were subject to admin checks; unauthenticated or non-admin users would get 403 Forbidden on every route.
+2. `config/sanctum.php`
+   - Stateful domains are built from parsed hosts, not raw full URLs.
+   - This removes the older "full APP_URL breaks Sanctum host matching" claim as a default code issue.
 
-**Fix applied:** Removed `'admin' => \App\Http\Middleware\AdminMiddleware::class` from `$middleware`. The `admin` middleware remains correctly registered in `$routeMiddleware` and is used only on admin routes in `routes/api.php`.
+3. `config/queue.php`
+   - Queue default is `database`.
+   - Queue batching and failed-job storage also default to MySQL-backed settings.
 
-**Verification:** After deploy, confirm `/api/news`, `/api/auth/login`, and `/api/subjects` work without auth; `/api/admin/*` still requires auth:sanctum + admin.
+4. `deploy/forge-deploy.sh`
+   - A real deploy script exists and includes:
+     - environment sanity checks
+     - `composer install`
+     - `npm ci && npm run build`
+     - `php artisan deploy:check-db`
+     - migrations
+     - cache rebuild
+     - queue restart
 
----
+5. `routes/console.php`
+   - `deploy:check-db` exists and checks:
+     - DB connectivity
+     - pending migrations
+     - critical tables
+     - duplicate critical `.env` keys
+     - preview deployment safety
 
-### 2. Default database connection is SQLite
+6. `bootstrap/app.php`
+   - API `AuthenticationException` is rendered as JSON `401` instead of redirecting to a missing `login` route.
+   - During this review, the response message encoding was also corrected.
 
-**Location:** `config/database.php` line 19
+7. Frontend build
+   - `npm run build` completed successfully during this review.
 
-**Issue:** `'default' => env('DB_CONNECTION', 'sqlite')`. If `.env` is misconfigured or `DB_CONNECTION` is missing/typo’d, the app uses **SQLite** and looks for `database/database.sqlite`. On a typical production server (MySQL only), this causes **DB connection failures** and 500s on first request.
+## Current Findings
 
-**Mitigation:**
+### High
 
-- In `.env.example`, keep `DB_CONNECTION=mysql` and document that it is required.
-- In deployment docs/checklist, add: “Verify `DB_CONNECTION=mysql` in production `.env`.”
-- Optional hardening: in `config/database.php`, change default to `env('DB_CONNECTION', 'mysql')` if this app will always use MySQL in production.
+1. No CI/CD pipeline
 
----
+Status:
+- No `.github/workflows`, GitLab CI, or equivalent pipeline config is present.
 
-### 3. VITE_API_URL and env expansion at build time
+Risk:
+- Deploy quality depends on manual discipline.
+- Easy to miss build, migration, cache, or queue restart steps.
+- No automatic regression gate before production deploy.
 
-**Location:** `.env.example` has `VITE_API_URL="${APP_URL}/api"`; frontend uses `import.meta.env.VITE_API_URL` in `resources/js/api.js`.
+Recommendation:
+- Add at least one pipeline that runs:
+  - PHP install
+  - JS install
+  - frontend build
+  - test suite
+  - optional lint/static checks
 
-**Issue:** Vite reads `.env` and may expand `${APP_URL}` only when the same vars are loaded into the same parsed set. If production build runs in CI or a minimal env where only `VITE_*` is set and `APP_URL` is not in the env used by Node, the built assets can get the literal string `"${APP_URL}/api"` as the API base URL, so **all API calls from the SPA fail** in production.
+2. Queue worker and scheduler are documented but not verified automatically
 
-**Mitigation:**
+Status:
+- Docs and deploy flow assume Supervisor / Forge scheduler are configured.
+- The repo does not contain an application-level health check for queue processing or scheduler execution.
 
-- In production, **set `VITE_API_URL` explicitly** in `.env` (e.g. `VITE_API_URL=https://your-domain.com/api`) before running `npm run build`.
-- Document in DEPLOYMENT.md: “For production, set `VITE_API_URL` to the full API base URL; do not rely only on `APP_URL` expansion during `npm run build`.”
-- Consider validating in CI that built JS contains the expected API host (e.g. grep or small script) when building for production.
+Risk:
+- Background jobs may silently stop processing.
+- Scheduled tasks may fail without immediate visibility.
 
----
+Recommendation:
+- Add operational checks for:
+  - queue worker liveness
+  - scheduler heartbeat
+  - failed job alerting
 
-### 4. SANCTUM_STATEFUL_DOMAINS must be host-only
+3. Production environment bootstrap is under-documented because `.env.example` is missing
 
-**Location:** `.env.example` has `SANCTUM_STATEFUL_DOMAINS="${APP_URL}"`; `config/sanctum.php` uses this for stateful SPA auth.
+Status:
+- The repository does not contain `.env.example`.
+- Deployment docs describe required variables, but there is no canonical template file in the repo.
 
-**Issue:** `APP_URL` is a full URL (e.g. `https://your-domain.com`). Sanctum’s stateful domain check compares **hostnames**. Using a full URL can leave leading/trailing noise or scheme in the value, so the request host might not match and **cookie-based auth can fail** (e.g. 401 on protected routes after login).
+Risk:
+- New environments are easier to misconfigure.
+- Missing or duplicated keys become more likely.
+- Reviewers and operators cannot diff the intended env shape cleanly.
 
-**Mitigation:**
+Recommendation:
+- Add a committed `.env.example` that matches the real production expectations in `DEPLOYMENT.md`.
 
-- In production `.env`, set `SANCTUM_STATEFUL_DOMAINS=your-domain.com` (host only, no scheme, no path). For multiple domains, comma-separate.
-- In `.env.example`, add a comment: “Use host only, e.g. `example.com` or `localhost`. Do not use full APP_URL.”
-- Update DEPLOYMENT.md to state that `SANCTUM_STATEFUL_DOMAINS` must be the SPA host(s) only.
+### Medium
 
----
+4. Frontend auth still depends on bearer tokens in `localStorage`
 
-## High Findings (Risk of Outages or Incorrect Behavior)
+Status:
+- `resources/js/api.js` injects `Authorization: Bearer ...` from the Pinia store.
+- `resources/stores/user.js` hydrates token and session info from `localStorage`.
 
-### 5. User model `isAdmin()` vs `is_admin` (fixed for consistency)
+Risk:
+- This is operationally workable, but less resilient than a stricter cookie-first SPA auth model.
+- Any XSS would have access to the token.
 
-**Location:** `app/Models/User.php`
+Recommendation:
+- Keep current model for launch if needed, but treat CSP and XSS prevention as critical.
+- Consider migrating to a stricter first-party SPA auth model later if the product scales.
 
-**Issue:** Middleware uses `$user->is_admin` (column from migration). The model had `isAdmin()` returning `$this->role === 'admin'`, but there is no `role` column—only `is_admin`. Any code calling `isAdmin()` would get wrong behavior.
+5. Frontend still hard-depends on build-time `VITE_API_URL` discipline
 
-**Fix applied:** `isAdmin()` now returns `(bool) $this->is_admin`. Added `is_admin` to `$fillable` and `$casts` for consistency.
+Status:
+- `resources/js/api.js` uses `import.meta.env.VITE_API_URL || '/api'`.
+- Same-origin deploys are safe because of the `/api` fallback.
+- Cross-origin or unusual build environments still require explicit `VITE_API_URL`.
 
----
+Risk:
+- A bad production build can point to the wrong API host or rely on assumptions that only hold locally.
 
-### 6. No CI/CD or deploy pipeline
+Recommendation:
+- In production, always set `VITE_API_URL` explicitly before `npm run build`, even for same-origin setups.
 
-**Location:** Repository root (no `.github/workflows`, `.gitlab-ci.yml`, or similar).
+6. Health endpoint exists, but it is shallow
 
-**Issue:** Deployments are manual. Easy to forget steps (e.g. `npm run build`, `php artisan migrate --force`, cache clears, queue worker restart), leading to **stale assets**, **missing migrations**, or **stale config** in production.
+Status:
+- `/up` is configured through Laravel's built-in health route.
+- It does not prove queue throughput, mail delivery, file storage health, or application-specific readiness.
 
-**Mitigation:**
+Risk:
+- Infra can look "up" while the platform is partially broken.
 
-- Add a minimal CI pipeline (e.g. GitHub Actions) that runs: `composer install --no-dev`, `npm ci && npm run build`, `php artisan migrate --force` (or use a deploy key/secrets), and optionally `php artisan config:cache` in a dry run.
-- Document a single “deploy script” or checklist (as in DEPLOYMENT.md) and always use it.
-- Consider a deploy script that fails if `APP_DEBUG=true` or `APP_ENV=local` in production.
+Recommendation:
+- Add deeper readiness checks or a private ops endpoint for:
+  - DB write/read sanity
+  - queue backlog visibility
+  - storage disk availability
+  - mail transport smoke verification
 
----
+7. Release verification is still largely manual
 
-### 7. Queue worker and cron not auto-verified
+Status:
+- There is a good deployment checklist, but production readiness still depends on human smoke testing.
 
-**Location:** DEPLOYMENT.md describes Supervisor and cron but there is no health check or probe that verifies queue/cron.
+Risk:
+- Regressions in auth, quiz flow, payments, or certificate generation can slip through.
 
-**Issue:** If Supervisor or cron is not installed or stops, jobs never run and the scheduler never runs. Failures can go unnoticed until users report missing functionality.
+Recommendation:
+- Add a post-deploy smoke suite or at least scripted API checks for the highest-value flows.
 
-**Mitigation:**
+### Low
 
-- Add a simple health/sidecar endpoint (e.g. `/up` or a custom route) that checks queue connectivity (e.g. push a test job and verify, or check that the `jobs` table is being processed).
-- Document monitoring for queue worker process and cron execution (e.g. log or metric when `schedule:run` executes).
+8. `app/Http/Kernel.php` remains as a legacy-looking file and can confuse maintainers
 
----
+Status:
+- Middleware configuration is primarily driven from `bootstrap/app.php`.
+- `app/Http/Kernel.php` still exists and includes comments / structure that can mislead future edits.
 
-### 8. Session and cache drivers depend on DB
+Risk:
+- Future changes may be applied in the wrong place.
 
-**Location:** `config/session.php`, `config/cache.php`; `.env.example` has `SESSION_DRIVER=database`, `CACHE_STORE=database`.
+Recommendation:
+- Keep it aligned with the actual bootstrap strategy or document clearly that `bootstrap/app.php` is authoritative.
 
-**Issue:** If the DB is down or migrations haven’t run, session and cache fail, causing **broad 500s or “session not found”** behavior.
+9. Client-side 401 handling is aggressive
 
-**Mitigation:**
+Status:
+- `resources/js/api.js` redirects immediately on any `401`.
 
-- Ensure migrations run before traffic hits new code (e.g. run migrations in deploy script before switching symlink or restarting PHP).
-- Consider a readiness probe that checks DB connectivity and, if possible, session write (e.g. write and read a test value).
+Risk:
+- Expired sessions are handled cleanly, but background/profile refreshes can force hard redirects that feel abrupt.
 
----
+Recommendation:
+- Acceptable for launch, but revisit if UX complaints appear around session expiry.
 
-## Medium / Low Findings
+## Items From The Older Audit That Are No Longer Accurate
 
-### 9. Migration rollback incomplete
+These older findings should no longer be treated as current code defects:
 
-**Location:** `database/migrations/2026_02_17_050416_add_is_admin_to_users.php`
+1. "Default database connection is SQLite"
+   - Not true anymore. Default is now MySQL.
 
-**Issue:** `down()` did not drop the `is_admin` column, so `php artisan migrate:rollback` would not fully revert the schema.
+2. "SANCTUM_STATEFUL_DOMAINS must be fixed because APP_URL is a full URL"
+   - The current code parses hosts from URLs before building the stateful list.
 
-**Fix applied:** `down()` now drops the `is_admin` column.
+3. "Queue batching / failed jobs default to sqlite"
+   - Not true anymore. Current queue config uses MySQL defaults.
 
----
+4. "No deployment script or deployment documentation"
+   - Not true anymore. Both now exist.
 
-### 10. .env and dotfile exposure
+## Practical Launch Position
 
-**Location:** `public/.htaccess`; Nginx example in DEPLOYMENT.md.
+If you launch now, do it as a controlled production release:
 
-**Status:** `.env` lives in project root, not in `public/`, so it is not directly served. DEPLOYMENT.md already includes `location ~ /\.(?!well-known).* { deny all; }` for Nginx. Apache’s default and the current rules do not serve `.env` from `public/`. **No change required**; keep ensuring document root is `public/` and dotfiles are denied.
+- same-origin app + API
+- explicit production env values
+- manual deploy owner on standby
+- queue and logs actively monitored
+- small initial user group
 
----
+I would not describe the current repo as "hands-off production-ready" yet, but it is substantially closer than the stale audit implied.
 
-### 11. No explicit APP_KEY validation on boot
+## Immediate Priorities Before Wider Public Use
 
-**Issue:** If `APP_KEY` is empty in production, encryption and sessions can be insecure or break.
-
-**Mitigation:** In deploy script or a bootstrap check, fail fast if `APP_ENV=production` and `APP_KEY` is empty (e.g. a one-line script or an Artisan command run during deploy).
-
----
-
-### 12. CDN dependencies in Blade
-
-**Location:** `resources/views/welcome.blade.php` loads Bootstrap CSS/JS from jsDelivr CDN.
-
-**Issue:** If the CDN is down or blocked, the UI may not load correctly. SRI hashes are present, which is good for integrity.
-
-**Mitigation:** Optional: bundle Bootstrap via npm for full control; or document the CDN dependency and consider a fallback or monitoring.
-
----
-
-## Checklist Before First Production Deploy
-
-- [ ] `.env` has `APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY` set, `APP_URL` correct.
-- [ ] `DB_CONNECTION=mysql` and all `DB_*` values correct; migrations run.
-- [ ] `VITE_API_URL` set to full production API URL; `npm run build` run with that env.
-- [ ] `SANCTUM_STATEFUL_DOMAINS` set to production host only (e.g. `your-domain.com`).
-- [ ] `SESSION_SECURE_COOKIE=true` and `SESSION_DOMAIN` set appropriately for HTTPS.
-- [ ] Nginx (or Apache) document root is `public/`; dotfiles denied.
-- [ ] Supervisor running queue workers; cron runs `schedule:run` every minute.
-- [ ] `config:cache`, `route:cache`, `view:cache` run after deploy.
-- [ ] HTTP Kernel: admin middleware only on admin routes (fix applied in this audit).
-- [ ] User model: `isAdmin()` and `is_admin` consistent (fix applied).
-
----
-
-## Summary of Code Changes Made in This Audit
-
-1. **app/Http/kernel.php** — Removed `AdminMiddleware` from global `$middleware` (it stays in `$routeMiddleware` and is used only on admin routes).
-2. **app/Models/User.php** — `isAdmin()` now uses `is_admin` attribute; added `is_admin` to `$fillable` and `$casts`.
-3. **database/migrations/2026_02_17_050416_add_is_admin_to_users.php** — `down()` now drops `is_admin` column for correct rollback.
-
-All other items are documented mitigations or process improvements with no code change in this audit.
+1. Add `.env.example`
+2. Add CI/CD pipeline
+3. Add queue / scheduler health verification
+4. Add scripted smoke checks for critical flows
+5. Keep deployment bound to one documented script only

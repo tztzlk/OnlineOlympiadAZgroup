@@ -120,7 +120,7 @@
           description="Пожалуйста, не закрывайте страницу. Можно попробовать отправить ответы ещё раз."
         />
 
-        <section class="progress-card">
+        <section ref="questionNavRef" class="progress-card">
           <div class="progress-top"><span>Прогресс</span><strong>{{ progressPercent }}%</strong></div>
           <div class="progress-track"><div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div></div>
           <div class="progress-meta">
@@ -144,7 +144,7 @@
 
         <div class="exam-body">
           <div class="exam-main">
-            <article class="question-card">
+            <article ref="questionCardRef" class="question-card">
               <div class="question-header">
                 <span class="question-index">{{ currentQuestionIndex + 1 }}</span>
                 <div>
@@ -185,13 +185,18 @@
             </footer>
           </div>
         </div>
+
+        <aside class="floating-timer" :class="{ warn: timeLeft < 300 }" aria-live="polite">
+          <span>Р’СЂРµРјСЏ</span>
+          <strong>{{ formatTime(timeLeft) }}</strong>
+        </aside>
       </section>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../js/api'
 import { useUserStore } from '../stores/user'
@@ -219,6 +224,8 @@ const examStarted = ref(false)
 const fullscreenError = ref('')
 const isFullscreen = ref(false)
 const rulesAccepted = ref(false)
+const questionNavRef = ref(null)
+const questionCardRef = ref(null)
 const defaultRules = [
   'Запрещено переключать вкладку, окно, выходить из полноэкранного режима или сворачивать браузер.',
   'Нельзя использовать подсказки, списывать и обращаться к сторонней помощи.',
@@ -344,15 +351,28 @@ const questionState = (index) => {
   return 'unvisited'
 }
 
+const scrollToQuestionTop = async (behavior = 'smooth') => {
+  await nextTick()
+
+  const target = questionNavRef.value || questionCardRef.value
+  if (!target) return
+
+  const stickyOffset = window.innerWidth <= 640 ? 88 : 116
+  const top = target.getBoundingClientRect().top + window.scrollY - stickyOffset
+  window.scrollTo({ top: Math.max(top, 0), behavior })
+}
+
 const goToQuestion = (index) => {
   currentQuestionIndex.value = index
   markVisited(index)
+  scrollToQuestionTop()
 }
 
 const goPrev = () => {
   if (currentQuestionIndex.value > 0) {
     currentQuestionIndex.value -= 1
     markVisited(currentQuestionIndex.value)
+    scrollToQuestionTop()
   }
 }
 
@@ -360,6 +380,7 @@ const goNext = () => {
   if (currentQuestionIndex.value < quiz.value.questions.length - 1) {
     currentQuestionIndex.value += 1
     markVisited(currentQuestionIndex.value)
+    scrollToQuestionTop()
   }
 }
 
@@ -369,6 +390,7 @@ const skipQuestion = () => {
   if (currentQuestionIndex.value < quiz.value.questions.length - 1) {
     currentQuestionIndex.value += 1
     markVisited(currentQuestionIndex.value)
+    scrollToQuestionTop()
   }
 }
 
@@ -469,6 +491,7 @@ const loadQuiz = async () => {
       restoreAnswers()
       startTimerFromSeconds(data.remaining_seconds || 0)
       startHeartbeat()
+      await scrollToQuestionTop('auto')
     }
   } catch (error) {
     loadError.value = true
@@ -493,6 +516,7 @@ const startExam = async () => {
     markVisited(0)
     startTimerFromSeconds(data.remaining_seconds || (quiz.value.time_limit || 60) * 60)
     startHeartbeat()
+    await scrollToQuestionTop('auto')
   } catch (error) {
     submitError.value = error.response?.data?.message || 'Не удалось запустить олимпиаду.'
   }
@@ -580,26 +604,26 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .intro-actions { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
 .exam-shell { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
 .exam-header { padding: 24px; display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
-.hero-stats { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 12px; }
+.hero-stats { display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 12px; }
 .stat-box { padding: 14px 16px; border-radius: var(--radius-md); background: rgba(255,252,244,0.82); border: 1px solid var(--surface-border); text-align: left; color: var(--text); }
 .stat-box span { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
 .stat-box.warn { outline: 2px solid rgba(198,90,90,0.24); }
 .fullscreen-btn { cursor: pointer; }
-.progress-card { padding: 20px 20px 22px; position: sticky; top: 110px; align-self: start; z-index: 4; }
+.progress-card { padding: 20px 20px 22px; position: sticky; top: 84px; align-self: start; z-index: 6; }
 .progress-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-secondary); margin-bottom: 12px; }
 .progress-track { height: 10px; border-radius: 999px; background: rgba(100,83,41,0.12); overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success-soft), #56a36f); }
 .progress-meta { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary); font-size: 13px; }
 .exam-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
-.exam-main { display: grid; gap: 16px; min-width: 0; }
-.question-map { display: grid; gap: 10px; margin-top: 18px; }
-.question-map--horizontal { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
-.question-dot { height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); background: rgba(255,252,244,0.8); color: var(--text); font-weight: 700; cursor: pointer; }
+.exam-main { display: grid; gap: 16px; min-width: 0; width: 100%; }
+.question-map { display: flex; gap: 10px; margin-top: 18px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.question-map--horizontal { grid-template-columns: none; }
+.question-dot { flex: 0 0 44px; width: 44px; height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); background: rgba(255,252,244,0.8); color: var(--text); font-weight: 700; cursor: pointer; }
 .question-dot.current { background: var(--info-soft); border-color: rgba(26,95,168,0.32); color: var(--info); }
 .question-dot.answered { background: rgba(44,122,75,0.14); border-color: rgba(44,122,75,0.34); color: var(--success-soft); }
 .question-dot.skipped { background: var(--warning-bg); border-color: rgba(201,171,99,0.3); color: var(--accent-strong); }
 .question-dot.visited { background: rgba(26,95,168,0.08); }
-.question-card { padding: 28px; min-height: 520px; display: grid; align-content: start; }
+.question-card { padding: 28px; min-height: 520px; display: grid; align-content: start; width: 100%; min-width: 0; }
 .question-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
 .question-index { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: var(--info-soft); color: var(--info); }
 .question-hint { margin: 0 0 8px; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -612,10 +636,15 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .answer-label { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--info-soft); font-size: 12px; font-weight: 700; color: var(--info); }
 .answer-text { line-height: 1.55; }
 .sticky-footer { position: sticky; bottom: 16px; z-index: 3; display: flex; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 20px; background: rgba(255,249,238,0.94); border: 1px solid var(--surface-border); backdrop-filter: blur(14px); box-shadow: var(--shadow-card); }
+.floating-timer { position: fixed; right: 20px; bottom: 20px; z-index: 7; min-width: 118px; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--surface-border); background: rgba(255,249,238,0.96); box-shadow: var(--shadow-card); backdrop-filter: blur(14px); display: grid; gap: 4px; }
+.floating-timer span { font-size: 0; color: transparent; }
+.floating-timer span::before { content: "\0412\0440\0435\043C\044F"; font-size: 12px; color: var(--text-secondary); }
+.floating-timer strong { font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; }
+.floating-timer.warn { border-color: rgba(198,90,90,0.4); box-shadow: 0 18px 40px rgba(198,90,90,0.18); }
 .action-btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 14px; padding: 12px 18px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--text); font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 12px 26px rgba(201,168,76,0.24); }
 .action-btn.secondary { background: var(--info-soft); color: var(--info); border: 1px solid rgba(26,95,168,0.18); box-shadow: none; }
 .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-@media (max-width: 980px) { .progress-card { position: static; } .question-card { min-height: 0; } }
+@media (max-width: 980px) { .progress-card { top: 76px; } .question-card { min-height: 0; } }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .quiz-page { padding-inline: 14px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .progress-meta { flex-direction: column; gap: 6px; } .question-image-shell { min-height: 180px; } .sticky-footer { position: static; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
+@media (max-width: 640px) { .quiz-page { padding-inline: 14px; padding-bottom: 148px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .progress-meta { flex-direction: column; gap: 6px; } .question-image-shell { min-height: 180px; } .sticky-footer { position: static; } .floating-timer { right: 14px; bottom: 14px; left: 14px; min-width: 0; grid-template-columns: 1fr auto; align-items: center; } .floating-timer strong { font-size: 22px; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
 </style>
