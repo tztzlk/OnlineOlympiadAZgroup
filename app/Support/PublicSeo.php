@@ -275,7 +275,7 @@ class PublicSeo
 
     public static function routeMap(): array
     {
-        return collect([
+        $publicRoutes = collect([
             '/',
             '/subject',
             '/about',
@@ -283,8 +283,31 @@ class PublicSeo
             '/leaderboard',
             '/certificate-check',
             '/help-desk',
-        ])->mapWithKeys(fn (string $path) => [$path => self::page($path)])
-            ->all();
+        ])->mapWithKeys(fn (string $path) => [$path => self::page($path)])->all();
+
+        // Auth and private pages — indexed by client router but must not appear in search results
+        $privateRoutes = collect([
+            '/results',
+            '/login',
+            '/register',
+            '/forgot-password',
+            '/reset-password',
+            '/edit-profile',
+            '/profile',
+            '/waiting',
+        ])->mapWithKeys(function (string $path) {
+            $page = self::buildPage(
+                path: $path,
+                title: config('seo.site_name', 'Online Olympiad'),
+                description: '',
+                content: [],
+            );
+            $page['robots'] = 'noindex,nofollow';
+            $page['schemas'] = [];
+            return [$path => $page];
+        })->all();
+
+        return array_merge($publicRoutes, $privateRoutes);
     }
 
     public static function sitemapEntries(): array

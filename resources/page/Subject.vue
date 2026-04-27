@@ -7,7 +7,7 @@
           <span>/</span>
           <span>Предметы</span>
           <span>/</span>
-          <span>Регистрация</span>
+          <span>Оформление участия</span>
         </nav>
         <div class="page-badge">Предметы</div>
         <h1 class="page-title">Выберите олимпиаду и сразу ознакомьтесь с условиями участия</h1>
@@ -253,6 +253,7 @@
               <button :disabled="!canProceed || submitting" class="start-btn" @click="startOlympiad">
                 {{ submitting ? 'Сохраняем...' : 'Сохранить и перейти к оплате' }}
               </button>
+              <p v-if="submitError" class="submit-error">{{ submitError }}</p>
             </div>
 
             <StatePanel
@@ -346,6 +347,7 @@ const reconciliationStatus = ref('awaiting_payment')
 const paymentReportMessage = ref('')
 const reportingPayment = ref(false)
 const submitting = ref(false)
+const submitError = ref('')
 const rulesExpanded = ref(false)
 const pageLoading = ref(true)
 const pageError = ref('')
@@ -667,6 +669,7 @@ const startOlympiad = async () => {
   }
 
   submitting.value = true
+  submitError.value = ''
 
   try {
     const payload = {
@@ -712,7 +715,7 @@ const startOlympiad = async () => {
       },
     })
   } catch (error) {
-    window.alert(error.response?.data?.message || 'Не удалось оформить участие.')
+    submitError.value = getErrorMessage(error, 'Не удалось оформить участие.')
   } finally {
     submitting.value = false
   }
@@ -880,6 +883,7 @@ watch(selectedChildId, async () => {
 .start-btn:hover:not(:disabled) { background: var(--green-hover); transform: translateY(-2px); box-shadow: 0 14px 32px rgba(22,163,74,0.34); }
 .start-btn:active:not(:disabled) { transform: scale(0.98); box-shadow: 0 4px 14px rgba(22,163,74,0.2); transition-duration: 0.08s; }
 .start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.submit-error { margin: 8px 0 0; color: #8f3b3b; font-weight: 600; font-size: 14px; }
 
 .payment-followup { display: grid; gap: 12px; padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); background: var(--bg-alt); }
 .payment-followup__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }

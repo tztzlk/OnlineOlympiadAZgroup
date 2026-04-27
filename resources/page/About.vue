@@ -1,7 +1,7 @@
 <template>
   <div class="about-page">
     <section class="hero">
-      <p class="eyebrow">About Us</p>
+      <p class="eyebrow">О платформе</p>
       <h1>О платформе Online Olympiad</h1>
       <p class="lead">
         Мы создаем безопасную и удобную платформу для школьников, родителей и образовательных
@@ -104,6 +104,7 @@ h1, h2 { margin: 0; }
 .callback-form { display: grid; gap: 12px; }
 input, textarea { width: 100%; border-radius: 14px; border: 1px solid var(--surface-border); padding: 13px 14px; background: rgba(255,252,245,.95); color: var(--text-on-surface); }
 .primary-btn { border: 0; border-radius: 14px; padding: 14px 16px; background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); font-weight: 700; cursor: pointer; box-shadow: 0 12px 26px rgba(201,171,99,.2); }
+.primary-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .message { margin: 0; color: var(--text-secondary); }
 @media (max-width: 760px) { .callback-card { grid-template-columns: 1fr; } }
 </style>
