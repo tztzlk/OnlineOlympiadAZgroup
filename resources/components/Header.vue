@@ -9,7 +9,7 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </div>
-        <span>Eurica!</span>
+        <span>Эврика</span>
       </router-link>
 
       <!-- Навигация -->
@@ -75,7 +75,7 @@
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
-          <span class="mobile-menu__title">Eurica!</span>
+          <span class="mobile-menu__title">Эврика</span>
           <button class="mobile-close" @click="closeMenu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -394,12 +394,11 @@ onUnmounted(() => {
 /* btn-ghost: same on transparent — inherits normal styles */
 .btn-ghost:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .header.transparent .btn-ghost {
-  background: rgba(255,255,255,0.12);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.3);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--accent);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, white 55%);
 }
-.header.transparent .btn-ghost:hover { background: rgba(255,255,255,0.22); }
+.header.transparent .btn-ghost:hover { background: rgba(255, 255, 255, 0.94); }
 
 .btn-primary {
   padding: 8px 18px;
@@ -453,12 +452,11 @@ onUnmounted(() => {
 .btn-logout:active { background: rgba(73, 168, 107, 0.24); }
 :global(.dark) .btn-logout { color: var(--green-strong); }
 .header.transparent .btn-logout {
-  background: rgba(255,80,80,0.15);
-  color: rgba(255,200,200,1);
-  border-color: rgba(255,100,100,0.3);
-  backdrop-filter: blur(6px);
+  background: rgba(73, 168, 107, 0.12);
+  color: #2f7f4b;
+  border-color: rgba(73, 168, 107, 0.26);
 }
-.header.transparent .btn-logout:hover { background: rgba(255,80,80,0.25); }
+.header.transparent .btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
 
 /* Skeleton */
 .skeleton-user {

@@ -5,10 +5,12 @@
         <div class="profile-section__head">
           <div>
             <p class="profile-eyebrow">Участники</p>
-            <h2>Участники из вашей семьи</h2>
-            <p class="profile-section__copy">Добавляйте ребёнка, выбирайте активного участника и редактируйте его данные отдельно от остального кабинета.</p>
+            <h2>Участники профиля</h2>
+            <p class="profile-section__copy">
+              Добавляйте участников, выбирайте активный профиль и при необходимости обновляйте данные отдельно.
+            </p>
           </div>
-          <button class="profile-btn primary" @click="startCreateChild">Добавить ребёнка</button>
+          <button class="profile-btn primary" @click="startCreateChild">Добавить участника</button>
         </div>
 
         <div v-if="children.length" class="profile-card-grid">
@@ -30,7 +32,13 @@
             </div>
             <p>{{ child.school || 'Школа не указана' }} · {{ child.city || 'Город не указан' }}</p>
             <div class="profile-actions-row">
-              <button v-if="child.id !== userStore.selectedChildId" class="profile-btn ghost" @click="selectChild(child.id)">Выбрать</button>
+              <button
+                v-if="child.id !== userStore.selectedChildId"
+                class="profile-btn ghost"
+                @click="selectChild(child.id)"
+              >
+                Выбрать участника для олимпиады
+              </button>
               <button class="profile-btn outline" @click="startEditChild(child)">Изменить</button>
               <button class="profile-btn danger" :disabled="deletingChildId === child.id" @click="deleteChild(child)">
                 {{ deletingChildId === child.id ? '...' : 'Удалить' }}
@@ -38,13 +46,15 @@
             </div>
           </article>
         </div>
-        <p v-else class="profile-empty">Пока не добавлен ни один участник. Начните с профиля ребёнка и затем переходите к олимпиадам.</p>
+        <p v-else class="profile-empty">
+          Участники пока не добавлены. Сначала сохраните профиль участника, затем переходите к выбору олимпиады.
+        </p>
 
-        <form class="profile-form" @submit.prevent="saveChild">
+        <form id="participant-form" class="profile-form" @submit.prevent="saveChild">
           <div class="profile-section__head">
             <div>
               <p class="profile-eyebrow">{{ editingChildId ? 'Редактирование' : 'Новый участник' }}</p>
-              <h3>{{ editingChildId ? 'Обновите данные ребёнка' : 'Добавьте нового ребёнка' }}</h3>
+              <h3>{{ editingChildId ? 'Обновите данные участника' : 'Добавьте участника' }}</h3>
             </div>
           </div>
 
@@ -61,18 +71,10 @@
             </label>
             <label class="profile-field"><span>Школа</span><input v-model="childForm.school" placeholder="Школа" /></label>
             <label class="profile-field"><span>Город</span><input v-model="childForm.city" placeholder="Город" /></label>
-            <label class="profile-field wide">
-              <span>Язык интерфейса</span>
-              <select v-model="childForm.language_preference">
-                <option value="ru">Русский</option>
-                <option value="kk">Қазақша</option>
-                <option value="en">English</option>
-              </select>
-            </label>
           </div>
 
           <div class="profile-form-actions">
-            <button class="profile-btn primary" :disabled="savingChild">{{ savingChild ? 'Сохраняем...' : 'Сохранить профиль' }}</button>
+            <button class="profile-btn primary" :disabled="savingChild">{{ savingChild ? 'Сохраняем...' : 'Сохранить данные' }}</button>
             <button v-if="editingChildId" type="button" class="profile-btn outline" @click="resetChildForm">Отмена</button>
           </div>
         </form>
@@ -82,11 +84,13 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import StatusBadge from '../../components/StatusBadge.vue'
 import api from '../../js/api'
 import { useUserStore } from '../../stores/user'
 
+const route = useRoute()
 const userStore = useUserStore()
 const children = ref([])
 const editingChildId = ref(null)
@@ -103,6 +107,16 @@ const childForm = reactive({
   city: '',
   language_preference: 'ru',
 })
+
+const scrollToForm = async () => {
+  await nextTick()
+  const target = document.getElementById('participant-form')
+  if (!target) return
+
+  const headerOffset = document.querySelector('.header')?.offsetHeight ?? 72
+  const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 16
+  window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
+}
 
 const resetChildForm = () => {
   editingChildId.value = null
@@ -127,22 +141,30 @@ const selectChild = (childId) => {
 
 const startCreateChild = () => {
   resetChildForm()
+  scrollToForm()
 }
 
 const deleteChild = async (child) => {
   if (!confirm(`Удалить участника «${child.full_name}»? Это действие нельзя отменить.`)) return
   deletingChildId.value = child.id
+
   try {
     await api.delete(`/profile/children/${child.id}`)
+
     if (userStore.selectedChildId === child.id) {
       userStore.setSelectedChild(null)
     }
+
     await userStore.fetchUser()
     children.value = userStore.children
+
     if (!userStore.selectedChildId && userStore.children.length) {
       userStore.setSelectedChild(userStore.children[0].id)
     }
-    if (editingChildId.value === child.id) resetChildForm()
+
+    if (editingChildId.value === child.id) {
+      resetChildForm()
+    }
   } finally {
     deletingChildId.value = null
   }
@@ -157,14 +179,16 @@ const startEditChild = (child) => {
   childForm.school = child.school || ''
   childForm.city = child.city || ''
   childForm.language_preference = child.language_preference || 'ru'
+  scrollToForm()
 }
 
 const saveChild = async () => {
   savingChild.value = true
+
   try {
     const payload = {
       ...childForm,
-      grade: childForm.grade !== '' ? parseInt(childForm.grade) : null,
+      grade: childForm.grade !== '' ? parseInt(childForm.grade, 10) : null,
       birth_date: childForm.birth_date || null,
     }
 
@@ -187,7 +211,13 @@ const saveChild = async () => {
   }
 }
 
-onMounted(hydrate)
+onMounted(async () => {
+  await hydrate()
+
+  if (route.hash === '#participant-form') {
+    scrollToForm()
+  }
+})
 </script>
 
 <style src="../../css/profile-hub.css"></style>

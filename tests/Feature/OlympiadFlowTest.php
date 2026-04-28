@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\OlympiadRequest;
+use App\Models\PaymentRecord;
 use App\Models\Quiz;
 use App\Models\QuizResult;
 use App\Models\Subject;
 use App\Models\User;
+use App\Models\ChildProfile;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -282,4 +284,170 @@ it('rejects submissions that exceed the server-side time limit', function () {
     ]);
 
     Carbon::setTestNow();
+});
+
+it('requires a specific paid participant when access could be ambiguous', function () {
+    $user = User::factory()->create(['school' => 'Family School']);
+
+    $subject = Subject::create([
+        'name' => 'Biology',
+        'start_date' => now()->subDay()->toDateString(),
+        'end_date' => now()->addDay()->toDateString(),
+    ]);
+
+    $quiz = Quiz::create([
+        'subject_id' => $subject->id,
+        'title' => 'Family Quiz',
+        'time_limit' => 30,
+        'is_published' => true,
+    ]);
+
+    $childOne = ChildProfile::create([
+        'parent_id' => $user->id,
+        'first_name' => 'One',
+        'last_name' => 'Student',
+        'grade' => 8,
+    ]);
+
+    $childTwo = ChildProfile::create([
+        'parent_id' => $user->id,
+        'first_name' => 'Two',
+        'last_name' => 'Student',
+        'grade' => 8,
+    ]);
+
+    $paidRequest = OlympiadRequest::create([
+        'user_id' => $user->id,
+        'child_profile_id' => $childOne->id,
+        'subject_id' => $subject->id,
+        'first_name' => 'One',
+        'last_name' => 'Student',
+        'birth_date' => '2010-01-01',
+        'grade' => '8',
+        'language' => 'ru',
+        'parent_name' => 'Parent',
+        'parent_phone' => '+77777777777',
+        'parent_email' => 'parent@example.com',
+        'status' => 'approved',
+        'payment_status' => 'paid',
+        'completed' => false,
+    ]);
+
+    PaymentRecord::create([
+        'parent_id' => $user->id,
+        'child_profile_id' => $childOne->id,
+        'subject_id' => $subject->id,
+        'olympiad_request_id' => $paidRequest->id,
+        'amount' => 3000,
+        'currency' => 'KZT',
+        'provider' => 'kaspi',
+        'status' => 'paid',
+        'reconciliation_status' => 'matched',
+        'paid_at' => now(),
+    ]);
+
+    OlympiadRequest::create([
+        'user_id' => $user->id,
+        'child_profile_id' => $childTwo->id,
+        'subject_id' => $subject->id,
+        'first_name' => 'Two',
+        'last_name' => 'Student',
+        'birth_date' => '2011-01-01',
+        'grade' => '8',
+        'language' => 'ru',
+        'parent_name' => 'Parent',
+        'parent_phone' => '+77777777777',
+        'parent_email' => 'parent@example.com',
+        'status' => 'approved',
+        'payment_status' => 'pending',
+        'completed' => false,
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->getJson('/api/quiz/' . $subject->public_id)
+        ->assertNotFound();
+
+    $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $childOne->public_id)
+        ->assertOk();
+});
+
+it('blocks quiz access outside the configured subject period', function () {
+    $user = User::factory()->create(['school' => 'Calendar School']);
+
+    $subject = Subject::create([
+        'name' => 'History',
+        'start_date' => now()->addDay()->toDateString(),
+        'end_date' => now()->addDays(3)->toDateString(),
+    ]);
+
+    $quiz = Quiz::create([
+        'subject_id' => $subject->id,
+        'title' => 'History Quiz',
+        'time_limit' => 30,
+        'is_published' => true,
+    ]);
+
+    $category = $quiz->categories()->create([
+        'label' => '8',
+        'grade_from' => 8,
+        'grade_to' => 8,
+        'sort_order' => 1,
+    ]);
+
+    $question = $category->questions()->create([
+        'quiz_id' => $quiz->id,
+        'question' => 'Question?',
+        'position' => 1,
+    ]);
+
+    $question->answers()->create([
+        'label' => 'A',
+        'position' => 1,
+        'answer' => 'Answer',
+        'is_correct' => true,
+    ]);
+
+    $child = ChildProfile::create([
+        'parent_id' => $user->id,
+        'first_name' => 'Timed',
+        'last_name' => 'Student',
+        'grade' => 8,
+    ]);
+
+    $request = OlympiadRequest::create([
+        'user_id' => $user->id,
+        'child_profile_id' => $child->id,
+        'subject_id' => $subject->id,
+        'first_name' => 'Timed',
+        'last_name' => 'Student',
+        'birth_date' => '2010-01-01',
+        'grade' => '8',
+        'language' => 'ru',
+        'parent_name' => 'Parent',
+        'parent_phone' => '+77777777777',
+        'parent_email' => 'parent@example.com',
+        'status' => 'approved',
+        'payment_status' => 'paid',
+        'completed' => false,
+    ]);
+
+    PaymentRecord::create([
+        'parent_id' => $user->id,
+        'child_profile_id' => $child->id,
+        'subject_id' => $subject->id,
+        'olympiad_request_id' => $request->id,
+        'amount' => 3000,
+        'currency' => 'KZT',
+        'provider' => 'kaspi',
+        'status' => 'paid',
+        'reconciliation_status' => 'matched',
+        'paid_at' => now(),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->getJson('/api/quiz/' . $subject->public_id . '?child_profile_id=' . $child->public_id)
+        ->assertStatus(403)
+        ->assertJsonPath('message', 'Период прохождения ещё не начался.');
 });

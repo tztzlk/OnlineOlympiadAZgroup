@@ -80,7 +80,7 @@
           description="Как только организаторы откроют новый набор, карточки предметов появятся здесь."
         />
 
-        <div v-if="selectedSubject" class="step-box">
+        <div v-if="selectedSubject" ref="registrationBoxRef" class="step-box">
           <div class="step-box__header">
             <div>
               <p class="page-badge soft">Шаг 1 из 3</p>
@@ -224,7 +224,7 @@
 
             <div class="field">
               <label>Язык олимпиады</label>
-              <select v-model="form.language" class="step-input">
+              <select v-model="form.language" class="step-input" style="display: none;">
                 <option value="ru">Русский</option>
                 <option value="kk">Қазақша</option>
                 <option value="en">English</option>
@@ -321,7 +321,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import api from '../js/api'
@@ -337,6 +337,7 @@ const userStore = useUserStore()
 
 const subjects = ref([])
 const selectedSubject = ref(null)
+const registrationBoxRef = ref(null)
 const selectedChildId = ref('')
 const requestStatus = ref('')
 const paymentStatus = ref('')
@@ -543,6 +544,17 @@ const hydrateParentDefaults = () => {
   form.city = userStore.user?.city || ''
 }
 
+const scrollToRegistration = async () => {
+  await nextTick()
+
+  const target = registrationBoxRef.value
+  if (!target) return
+
+  const headerOffset = document.querySelector('.header')?.offsetHeight ?? 72
+  const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 16
+  window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
+}
+
 const applyChildSelection = () => {
   const child = userStore.children.find((item) => String(item.id) === selectedChildId.value)
   if (!child) return
@@ -555,6 +567,7 @@ const applyChildSelection = () => {
   form.school = child.school || userStore.user?.school || ''
   form.city = child.city || userStore.user?.city || ''
   form.language = child.language_preference || 'ru'
+  scrollToRegistration()
 }
 
 const fetchSubjects = async () => {
@@ -660,6 +673,7 @@ const selectSubject = async (subject) => {
   paymentReportMessage.value = ''
   applyRequestStatusPayload()
   await fetchRequestStatus()
+  await scrollToRegistration()
 }
 
 const startOlympiad = async () => {

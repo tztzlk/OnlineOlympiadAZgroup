@@ -20,6 +20,7 @@ class SubjectResource extends JsonResource
             'description' => $this->description,
             'image' => $this->image,
             'start_date' => $this->start_date,
+            'end_date' => $this->end_date,
         ];
     }
 

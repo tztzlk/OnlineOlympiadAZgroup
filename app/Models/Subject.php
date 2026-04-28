@@ -11,12 +11,13 @@ class Subject extends Model
 {
     use HasFactory, HasPublicId;
 
-    protected $fillable = ['name', 'image', 'description', 'start_date', 'public_id'];
+    protected $fillable = ['name', 'image', 'description', 'start_date', 'end_date', 'public_id'];
 
     protected $hidden = ['id'];
 
     protected $casts = [
         'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function getImageAttribute($value)

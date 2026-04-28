@@ -40,9 +40,9 @@
         <div class="profile-toolbar__row">
           <div>
             <p class="profile-eyebrow">Контекст участника</p>
-            <h2>{{ selectedChild ? selectedChild.full_name : 'Все участники семьи' }}</h2>
+            <h2>{{ selectedChild ? selectedChild.full_name : 'Все участники' }}</h2>
             <p class="profile-toolbar__hint">
-              Выбор применяется к разделам с участниками, заявками, оплатами и тренировками.
+              Выбор участника применяется к заявкам, оплатам, тренировкам и результатам.
             </p>
           </div>
 
@@ -56,7 +56,7 @@
                 </option>
               </select>
             </label>
-            <RouterLink to="/profile/children" class="profile-btn outline">Управлять участниками</RouterLink>
+            <RouterLink to="/profile/children#participant-form" class="profile-btn outline">Управлять участниками</RouterLink>
           </div>
         </div>
 

@@ -87,6 +87,10 @@ class QuizController extends Controller
             return response()->json(['message' => 'Олимпиада по этому предмету пока не опубликована.'], 404);
         }
 
+        if ($availabilityError = $this->quizAvailabilityError($requestRecord->subject)) {
+            return response()->json(['message' => $availabilityError], 403);
+        }
+
         $alreadySubmitted = QuizResult::query()
             ->where('user_id', $user->id)
             ->where('quiz_id', $quiz->id)
@@ -175,6 +179,10 @@ class QuizController extends Controller
             return response()->json(['message' => 'Попытка уже аннулирована.'], 403);
         }
 
+        if ($availabilityError = $this->quizAvailabilityError($requestRecord->subject)) {
+            return response()->json(['message' => $availabilityError], 403);
+        }
+
         $exists = QuizResult::query()
             ->where('user_id', $user->id)
             ->where('quiz_id', $quiz->id)
@@ -253,6 +261,10 @@ class QuizController extends Controller
 
         if (!$requestRecord->isPaymentConfirmed()) {
             return response()->json(['message' => 'Оплата ещё не подтверждена.'], 402);
+        }
+
+        if ($availabilityError = $this->quizAvailabilityError($requestRecord->subject)) {
+            return response()->json(['message' => $availabilityError], 403);
         }
 
         if ($childId !== null && $requestRecord->child_profile_id !== $childId) {
@@ -460,12 +472,28 @@ class QuizController extends Controller
 
     protected function resolveRequest(int $userId, int $subjectId, ?int $childId = null): ?OlympiadRequest
     {
-        return OlympiadRequest::with(['childProfile', 'paymentRecord'])
+        $query = OlympiadRequest::with(['childProfile', 'paymentRecord', 'subject'])
             ->where('user_id', $userId)
-            ->where('subject_id', $subjectId)
-            ->when($childId, fn ($query) => $query->where('child_profile_id', $childId))
-            ->latest()
-            ->first();
+            ->where('subject_id', $subjectId);
+
+        if ($childId) {
+            return (clone $query)
+                ->where('child_profile_id', $childId)
+                ->latest()
+                ->first();
+        }
+
+        $latestRequests = (clone $query)->latest()->get();
+
+        if ($latestRequests->count() === 1) {
+            return $latestRequests->first();
+        }
+
+        $eligibleRequests = $latestRequests
+            ->filter(fn (OlympiadRequest $request) => $request->isPaymentConfirmed() && !$request->completed)
+            ->values();
+
+        return $eligibleRequests->count() === 1 ? $eligibleRequests->first() : null;
     }
 
     protected function pickCategoryForGrade(Quiz $quiz, mixed $grade): ?QuizCategory
@@ -533,6 +561,25 @@ class QuizController extends Controller
         return $query
             ->where('public_id', $quizKey)
             ->firstOrFail();
+    }
+
+    protected function quizAvailabilityError(?Subject $subject): ?string
+    {
+        if (!$subject) {
+            return null;
+        }
+
+        $today = now();
+
+        if ($subject->start_date && $today->lt($subject->start_date->copy()->startOfDay())) {
+            return 'Период прохождения ещё не начался.';
+        }
+
+        if ($subject->end_date && $today->gt($subject->end_date->copy()->endOfDay())) {
+            return 'Период прохождения уже завершён.';
+        }
+
+        return null;
     }
 
     protected function remainingSeconds($startedAt, ?int $timeLimitMinutes): int

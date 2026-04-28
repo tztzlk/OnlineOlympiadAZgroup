@@ -110,6 +110,10 @@
               <span>Дата старта</span>
               <input v-model="form.subject.start_date" type="date" />
             </label>
+            <label class="field">
+              <span>Дата завершения</span>
+              <input v-model="form.subject.end_date" type="date" />
+            </label>
             <label class="field full">
               <span>Описание предмета</span>
               <textarea v-model="form.subject.description" rows="2"></textarea>
@@ -349,6 +353,7 @@ const createForm = () => ({
     image_path: '',
     uploading: false,
     start_date: '',
+    end_date: '',
   },
   title: '',
   description: '',
@@ -431,7 +436,8 @@ const editQuiz = async (quiz) => {
       image: '',
       image_path: '',
       uploading: false,
-      start_date: '',
+      start_date: data.subject?.start_date || '',
+      end_date: data.subject?.end_date || '',
     },
     title: data.title,
     description: data.description ?? '',
@@ -613,6 +619,7 @@ const normalizePayload = () => ({
         description: form.value.subject.description,
         image: form.value.subject.image_path || form.value.subject.image,
         start_date: form.value.subject.start_date || new Date().toISOString().slice(0, 10),
+        end_date: form.value.subject.end_date || null,
       },
   title: form.value.title.trim(),
   description: form.value.description.trim(),

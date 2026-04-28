@@ -136,6 +136,7 @@ class AdminQuizController extends Controller
             'subject.description' => 'nullable|string',
             'subject.image' => 'nullable|string',
             'subject.start_date' => 'nullable|date',
+            'subject.end_date' => 'nullable|date|after_or_equal:subject.start_date',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|integer|min:0|max:10000000',
@@ -201,9 +202,18 @@ class AdminQuizController extends Controller
     protected function resolveSubject(array $data): Subject
     {
         if (!empty($data['subject_id'])) {
-            return Subject::query()
+            $subject = Subject::query()
                 ->where('public_id', $data['subject_id'])
                 ->firstOrFail();
+
+            if (!empty($data['subject'])) {
+                $subject->update([
+                    'start_date' => $data['subject']['start_date'] ?? $subject->start_date,
+                    'end_date' => $data['subject']['end_date'] ?? $subject->end_date,
+                ]);
+            }
+
+            return $subject;
         }
 
         return Subject::create([
@@ -211,6 +221,7 @@ class AdminQuizController extends Controller
             'description' => $data['subject']['description'] ?? null,
             'image' => $data['subject']['image'] ?? null,
             'start_date' => $data['subject']['start_date'] ?? now()->toDateString(),
+            'end_date' => $data['subject']['end_date'] ?? null,
         ]);
     }
 
@@ -322,4 +333,3 @@ class AdminQuizController extends Controller
         ];
     }
 }
-

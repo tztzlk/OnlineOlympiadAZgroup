@@ -65,10 +65,11 @@ class SubjectController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|string',
             'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         try {
-            $subject = Subject::create($request->only('name', 'description', 'image', 'start_date'));
+            $subject = Subject::create($request->only('name', 'description', 'image', 'start_date', 'end_date'));
 
             return response()->json($this->mapSubject($subject), 201);
         } catch (\Exception) {
@@ -86,6 +87,7 @@ class SubjectController extends Controller
             'image' => $subject->image,
             'description' => $subject->description,
             'start_date' => optional($subject->start_date)->toDateString(),
+            'end_date' => optional($subject->end_date)->toDateString(),
             'published_quizzes_count' => $subject->published_quizzes_count ?? 0,
             'price' => $subject->relationLoaded('quizzes')
                 ? $subject->quizzes->first()?->price
