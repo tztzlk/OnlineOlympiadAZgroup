@@ -37,7 +37,7 @@
             <div class="request-pill neutral"><span>Создано</span><strong>{{ stats.funnel.created }}</strong></div>
             <div class="request-pill approved"><span>Одобрено</span><strong>{{ stats.funnel.approved }}</strong></div>
             <div class="request-pill rejected"><span>Отклонено</span><strong>{{ stats.funnel.rejected }}</strong></div>
-            <div class="request-pill pending"><span>Оплачено</span><strong>{{ stats.funnel.paid }}</strong></div>
+            <div class="request-pill approved"><span>Оплачено</span><strong>{{ stats.funnel.paid }}</strong></div>
             <div class="request-pill success"><span>Завершено</span><strong>{{ stats.funnel.completed }}</strong></div>
           </div>
         </article>
@@ -115,7 +115,7 @@
             <div class="quick-link static">Новых пользователей: <strong>{{ stats.weekly.users }}</strong></div>
             <div class="quick-link static">Новых заявок: <strong>{{ stats.weekly.requests }}</strong></div>
             <div class="quick-link static">Платежей: <strong>{{ stats.weekly.payments }}</strong></div>
-            <div class="quick-link static">Callbacks: <strong>{{ stats.weekly.callbacks }}</strong></div>
+            <div class="quick-link static">Обращений: <strong>{{ stats.weekly.callbacks }}</strong></div>
             <div class="quick-link static">Результатов: <strong>{{ stats.weekly.results }}</strong></div>
           </div>
         </article>
@@ -130,7 +130,7 @@
           <RouterLink to="/admin/requests" class="quick-link">Проверить заявки</RouterLink>
           <RouterLink to="/admin/results" class="quick-link">Посмотреть результаты</RouterLink>
           <RouterLink to="/admin/payments" class="quick-link">Оплаты и импорт</RouterLink>
-          <RouterLink to="/admin/callbacks" class="quick-link">Обратные звонки</RouterLink>
+          <RouterLink to="/admin/callbacks" class="quick-link">Обращения</RouterLink>
         </div>
       </section>
     </template>

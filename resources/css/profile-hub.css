@@ -366,6 +366,12 @@
   color: #316a49;
 }
 
+.profile-btn.danger {
+  background: rgba(220, 53, 69, 0.08);
+  color: #b02a37;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
 .profile-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;

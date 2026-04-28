@@ -142,6 +142,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow: hidden;
   background: linear-gradient(180deg, rgba(255, 249, 238, 0.98) 0%, rgba(245, 236, 212, 0.96) 100%);
   border-right: 1px solid var(--surface-border);
   box-shadow: inset -1px 0 0 rgba(109, 89, 42, 0.04);
@@ -247,6 +248,9 @@ onMounted(async () => {
   padding: 16px;
   display: grid;
   gap: 12px;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .notification-head {

@@ -2,25 +2,25 @@
   <div class="admin-page">
     <header class="header">
       <div>
-        <p class="eyebrow">Results</p>
+        <p class="eyebrow">Результаты</p>
         <h1>Результаты участников</h1>
         <p class="subtext">Общий список, фильтры и экспорт с городом, школой и категорией.</p>
       </div>
-
-      <div class="filters">
-        <input v-model="search" type="text" placeholder="Поиск по участнику, школе, городу, предмету или категории" />
-        <select v-model="statusFilter">
-          <option value="all">Все статусы</option>
-          <option value="passed">Пройден</option>
-          <option value="failed">Не пройден</option>
-        </select>
-        <select v-model="subjectFilter">
-          <option value="all">Все предметы</option>
-          <option v-for="subject in subjects" :key="subject" :value="subject">{{ subject }}</option>
-        </select>
-        <button class="export-btn" @click="downloadExport">Выгрузить Excel</button>
-      </div>
+      <button class="export-btn" @click="downloadExport">Выгрузить Excel</button>
     </header>
+
+    <div class="filters">
+      <input v-model="search" type="text" placeholder="Поиск по участнику, школе, городу, предмету или категории" />
+      <select v-model="statusFilter">
+        <option value="all">Все статусы</option>
+        <option value="passed">Пройден</option>
+        <option value="failed">Не пройден</option>
+      </select>
+      <select v-model="subjectFilter">
+        <option value="all">Все предметы</option>
+        <option v-for="subject in subjects" :key="subject" :value="subject">{{ subject }}</option>
+      </select>
+    </div>
 
     <div v-if="loading" class="loading-card">Загружаем результаты...</div>
     <div v-else-if="!results.length" class="empty-card">По выбранным фильтрам результатов нет.</div>
@@ -189,21 +189,28 @@ h1 {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: flex-start;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-card);
 }
 
 input,
 select {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-sm);
-  padding: 12px 15px;
+  padding: 10px 14px;
   background: rgba(255, 252, 245, 0.95);
   color: var(--text);
-  min-width: 200px;
+  min-width: 180px;
   outline: none;
   font: inherit;
+  flex: 1 1 180px;
 }
+
+input { flex: 2 1 260px; }
 
 input::placeholder {
   color: color-mix(in srgb, var(--text-secondary) 78%, white 22%);
@@ -212,7 +219,7 @@ input::placeholder {
 input:focus,
 select:focus {
   border-color: color-mix(in srgb, var(--accent) 75%, white 25%);
-  box-shadow: 0 0 0 4px rgba(201, 171, 99, 0.16);
+  box-shadow: 0 0 0 3px rgba(201, 171, 99, 0.16);
 }
 
 .export-btn {
@@ -224,8 +231,8 @@ select:focus {
   color: var(--text);
   border: none;
   border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  box-shadow: 0 12px 26px rgba(201, 171, 99, 0.2);
+  padding: 11px 18px;
+  box-shadow: 0 8px 20px rgba(201, 171, 99, 0.2);
 }
 
 .loading-card,
@@ -308,9 +315,9 @@ select:focus {
 @media (max-width: 860px) {
   .admin-page { padding: 16px; }
   .header { flex-direction: column; }
-  .filters,
+  .filters { flex-direction: column; }
   .filters input,
   .filters select,
-  .export-btn { width: 100%; }
+  .export-btn { width: 100%; flex: none; min-width: 0; }
 }
 </style>

@@ -4,11 +4,15 @@
       <div>
         <p class="eyebrow">Обращения</p>
         <h1>Help Desk и обратные звонки</h1>
+        <p class="subtext">Входящие обращения из формы поддержки и запросы обратного звонка.</p>
       </div>
       <button class="primary-btn" @click="downloadExport">Выгрузить Excel</button>
     </header>
 
-    <section class="table-card">
+    <div v-if="loading" class="state-card">Загружаем обращения...</div>
+    <div v-else-if="!callbacks.length" class="state-card empty">Обращений пока нет.</div>
+
+    <section v-else class="table-card">
       <table>
         <thead>
           <tr>
@@ -23,13 +27,17 @@
         </thead>
         <tbody>
           <tr v-for="item in callbacks" :key="item.id">
-            <td>{{ item.type === 'helpdesk' ? 'Help Desk' : 'Callback' }}</td>
-            <td>{{ item.name }}</td>
+            <td>
+              <span class="type-badge" :class="item.type">
+                {{ item.type === 'helpdesk' ? 'Help Desk' : 'Звонок' }}
+              </span>
+            </td>
+            <td>{{ item.name || '—' }}</td>
             <td>{{ item.phone && item.phone !== 'not_provided' ? item.phone : '—' }}</td>
             <td>{{ item.email || '—' }}</td>
             <td>{{ item.topic || '—' }}</td>
-            <td>{{ item.message || '—' }}</td>
-            <td>{{ item.date }}</td>
+            <td class="message-cell" :title="item.message">{{ item.message || '—' }}</td>
+            <td class="date-cell">{{ item.date }}</td>
           </tr>
         </tbody>
       </table>
@@ -42,10 +50,16 @@ import { onMounted, ref } from 'vue'
 import api from '../../js/api'
 
 const callbacks = ref([])
+const loading = ref(true)
 
 const load = async () => {
-  const { data } = await api.get('/admin/callbacks')
-  callbacks.value = data
+  loading.value = true
+  try {
+    const { data } = await api.get('/admin/callbacks')
+    callbacks.value = data
+  } finally {
+    loading.value = false
+  }
 }
 
 const downloadExport = async () => {
@@ -77,11 +91,11 @@ onMounted(load)
 }
 
 .header,
-.table-card {
+.table-card,
+.state-card {
   background: var(--surface);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
-  padding: 22px;
   box-shadow: var(--shadow-card);
 }
 
@@ -90,6 +104,7 @@ onMounted(load)
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 22px;
 }
 
 .eyebrow {
@@ -107,16 +122,31 @@ h1 {
   color: var(--text);
 }
 
+.subtext {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
 .primary-btn {
   flex-shrink: 0;
   border: 0;
   border-radius: var(--radius-sm);
-  padding: 12px 16px;
+  padding: 12px 18px;
   background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
   color: var(--text);
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 12px 26px rgba(201, 171, 99, 0.2);
+  box-shadow: 0 8px 20px rgba(201, 171, 99, 0.2);
+}
+
+.state-card {
+  padding: 28px;
+  color: var(--text-secondary);
+}
+
+.state-card.empty {
+  text-align: center;
+  padding: 48px 28px;
 }
 
 .table-card {
@@ -126,7 +156,7 @@ h1 {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 700px;
+  min-width: 680px;
 }
 
 thead th {
@@ -135,16 +165,17 @@ thead th {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0 14px 14px;
+  padding: 14px 16px;
   text-align: left;
   border-bottom: 1px solid var(--surface-border);
+  white-space: nowrap;
 }
 
 tbody td {
-  padding: 14px;
+  padding: 14px 16px;
   text-align: left;
   border-bottom: 1px solid var(--surface-border);
-  vertical-align: top;
+  vertical-align: middle;
   color: var(--text);
 }
 
@@ -154,6 +185,38 @@ tbody tr:last-child td {
 
 tbody tr:hover td {
   background: rgba(201, 171, 99, 0.04);
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: rgba(201, 171, 99, 0.14);
+  color: var(--accent-strong);
+}
+
+.type-badge.helpdesk {
+  background: rgba(79, 167, 116, 0.12);
+  color: #316a49;
+}
+
+.message-cell {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.date-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {

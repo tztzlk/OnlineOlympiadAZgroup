@@ -14,7 +14,7 @@
             <strong>Email поддержки</strong>
             <span>{{ supportEmail }}</span>
           </a>
-          <a class="contact-card" :href="supportPhoneHref">
+          <a v-if="supportPhone" class="contact-card" :href="supportPhoneHref">
             <strong>Телефон</strong>
             <span>{{ supportPhone }}</span>
           </a>
@@ -75,9 +75,9 @@ import { reactive, ref } from 'vue'
 import api from '../js/api'
 import { solveProofOfWork } from '../js/pow'
 
-const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'support@olympiad.kz'
-const supportPhone = import.meta.env.VITE_SUPPORT_PHONE || '+7 (777) 000-00-00'
-const supportPhoneHref = `tel:${supportPhone.replace(/[^\d+]/g, '')}`
+const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'eurica001olimp@gmail.com'
+const supportPhone = import.meta.env.VITE_SUPPORT_PHONE || ''
+const supportPhoneHref = supportPhone ? `tel:${supportPhone.replace(/[^\d+]/g, '')}` : ''
 
 const form = reactive({
   name: '',

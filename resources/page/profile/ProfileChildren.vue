@@ -30,8 +30,11 @@
             </div>
             <p>{{ child.school || 'Школа не указана' }} · {{ child.city || 'Город не указан' }}</p>
             <div class="profile-actions-row">
-              <button class="profile-btn ghost" @click="selectChild(child.id)">Выбрать</button>
+              <button v-if="child.id !== userStore.selectedChildId" class="profile-btn ghost" @click="selectChild(child.id)">Выбрать</button>
               <button class="profile-btn outline" @click="startEditChild(child)">Изменить</button>
+              <button class="profile-btn danger" :disabled="deletingChildId === child.id" @click="deleteChild(child)">
+                {{ deletingChildId === child.id ? '...' : 'Удалить' }}
+              </button>
             </div>
           </article>
         </div>
@@ -88,6 +91,7 @@ const userStore = useUserStore()
 const children = ref([])
 const editingChildId = ref(null)
 const savingChild = ref(false)
+const deletingChildId = ref(null)
 const gradeOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 const childForm = reactive({
@@ -123,6 +127,25 @@ const selectChild = (childId) => {
 
 const startCreateChild = () => {
   resetChildForm()
+}
+
+const deleteChild = async (child) => {
+  if (!confirm(`Удалить участника «${child.full_name}»? Это действие нельзя отменить.`)) return
+  deletingChildId.value = child.id
+  try {
+    await api.delete(`/profile/children/${child.id}`)
+    if (userStore.selectedChildId === child.id) {
+      userStore.setSelectedChild(null)
+    }
+    await userStore.fetchUser()
+    children.value = userStore.children
+    if (!userStore.selectedChildId && userStore.children.length) {
+      userStore.setSelectedChild(userStore.children[0].id)
+    }
+    if (editingChildId.value === child.id) resetChildForm()
+  } finally {
+    deletingChildId.value = null
+  }
 }
 
 const startEditChild = (child) => {

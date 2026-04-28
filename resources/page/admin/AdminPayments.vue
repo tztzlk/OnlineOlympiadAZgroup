@@ -76,7 +76,7 @@
               <th>Сумма</th>
               <th>Оплата</th>
               <th>Сверка</th>
-              <th>External Ref</th>
+              <th>Внешний ID</th>
               <th>Комментарий</th>
               <th>Дата</th>
             </tr>
@@ -115,7 +115,7 @@
             <tr>
               <th>Статус</th>
               <th>Сумма</th>
-              <th>External Ref</th>
+              <th>Внешний ID</th>
               <th>Комментарий</th>
               <th>Request ID</th>
               <th>Ребёнок</th>
@@ -246,8 +246,14 @@ onMounted(load)
 <style scoped>
 .admin-page {
   min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(201, 171, 99, 0.12), transparent 24%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
   padding: 28px;
   color: var(--text);
+  display: grid;
+  gap: 18px;
+  align-content: start;
 }
 
 .header,
@@ -296,7 +302,6 @@ onMounted(load)
 
 .setup-card,
 .table-card {
-  margin-top: 18px;
   display: grid;
   gap: 16px;
 }
@@ -348,7 +353,6 @@ onMounted(load)
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-  margin-top: 18px;
 }
 
 .stat-card span {

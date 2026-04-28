@@ -40,16 +40,10 @@
           <div class="title-line"></div>
         </div>
         <div class="footer__contacts">
-          <a href="mailto:support@olympiad.kz" class="contact-item">
+          <a href="mailto:eurica001olimp@gmail.com" class="contact-item">
             <div>
               <div class="contact-label">Email</div>
-              <div class="contact-value">support@olympiad.kz</div>
-            </div>
-          </a>
-          <a href="tel:+77770000000" class="contact-item">
-            <div>
-              <div class="contact-label">Телефон</div>
-              <div class="contact-value">+7 (777) 000-00-00</div>
+              <div class="contact-value">eurica001olimp@gmail.com</div>
             </div>
           </a>
           <router-link to="/help-desk" class="contact-item">
