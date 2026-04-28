@@ -612,7 +612,7 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .stat-box span { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
 .stat-box.warn { outline: 2px solid rgba(198,90,90,0.24); }
 .fullscreen-btn { cursor: pointer; }
-.progress-card { width: 100%; padding: 20px 20px 22px; position: sticky; top: 84px; align-self: start; z-index: 6; }
+.progress-card { width: 100%; padding: 20px 20px 22px; position: static; }
 .progress-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-secondary); margin-bottom: 12px; }
 .progress-track { height: 10px; border-radius: 999px; background: rgba(100,83,41,0.12); overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success-soft), #56a36f); }
@@ -652,7 +652,7 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .hero-stats > :nth-child(2),
 .progress-meta > :nth-child(2),
 .sticky-footer > :nth-child(2) { display: none; }
-@media (max-width: 980px) { .progress-card { top: 76px; } .question-card { min-height: 0; } }
+@media (max-width: 980px) { .question-card { min-height: 0; } }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .quiz-page { padding-inline: 14px; padding-bottom: 148px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .progress-card { top: 72px; } .progress-meta { flex-direction: column; gap: 6px; } .question-image-shell { min-height: 180px; } .sticky-footer { position: static; } .floating-timer { right: 14px; bottom: 14px; left: 14px; min-width: 0; grid-template-columns: 1fr auto; align-items: center; } .floating-timer strong { font-size: 22px; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
+@media (max-width: 640px) { .quiz-page { padding-inline: 14px; padding-bottom: 148px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .progress-meta { flex-direction: column; gap: 6px; } .question-image-shell { min-height: 180px; } .sticky-footer { position: static; } .floating-timer { right: 14px; bottom: 14px; left: 14px; min-width: 0; grid-template-columns: 1fr auto; align-items: center; } .floating-timer strong { font-size: 22px; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
 </style>
