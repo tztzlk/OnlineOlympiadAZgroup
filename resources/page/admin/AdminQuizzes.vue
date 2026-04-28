@@ -168,6 +168,7 @@
               </span>
             </div>
 
+            <div class="category-top-right">
             <label class="mini-field">
               <span>Количество вопросов</span>
               <input
@@ -178,6 +179,10 @@
                 @change="applyQuestionCount(activeCategoryIndex)"
               />
             </label>
+            <button type="button" class="import-doc-btn" @click="openImportModal(activeCategoryIndex)">
+              Загрузить из документа
+            </button>
+          </div>
           </div>
 
           <p v-if="!activeCategory.questions.length" class="empty-category-text">
@@ -295,6 +300,68 @@
       </div>
     </div>
   </div>
+
+  <div v-if="showImportModal" class="modal-backdrop import-backdrop" @click.self="closeImportModal">
+    <div class="modal-card import-modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Import</p>
+          <h2>Импорт вопросов из документа</h2>
+          <p v-if="importCategoryIndex !== null" class="subtext">
+            Категория: <strong>{{ form.categories[importCategoryIndex]?.label }}</strong>
+          </p>
+        </div>
+        <button class="icon-btn" @click="closeImportModal">×</button>
+      </div>
+
+      <div class="import-upload-area">
+        <label class="import-file-label" :class="{ 'label-disabled': importing }">
+          <input type="file" accept=".docx,.pdf" @change="handleDocumentUpload" :disabled="importing" />
+          <span v-if="importing">Обработка документа...</span>
+          <span v-else-if="importPreview.length">Загрузить другой файл</span>
+          <span v-else>Выберите DOCX или PDF файл</span>
+        </label>
+        <p class="upload-note">Поддерживаются Word (.docx) и PDF, до 20 МБ</p>
+      </div>
+
+      <p v-if="importError" class="error-text">{{ importError }}</p>
+
+      <div v-if="importWarnings.length" class="import-warnings">
+        <p class="warning-title">Предупреждения ({{ importWarnings.length }}):</p>
+        <ul>
+          <li v-for="(w, wi) in importWarnings" :key="wi">{{ w }}</li>
+        </ul>
+      </div>
+
+      <div v-if="importPreview.length" class="import-preview">
+        <p class="import-count">Найдено вопросов: <strong>{{ importPreview.length }}</strong></p>
+        <div class="import-preview-list">
+          <div v-for="(q, qi) in importPreview" :key="qi" class="import-preview-item">
+            <span class="import-q-num">{{ qi + 1 }}</span>
+            <div class="import-q-body">
+              <p class="import-q-text">{{ q.question }}</p>
+              <div class="import-q-badges">
+                <span v-if="!q.correct_answer" class="no-correct-badge">Нет правильного ответа</span>
+                <span v-if="q.image_path" class="image-badge">С картинкой</span>
+                <span class="answer-count-badge">{{ q.answers.length }} вариантов</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost-btn" @click="closeImportModal">Отмена</button>
+        <button
+          class="primary-btn"
+          :disabled="!importPreview.length || importing"
+          @click="applyImport"
+        >
+          Добавить {{ importPreview.length }} {{ importPreview.length === 1 ? 'вопрос' : importPreview.length < 5 ? 'вопроса' : 'вопросов' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -319,6 +386,13 @@ const formError = ref('')
 const activeCategoryIndex = ref(0)
 const questionCountInputs = ref(CATEGORY_PRESETS.map(() => 0))
 const ANSWER_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+
+const showImportModal = ref(false)
+const importCategoryIndex = ref(null)
+const importing = ref(false)
+const importError = ref('')
+const importPreview = ref([])
+const importWarnings = ref([])
 
 const createAnswerOption = (answerIndex, answer = {}) => ({
   label: answer.label || ANSWER_LABELS[answerIndex] || `Option ${answerIndex + 1}`,
@@ -690,6 +764,70 @@ const deleteQuiz = async (id) => {
   await loadData()
 }
 
+const openImportModal = (catIndex) => {
+  importCategoryIndex.value = catIndex
+  importError.value = ''
+  importPreview.value = []
+  importWarnings.value = []
+  showImportModal.value = true
+}
+
+const closeImportModal = () => {
+  showImportModal.value = false
+}
+
+const handleDocumentUpload = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  importing.value = true
+  importError.value = ''
+  importPreview.value = []
+  importWarnings.value = []
+
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    const { data } = await api.post('/admin/quizzes/parse-document', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    importPreview.value = data.questions || []
+    importWarnings.value = data.warnings || []
+  } catch (e) {
+    importError.value = e?.response?.data?.message || 'Ошибка при разборе документа.'
+  } finally {
+    importing.value = false
+    event.target.value = ''
+  }
+}
+
+const applyImport = () => {
+  const cat = form.value.categories[importCategoryIndex.value]
+  const startPos = cat.questions.length + 1
+
+  importPreview.value.forEach((q, i) => {
+    cat.questions.push({
+      question: q.question,
+      explanation: q.explanation || '',
+      position: startPos + i,
+      correct_answer: q.correct_answer || '',
+      image_source: q.image_source || '',
+      image_url: q.image_url || '',
+      image_path: q.image_path || '',
+      image: q.image_preview_url || q.image_url || '',
+      uploading: false,
+      answers: q.answers.map((a, ai) => ({
+        label: a.label,
+        answer: a.answer,
+        position: ai + 1,
+      })),
+    })
+  })
+
+  questionCountInputs.value[importCategoryIndex.value] = cat.questions.length
+  closeImportModal()
+}
+
 onMounted(loadData)
 </script>
 
@@ -760,6 +898,28 @@ input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var
 .radio-row { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
 .error-text { margin: 16px 0 0; color: #8f3b3b; font-weight: 600; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.category-top-right { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.import-doc-btn { background: rgba(79,167,116,0.1); color: #316a49; border: 0; border-radius: 16px; padding: 13px 16px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.import-doc-btn:hover { background: rgba(79,167,116,0.18); }
+.import-backdrop { z-index: 100; }
+.import-modal { max-width: 700px; }
+.import-upload-area { border: 2px dashed var(--surface-border); border-radius: 20px; padding: 24px; text-align: center; margin: 16px 0; }
+.import-file-label { display: inline-flex; align-items: center; gap: 10px; background: rgba(201,171,99,0.12); color: var(--accent-strong); border-radius: 14px; padding: 13px 18px; font-weight: 700; cursor: pointer; }
+.import-file-label input { display: none; }
+.import-file-label.label-disabled { opacity: 0.6; cursor: not-allowed; }
+.import-warnings { background: rgba(201,171,99,0.08); border: 1px solid rgba(201,171,99,0.28); border-radius: 16px; padding: 14px 18px; margin-top: 12px; }
+.warning-title { margin: 0 0 8px; font-weight: 700; color: var(--accent-strong); font-size: 13px; }
+.import-warnings ul { margin: 0; padding: 0 0 0 18px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.import-preview { margin-top: 16px; }
+.import-count { margin: 0 0 10px; font-weight: 700; }
+.import-preview-list { max-height: 340px; overflow-y: auto; display: grid; gap: 8px; }
+.import-preview-item { display: flex; gap: 12px; align-items: flex-start; background: rgba(255,252,244,.9); border: 1px solid var(--surface-border); border-radius: 14px; padding: 12px 14px; }
+.import-q-num { font-weight: 800; color: var(--accent-strong); min-width: 22px; font-size: 14px; }
+.import-q-body { flex: 1; min-width: 0; }
+.import-q-text { margin: 0 0 6px; font-size: 14px; line-height: 1.4; word-break: break-word; }
+.import-q-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.no-correct-badge { background: rgba(143,59,59,0.1); color: #8f3b3b; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
+.answer-count-badge { background: rgba(201,171,99,0.14); color: var(--accent-strong); border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
 @media (max-width: 900px) { .form-grid, .answers-grid, .image-tools { grid-template-columns: 1fr; } .mini-field { width: 100%; } }
-@media (max-width: 640px) { .admin-page, .modal-backdrop { padding: 16px; } .header, .modal-head, .categories-toolbar, .modal-actions, .category-top, .question-head { flex-direction: column; } .modal-actions .primary-btn, .modal-actions .ghost-btn, .header .primary-btn, .upload-btn { width: 100%; justify-content: center; } }
+@media (max-width: 640px) { .admin-page, .modal-backdrop { padding: 16px; } .header, .modal-head, .categories-toolbar, .modal-actions, .category-top, .question-head { flex-direction: column; } .modal-actions .primary-btn, .modal-actions .ghost-btn, .header .primary-btn, .upload-btn { width: 100%; justify-content: center; } .category-top-right { width: 100%; } }
 </style>
