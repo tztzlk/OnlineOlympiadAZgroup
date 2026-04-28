@@ -195,20 +195,20 @@ const steps = [
 /* Step 1: spans both rows, more spacious */
 .step-card--1 {
   grid-row: 1 / 3;
-  background: color-mix(in srgb, var(--accent-soft) 34%, #ffffff);
+  background: color-mix(in srgb, var(--accent-soft) 34%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
   padding: 36px 32px;
   justify-content: space-between;
 }
 
 .step-card--2 {
-  background: color-mix(in srgb, var(--green-soft) 42%, #ffffff);
+  background: color-mix(in srgb, var(--green-soft) 42%, var(--card));
   border-color: color-mix(in srgb, var(--green) 20%, var(--border));
 }
 
 .step-card--3 {
-  background: color-mix(in srgb, #eef4ff 58%, #ffffff);
-  border-color: color-mix(in srgb, #9fb8de 28%, var(--border));
+  background: color-mix(in srgb, var(--info-bg) 60%, var(--card));
+  border-color: color-mix(in srgb, var(--info) 22%, var(--border));
 }
 
 /* Top accent line on hover */
@@ -280,15 +280,15 @@ const steps = [
 }
 
 .step-card--2 .step-card__icon {
-  background: color-mix(in srgb, var(--green-soft) 90%, #ffffff);
+  background: color-mix(in srgb, var(--green-soft) 90%, var(--card));
   color: var(--green-strong);
   border-color: color-mix(in srgb, var(--green) 28%, transparent);
 }
 
 .step-card--3 .step-card__icon {
-  background: color-mix(in srgb, #e8f0fb 92%, #ffffff);
-  color: #6f89ad;
-  border-color: color-mix(in srgb, #9fb8de 36%, transparent);
+  background: color-mix(in srgb, var(--info-bg) 70%, var(--card));
+  color: var(--info);
+  border-color: color-mix(in srgb, var(--info) 36%, transparent);
 }
 
 .step-card__icon :deep(svg) { width: 30px; height: 30px; }
@@ -337,16 +337,16 @@ const steps = [
 }
 
 .step-card--1 .tag {
-  background: color-mix(in srgb, var(--accent-soft) 55%, #ffffff);
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
 }
 .step-card--2 .tag {
-  background: color-mix(in srgb, var(--green-soft) 68%, #ffffff);
+  background: color-mix(in srgb, var(--green-soft) 68%, var(--card));
   border-color: color-mix(in srgb, var(--green) 16%, var(--border));
 }
 .step-card--3 .tag {
-  background: color-mix(in srgb, #eef4ff 76%, #ffffff);
-  border-color: color-mix(in srgb, #9fb8de 18%, var(--border));
+  background: color-mix(in srgb, var(--info-bg) 50%, var(--card));
+  border-color: color-mix(in srgb, var(--info) 15%, var(--border));
 }
 
 .hiw__cta { text-align: center; }
@@ -393,4 +393,10 @@ const steps = [
   .step-card--1 { padding: 28px 22px; }
   .hiw__btn { width: 100%; justify-content: center; }
 }
+
+:global(.dark) .hiw__eyebrow { color: var(--accent-strong); }
+:global(.dark) .step-card__icon { color: var(--accent-strong); }
+:global(.dark) .step-card--2 .step-card__icon { color: var(--green-strong); }
+:global(.dark) .step-card--3 .step-card__icon { color: var(--info); }
+:global(.dark) .step-card--1 .step-card__num { color: rgba(242, 201, 76, 0.2); }
 </style>

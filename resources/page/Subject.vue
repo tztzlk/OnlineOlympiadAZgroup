@@ -917,4 +917,17 @@ watch(selectedChildId, async () => {
   .rules-card__body { padding: 0 18px 18px; }
   .page-title { font-size: 26px; }
 }
+
+:global(.dark) .rules-card { background: var(--surface); }
+:global(.dark) .rule-item { background: var(--surface-soft); }
+:global(.dark) .payment-meta__item { background: var(--surface-soft); }
+:global(.dark) .deadline-banner__eyebrow { color: var(--accent-strong); }
+:global(.dark) .deadline-banner span { color: var(--accent-strong); }
+:global(.dark) .rules-card__notice { color: #fcd34d; }
+:global(.dark) .page-badge { color: var(--accent-strong); }
+:global(.dark) .flow-step__index { color: var(--accent-strong); }
+:global(.dark) .rule-item__index { color: var(--accent-strong); }
+:global(.dark) .rules-card__action { color: var(--accent-strong); }
+:global(.dark) .rules-card__eyebrow { color: var(--accent-strong); }
+:global(.dark) .submit-error { color: var(--danger-soft); }
 </style>

@@ -239,6 +239,10 @@ onUnmounted(() => {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+:global(.dark) .header.transparent {
+  background: rgba(17, 24, 39, 0.8);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
 
 .header__container {
   max-width: 1200px;
@@ -447,6 +451,7 @@ onUnmounted(() => {
 .btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
 /* btn-logout: inherits same green style on light background */
 .btn-logout:active { background: rgba(73, 168, 107, 0.24); }
+:global(.dark) .btn-logout { color: var(--green-strong); }
 .header.transparent .btn-logout {
   background: rgba(255,80,80,0.15);
   color: rgba(255,200,200,1);
@@ -577,6 +582,7 @@ onUnmounted(() => {
   display: inline-block;
   margin-top: 4px;
 }
+:global(.dark) .mobile-role { color: var(--green-strong); }
 
 .mobile-nav {
   display: flex;
@@ -652,6 +658,7 @@ onUnmounted(() => {
 }
 .mobile-btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
 .mobile-btn-logout:active { background: rgba(73, 168, 107, 0.26); }
+:global(.dark) .mobile-btn-logout { color: var(--green-strong); }
 
 .mobile-btn-ghost {
   display: block;

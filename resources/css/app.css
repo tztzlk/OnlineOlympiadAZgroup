@@ -117,7 +117,18 @@
     --text-primary: var(--text);
     --text-on-surface: var(--text);
     --text-muted-on-surface: var(--text-secondary);
+    --surface-warm: rgba(30, 41, 59, 0.82);
+    --surface-float: rgba(20, 28, 45, 0.94);
+    --input-bg: rgba(30, 41, 59, 0.95);
 }
+
+/* ---- Dark mode overrides for hardcoded utility colors ---- */
+.dark .ds-eyebrow { color: var(--accent-strong); }
+.dark .ds-badge.yellow { color: var(--accent-strong); }
+.dark .ds-badge.red { color: var(--danger-soft); }
+.dark .ds-msg.error { color: var(--danger-soft); }
+.dark .ds-msg.warning { color: #fcd34d; }
+.dark .ds-btn-ghost:hover:not(:disabled) { color: var(--accent-strong); }
 
 html {
     color-scheme: light;
