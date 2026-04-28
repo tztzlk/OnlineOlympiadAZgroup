@@ -324,7 +324,7 @@
         <p class="upload-note">Поддерживаются Word (.docx) и PDF, до 20 МБ</p>
       </div>
 
-      <p v-if="importError" class="error-text">{{ importError }}</p>
+      <p v-if="importError" class="error-text" style="white-space: pre-wrap;">{{ importError }}</p>
 
       <div v-if="importWarnings.length" class="import-warnings">
         <p class="warning-title">Предупреждения ({{ importWarnings.length }}):</p>
@@ -794,7 +794,9 @@ const handleDocumentUpload = async (event) => {
     importPreview.value = data.questions || []
     importWarnings.value = data.warnings || []
   } catch (e) {
-    importError.value = e?.response?.data?.message || 'Ошибка при разборе документа.'
+    const msg = e?.response?.data?.message || 'Ошибка при разборе документа.'
+    const detail = e?.response?.data?.detail
+    importError.value = detail ? `${msg}\n\nДетали: ${detail}` : msg
   } finally {
     importing.value = false
     event.target.value = ''
