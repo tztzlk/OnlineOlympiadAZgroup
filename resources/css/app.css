@@ -56,6 +56,11 @@
     --danger-bg: #fee2e2;
     --warning-bg: #fef3c7;
 
+    /* Themed surface helpers */
+    --surface-warm: rgba(255, 252, 244, 0.82);
+    --surface-float: rgba(255, 249, 238, 0.94);
+    --input-bg: rgba(255, 252, 245, 0.95);
+
     /* Utility */
     --border: rgba(0, 0, 0, 0.08);
     --overlay: rgba(255, 255, 255, 0.92);
