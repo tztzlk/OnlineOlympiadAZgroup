@@ -9,7 +9,13 @@
           Для вопроса можно добавить изображение по ссылке или загрузить файл.
         </p>
       </div>
-      <button class="primary-btn" @click="openCreateModal">Новая олимпиада</button>
+      <div class="header-actions">
+        <label class="ghost-btn" :class="{ 'btn-loading': importingQuiz }" style="cursor:pointer">
+          <input type="file" accept=".json" style="display:none" @change="importQuiz" :disabled="importingQuiz" />
+          {{ importingQuiz ? 'Импорт...' : 'Импортировать олимпиаду' }}
+        </label>
+        <button class="primary-btn" @click="openCreateModal">Новая олимпиада</button>
+      </div>
     </header>
 
     <div v-if="loading" class="loading-card">Загружаем олимпиады...</div>
@@ -50,6 +56,7 @@
           <button class="ghost-btn" @click="togglePublish(quiz)">
             {{ quiz.is_published ? 'Снять с публикации' : 'Опубликовать' }}
           </button>
+          <button class="ghost-btn" @click="exportQuiz(quiz)">Экспорт</button>
           <button class="danger-btn" @click="deleteQuiz(quiz.id)">Удалить</button>
         </div>
       </article>
@@ -393,6 +400,8 @@ const importing = ref(false)
 const importError = ref('')
 const importPreview = ref([])
 const importWarnings = ref([])
+
+const importingQuiz = ref(false)
 
 const createAnswerOption = (answerIndex, answer = {}) => ({
   label: answer.label || ANSWER_LABELS[answerIndex] || `Option ${answerIndex + 1}`,
@@ -830,6 +839,45 @@ const applyImport = () => {
   closeImportModal()
 }
 
+const exportQuiz = async (quiz) => {
+  try {
+    const { data, headers } = await api.get(`/admin/quizzes/${quiz.id}/export`, { responseType: 'blob' })
+    const cd = headers['content-disposition'] || ''
+    const nameMatch = cd.match(/filename="([^"]+)"/)
+    const filename = nameMatch ? nameMatch[1] : `quiz-${quiz.id}.json`
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    alert('Не удалось экспортировать олимпиаду.')
+  }
+}
+
+const importQuiz = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+  importingQuiz.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    const { data } = await api.post('/admin/quizzes/import-json', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    await loadData()
+    alert(`Олимпиада "${data.title}" успешно импортирована (${data.questions_count} вопросов).`)
+  } catch (e) {
+    const msg = e?.response?.data?.message || 'Ошибка при импорте.'
+    const detail = e?.response?.data?.detail
+    alert(detail ? `${msg}\n\n${detail}` : msg)
+  } finally {
+    importingQuiz.value = false
+    event.target.value = ''
+  }
+}
+
 onMounted(loadData)
 </script>
 
@@ -837,6 +885,7 @@ onMounted(loadData)
 * { box-sizing: border-box; }
 .admin-page { min-height: 100vh; background: radial-gradient(circle at top right, rgba(201,171,99,0.12), transparent 24%), linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%); padding: 28px; color: var(--text); }
 .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-strong); font-size: 12px; font-weight: 700; }
 h1, h2, h3, h4 { margin: 0; color: var(--text); }
 .subtext { margin: 10px 0 0; color: var(--text-secondary); max-width: 760px; }

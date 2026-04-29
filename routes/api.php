@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdminQuizController;
 use App\Http\Controllers\Api\QuestionImportController;
+use App\Http\Controllers\Api\QuizExportImportController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildProfileController;
 use App\Http\Controllers\Api\LeaderboardController;
@@ -77,6 +78,8 @@ Route::middleware(['auth:sanctum', 'throttle:api-user', 'admin'])
         Route::post('/quizzes/upload-subject-image', [AdminQuizController::class, 'uploadSubjectImage'])->middleware(['admin:quizzes', 'body.limit:10240']);
         Route::post('/quizzes/upload-image', [AdminQuizController::class, 'uploadQuestionImage'])->middleware(['admin:quizzes', 'body.limit:10240']);
         Route::post('/quizzes/parse-document', [QuestionImportController::class, 'parse'])->middleware(['admin:quizzes', 'body.limit:20480']);
+        Route::post('/quizzes/import-json', [QuizExportImportController::class, 'importJson'])->middleware(['admin:quizzes', 'body.limit:51200']);
+        Route::get('/quizzes/{quiz}/export', [QuizExportImportController::class, 'export'])->middleware('admin:quizzes');
         Route::get('/quizzes/{quiz}', [AdminQuizController::class, 'show'])->middleware('admin:quizzes');
         Route::match(['put', 'patch'], '/quizzes/{quiz}', [AdminQuizController::class, 'update'])->middleware('admin:quizzes');
         Route::delete('/quizzes/{quiz}', [AdminQuizController::class, 'destroy'])->middleware('admin:quizzes');
