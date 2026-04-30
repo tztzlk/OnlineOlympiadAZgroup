@@ -20,6 +20,8 @@ class OlympiadRequestResource extends JsonResource
             'reconciliation_status' => $paymentRecord?->reconciliation_status ?? 'awaiting_payment',
             'paid_at' => optional($this->paid_at)->toISOString(),
             'completed' => (bool) $this->completed,
+            'disqualified_at' => optional($this->disqualified_at)->toISOString(),
+            'disqualification_reason' => $this->disqualification_reason,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'grade' => $this->grade,

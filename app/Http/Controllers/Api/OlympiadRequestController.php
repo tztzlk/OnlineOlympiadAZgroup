@@ -412,6 +412,23 @@ class OlympiadRequestController extends Controller
         ]);
     }
 
+    public function resetAttempt(OlympiadRequest $olympiadRequest)
+    {
+        $olympiadRequest->update([
+            'disqualified_at'         => null,
+            'disqualification_reason' => null,
+            'attempt_started_at'      => null,
+            'attempt_last_activity_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Попытка сброшена. Участник может начать олимпиаду заново.',
+            'request' => new OlympiadRequestResource(
+                $olympiadRequest->fresh(['subject', 'paymentRecord', 'childProfile', 'user'])
+            ),
+        ]);
+    }
+
     public function destroy(Request $request, OlympiadRequest $olympiadRequest)
     {
         $user = $request->user();

@@ -109,11 +109,22 @@
           </div>
         </div>
 
-        <p class="request-note">{{ requestActionHint(request) }}</p>
+        <p v-if="request.disqualified_at" class="disqualified-note">
+          Попытка аннулирована {{ formatDate(request.disqualified_at) }} — {{ disqualificationLabel(request.disqualification_reason) }}
+        </p>
+        <p v-else class="request-note">{{ requestActionHint(request) }}</p>
 
         <div class="actions">
           <button type="button" class="ghost-btn" @click="viewRequest(request)">Подробнее</button>
           <a class="ghost-btn link-btn" :href="request.payment_url" target="_blank" rel="noopener">Открыть Kaspi</a>
+          <button
+            v-if="request.disqualified_at"
+            type="button"
+            class="reset-btn"
+            @click="resetAttempt(request)"
+          >
+            Снять блокировку
+          </button>
           <button
             v-if="request.payment_status !== 'paid'"
             type="button"
@@ -308,6 +319,18 @@ const maskPhone = (value) => {
   return `+${digits.slice(0, 2)}${'*'.repeat(Math.max(digits.length - 4, 2))}${digits.slice(-2)}`
 }
 
+const disqualificationLabel = (reason) => ({
+  tab_hidden: 'скрытие вкладки',
+  window_blur: 'потеря фокуса окна',
+  fullscreen_exit: 'выход из полноэкранного режима',
+  window_focus_lost: 'потеря фокуса',
+  tab_switch: 'переключение вкладки',
+  copy_paste: 'копирование/вставка',
+  devtools_open: 'открытие DevTools',
+  idle_timeout: 'таймаут бездействия',
+  time_limit_exceeded: 'превышение времени',
+}[reason] ?? reason ?? 'нарушение правил')
+
 const mapRequest = (item) => ({
   ...item,
   name: `${item.first_name || ''} ${item.last_name || ''}`.trim() || 'Без имени',
@@ -316,6 +339,8 @@ const mapRequest = (item) => ({
   payment_status: item.payment_status || 'pending',
   reconciliation_status: item.reconciliation_status || 'awaiting_payment',
   payment_url: item.payment_url || fallbackPaymentUrl,
+  disqualified_at: item.disqualified_at || null,
+  disqualification_reason: item.disqualification_reason || null,
 })
 
 const requestActionHint = (request) => {
@@ -382,6 +407,16 @@ const updatePaymentStatus = async (request, paymentStatus) => {
   } catch (error) {
     console.error(error)
     errorMessage.value = error.response?.data?.message || 'Не удалось обновить статус оплаты.'
+  }
+}
+
+const resetAttempt = async (request) => {
+  try {
+    const { data } = await api.post(`/admin/requests/${request.id}/reset-attempt`)
+    syncRequest(request, data)
+  } catch (error) {
+    console.error(error)
+    errorMessage.value = error.response?.data?.message || 'Не удалось сбросить попытку.'
   }
 }
 
@@ -681,6 +716,22 @@ h1 {
 .warning-btn {
   background: var(--warning-bg);
   color: var(--accent-strong);
+}
+
+.reset-btn {
+  background: var(--danger-bg);
+  color: #8f3b3b;
+}
+
+.disqualified-note {
+  margin: 16px 0 0;
+  color: #8f3b3b;
+  background: var(--danger-bg);
+  border: 1px solid rgba(198, 90, 90, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .modal-backdrop {

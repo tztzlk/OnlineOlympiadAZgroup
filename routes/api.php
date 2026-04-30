@@ -71,6 +71,7 @@ Route::middleware(['auth:sanctum', 'throttle:api-user', 'admin'])
         Route::get('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'show'])->middleware('admin:requests');
         Route::patch('/requests/{olympiadRequest}/status', [OlympiadRequestController::class, 'updateStatus'])->middleware('admin:requests');
         Route::patch('/requests/{olympiadRequest}/payment', [OlympiadRequestController::class, 'updatePaymentStatus'])->middleware('admin:payments');
+        Route::post('/requests/{olympiadRequest}/reset-attempt', [OlympiadRequestController::class, 'resetAttempt'])->middleware('admin:requests');
         Route::delete('/requests/{olympiadRequest}', [OlympiadRequestController::class, 'destroy'])->middleware('admin:requests');
 
         Route::get('/quizzes', [AdminQuizController::class, 'index'])->middleware('admin:quizzes');
