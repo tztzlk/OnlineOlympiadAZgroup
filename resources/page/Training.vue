@@ -201,7 +201,7 @@ onMounted(load)
   .primary-btn { width: 100%; }
 }
 @media (max-width: 640px) {
-  .training-page { padding: calc(72px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+  .training-page { padding: 72px 12px 32px; }
   .question-list { gap: 12px; }
   .question-image { max-height: 240px; }
   .answer-list { gap: 8px; }
