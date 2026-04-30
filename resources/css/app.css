@@ -132,10 +132,15 @@
 
 html {
     color-scheme: light;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 body {
     margin: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     font-family: 'Inter', var(--font-sans);
     font-size: 16px;
     font-weight: 400;
@@ -193,6 +198,13 @@ p {
 
 a {
     color: inherit;
+}
+
+img,
+svg,
+canvas,
+video {
+    max-width: 100%;
 }
 
 button,
