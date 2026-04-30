@@ -676,7 +676,7 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
 .question-card > *, .question-header > div, .answer-option { min-width: 0; }
 .question-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; width: 100%; min-width: 0; }
 .question-index { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: var(--info-soft); color: var(--info); }
-.question-copy { flex: 1 1 0; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
+.question-copy { flex: 1 1 0; min-width: 0; max-width: 100%; }
 .question-hint { margin: 0 0 8px; color: var(--text-secondary); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.08em; }
 .question-title { display: block; width: 100%; max-width: 100%; min-width: 0; white-space: normal; word-break: break-word; overflow-wrap: anywhere; }
 .question-image-shell { width: 100%; min-height: 220px; max-height: 360px; display: flex; align-items: center; justify-content: center; border-radius: 18px; margin-bottom: 18px; background: rgba(255,252,244,0.8); border: 1px solid var(--surface-border); padding: 14px; overflow: hidden; }
@@ -736,7 +736,7 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
   .question-hint { font-size: 0.6875rem; }
   h2 { font-size: 1.125rem; line-height: 1.5; word-break: break-word; overflow-wrap: anywhere; }
   .question-header > div { min-width: 0; }
-  .question-copy { width: 100%; min-width: 0; max-width: 100%; }
+  .question-copy { min-width: 0; max-width: 100%; }
   .question-title { font-size: 1.125rem; line-height: 1.5; }
   .question-image-shell { min-height: 200px; max-height: 240px; border-radius: 14px; }
   .answer-list { gap: 10px; }
