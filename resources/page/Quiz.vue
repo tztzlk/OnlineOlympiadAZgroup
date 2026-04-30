@@ -73,6 +73,7 @@
         </div>
 
         <StatePanel
+          v-if="!isMobile"
           tone="warning"
           eyebrow="Важно перед стартом"
           :title="quiz.warning"
@@ -699,7 +700,12 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
   .mobile-nav-btn { flex: 0 0 48px; width: 48px; padding: 12px 0; font-size: 18px; }
   .mobile-next-btn { flex: 1; font-size: 16px; }
   .question-header { flex-direction: row; }
-  .intro-card { border-radius: 0; }
+  .intro-card { border-radius: 0; padding: 20px 16px; gap: 14px; }
+  .intro-card h1 { font-size: 22px; }
+  .intro-card .description { font-size: 14px; margin-top: 4px; }
+  .intro-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .intro-item { padding: 12px; }
+  .rules-list { font-size: 13px; padding-left: 16px; line-height: 1.5; }
   .intro-actions { flex-direction: column; }
   .intro-actions .action-btn { width: 100%; }
 }
