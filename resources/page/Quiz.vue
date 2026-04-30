@@ -158,9 +158,9 @@
             <article ref="questionCardRef" class="question-card">
               <div class="question-header">
                 <span class="question-index">{{ currentQuestionIndex + 1 }}</span>
-                <div>
+                <div class="question-copy">
                   <p class="question-hint">Выберите один вариант ответа</p>
-                  <h2>{{ questionText }}</h2>
+                  <h2 class="question-title">{{ questionText }}</h2>
                 </div>
               </div>
 
@@ -676,7 +676,9 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
 .question-card > *, .question-header > div, .answer-option { min-width: 0; }
 .question-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; width: 100%; min-width: 0; }
 .question-index { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: var(--info-soft); color: var(--info); }
+.question-copy { flex: 1 1 0; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
 .question-hint { margin: 0 0 8px; color: var(--text-secondary); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.question-title { display: block; width: 100%; max-width: 100%; min-width: 0; white-space: normal; word-break: break-word; overflow-wrap: anywhere; }
 .question-image-shell { width: 100%; min-height: 220px; max-height: 360px; display: flex; align-items: center; justify-content: center; border-radius: 18px; margin-bottom: 18px; background: rgba(255,252,244,0.8); border: 1px solid var(--surface-border); padding: 14px; overflow: hidden; }
 .question-image { width: 100%; height: 100%; max-height: 330px; object-fit: contain; border-radius: 12px; }
 .answer-list { display: grid; gap: 12px; width: 100%; min-width: 0; }
@@ -730,10 +732,12 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
   .question-map { gap: 8px; margin-top: 0; padding: 0 2px 2px 0; }
   .question-dot { flex: 0 0 38px; width: 38px; height: 38px; font-size: 13px; }
   .question-card { border-radius: 0; border-left: none; border-right: none; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 20px max(16px, env(safe-area-inset-left, 0px)); min-height: 0; }
-  .question-header { flex-direction: row; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .question-header { display: grid; grid-template-columns: 2.375rem minmax(0, 1fr); align-items: flex-start; gap: 10px; margin-bottom: 14px; width: 100%; }
   .question-hint { font-size: 0.6875rem; }
   h2 { font-size: 1.125rem; line-height: 1.5; word-break: break-word; overflow-wrap: anywhere; }
   .question-header > div { min-width: 0; }
+  .question-copy { width: 100%; min-width: 0; max-width: 100%; }
+  .question-title { font-size: 1.125rem; line-height: 1.5; }
   .question-image-shell { min-height: 200px; max-height: 240px; border-radius: 14px; }
   .answer-list { gap: 10px; }
   .answer-option { display: flex; align-items: flex-start; gap: 12px; padding: 16px 14px; border-radius: 14px; font-size: 0.9375rem; min-height: 2.75rem; }
@@ -745,7 +749,6 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
   .sticky-footer > :nth-child(2) { display: flex; }
   .mobile-nav-btn { flex: 0 0 3rem; width: 3rem; padding: 12px 0; font-size: 1.125rem; min-height: 2.75rem; }
   .mobile-next-btn { flex: 1; font-size: 1rem; min-height: 2.75rem; }
-  .question-header { flex-direction: row; }
   .intro-card { border-radius: 0; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 20px max(16px, env(safe-area-inset-left, 0px)); gap: 14px; }
   .intro-card h1 { font-size: 1.375rem; }
   .intro-card .description { font-size: 0.875rem; margin-top: 4px; }
@@ -765,6 +768,7 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
   .question-dot { flex: 0 0 2rem; width: 2rem; height: 2rem; font-size: 0.75rem; }
   .question-card { padding: 14px max(12px, env(safe-area-inset-right, 0px)) 14px max(12px, env(safe-area-inset-left, 0px)); }
   .question-hint { font-size: 0.625rem; }
+  .question-title { font-size: 1rem; line-height: 1.45; }
   .question-image-shell { min-height: 160px; max-height: 200px; }
   .answer-list { gap: 8px; }
   .answer-option { padding: 12px 10px; gap: 10px; border-radius: 12px; font-size: 0.875rem; min-height: 2.75rem; }
