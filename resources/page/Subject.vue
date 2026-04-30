@@ -12,18 +12,8 @@
         <div class="page-badge">Предметы</div>
         <h1 class="page-title">Выберите олимпиаду и сразу ознакомьтесь с условиями участия</h1>
         <p class="page-subtitle">
-          Путь стал проще: выберите предмет, укажите участника, сохраните данные и оплатите участие.
-          После подтверждения оплаты в админке доступ к олимпиаде откроется автоматически.
+          Выберите предмет, укажите участника и оформите участие.
         </p>
-        <div class="funnel-progress" aria-label="Прогресс оформления">
-          <div class="funnel-progress__top">
-            <strong>Шаг 1 из 3</strong>
-            <span>Выбор предмета и участника</span>
-          </div>
-          <div class="funnel-progress__track">
-            <div class="funnel-progress__fill" style="width: 33.333%;"></div>
-          </div>
-        </div>
       </div>
 
       <StatePanel
@@ -101,7 +91,7 @@
             <span v-if="countdownParts">{{ countdownParts }}</span>
           </div>
 
-          <section class="rules-card">
+          <section v-if="!canStartOlympiad" class="rules-card">
             <button
               type="button"
               class="rules-card__toggle"
@@ -147,6 +137,15 @@
           </StatePanel>
 
           <template v-else>
+            <!-- PROMINENT START BUTTON — shown first when access is already open -->
+            <div v-if="canStartOlympiad" class="start-hero">
+              <div class="start-hero__badge">Доступ открыт</div>
+              <h3 class="start-hero__title">Олимпиада готова к прохождению</h3>
+              <p class="start-hero__hint">Данные участника сохранены. Нажмите кнопку, чтобы начать.</p>
+              <button class="start-hero__btn" @click="goToQuiz">Начать олимпиаду →</button>
+            </div>
+
+            <template v-if="!canStartOlympiad">
             <div class="flow-grid">
               <article class="flow-step">
                 <span class="flow-step__index">1</span>
@@ -255,6 +254,7 @@
               </button>
               <p v-if="submitError" class="submit-error">{{ submitError }}</p>
             </div>
+            </template><!-- end v-if="!canStartOlympiad" -->
 
             <StatePanel
               v-if="requestStatus"
@@ -924,6 +924,15 @@ watch(selectedChildId, async () => {
 .step-link:active:not(:disabled) { transform: scale(0.98); transition-duration: 0.08s; }
 .step-link.secondary { background: var(--card); color: var(--text-secondary); border: 1.5px solid var(--border); box-shadow: none; }
 .step-link.secondary:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); color: #92660a; transform: none; }
+
+/* Prominent start hero — shown when access is already open */
+.start-hero { display: grid; gap: 14px; padding: 28px; border-radius: 22px; background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%); border: 2px solid rgba(22,163,74,0.3); text-align: center; justify-items: center; }
+.start-hero__badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: #166534; background: rgba(22,163,74,0.12); padding: 5px 13px; border-radius: 999px; border: 1px solid rgba(22,163,74,0.25); }
+.start-hero__title { margin: 0; font-size: clamp(20px, 3vw, 26px); font-weight: 800; color: #14532d; letter-spacing: -0.02em; }
+.start-hero__hint { margin: 0; font-size: 14px; color: #166534; line-height: 1.6; }
+.start-hero__btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 16px 36px; border: none; border-radius: 16px; color: #ffffff; font-size: 17px; font-weight: 800; cursor: pointer; background: var(--green); box-shadow: 0 10px 30px rgba(22,163,74,0.35); transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; letter-spacing: -0.01em; }
+.start-hero__btn:hover { background: var(--green-hover); transform: translateY(-3px); box-shadow: 0 16px 40px rgba(22,163,74,0.42); }
+.start-hero__btn:active { transform: scale(0.98); transition-duration: 0.08s; }
 
 @media (max-width: 900px) {
   .flow-grid { grid-template-columns: 1fr; }
