@@ -618,7 +618,7 @@ onUnmounted(async () => {
 .result-panel { margin-top: 8px; }
 .eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-strong); font-size: 12px; font-weight: 700; }
 h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); }
-h2 { margin: 0; font-size: 24px; line-height: 1.45; }
+h2 { margin: 0; font-size: clamp(16px, 3.5vw, 24px); line-height: 1.45; }
 .description, .child-chip { margin-top: 12px; color: var(--text-secondary); line-height: 1.6; }
 .intro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 8px; }
 .intro-item { padding: 16px; border-radius: var(--radius-md); background: rgba(255,252,244,0.82); border: 1px solid var(--surface-border); }
@@ -676,13 +676,20 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .sticky-footer > :nth-child(2) { display: none; }
 @media (max-width: 980px) { .question-card { min-height: 0; } }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 768px) {
+  .quiz-page { padding-top: 30px; padding-bottom: 120px; }
+  .question-card { min-height: 0; padding: 22px 20px; }
+  .exam-header { padding: 18px 20px; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .answer-option { border-radius: 16px; }
+}
 @media (max-width: 640px) {
-  .quiz-page { padding: 0 0 100px; background: var(--bg); }
-  .exam-shell { gap: 0; }
+  .quiz-page { padding: 0 0 100px; background: var(--bg); overflow-x: hidden; max-width: 100vw; }
+  .exam-shell { gap: 0; overflow-x: clip; }
   .floating-timer { display: none; }
   .progress-card { border-radius: 0; border-left: none; border-right: none; border-top: none; padding: 12px 16px 14px; }
   .progress-top { display: none; }
-  .progress-track { display: none; }
+  .progress-track { height: 4px; margin-top: 6px; margin-bottom: 0; }
   .progress-meta { display: none; }
   .question-map { gap: 8px; margin-top: 0; padding: 0; }
   .question-dot { flex: 0 0 38px; width: 38px; height: 38px; font-size: 13px; }
@@ -692,9 +699,10 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
   h2 { font-size: 18px; }
   .question-image-shell { min-height: 200px; max-height: 240px; border-radius: 14px; }
   .answer-list { gap: 10px; }
-  .answer-option { grid-template-columns: 0 28px 1fr; gap: 10px; padding: 16px 14px; border-radius: 14px; font-size: 15px; align-items: start; }
+  .answer-option { display: flex; align-items: flex-start; gap: 12px; padding: 16px 14px; border-radius: 14px; font-size: 15px; }
   .answer-option input { display: none; }
-  .answer-label { width: 28px; height: 28px; font-size: 13px; margin-top: 0; flex-shrink: 0; }
+  .answer-label { width: 28px; height: 28px; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .answer-text { flex: 1; min-width: 0; word-break: break-word; }
   .answer-option.selected { border-color: rgba(26,95,168,0.5); background: rgba(26,95,168,0.12); }
   .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; padding: 12px 16px; display: flex; gap: 10px; }
   .mobile-nav-btn { flex: 0 0 48px; width: 48px; padding: 12px 0; font-size: 18px; }
@@ -708,6 +716,24 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
   .rules-list { font-size: 13px; padding-left: 16px; line-height: 1.5; }
   .intro-actions { flex-direction: column; }
   .intro-actions .action-btn { width: 100%; }
+}
+
+@media (max-width: 380px) {
+  .mobile-topbar { padding: 10px 12px; gap: 8px; }
+  .mobile-title { font-size: 10px; }
+  .mobile-qcount { font-size: 12px; }
+  .mobile-timer { font-size: 18px; }
+  .progress-card { padding: 8px 12px 10px; }
+  .question-dot { flex: 0 0 32px; width: 32px; height: 32px; font-size: 12px; }
+  .question-card { padding: 14px 12px; }
+  .question-hint { font-size: 10px; }
+  .question-image-shell { min-height: 160px; max-height: 200px; }
+  .answer-list { gap: 8px; }
+  .answer-option { padding: 12px 10px; gap: 10px; border-radius: 12px; font-size: 14px; }
+  .answer-label { width: 26px; height: 26px; font-size: 11px; }
+  .sticky-footer { padding: 10px 12px; }
+  .mobile-nav-btn { flex: 0 0 44px; width: 44px; font-size: 16px; }
+  .mobile-next-btn { font-size: 14px; }
 }
 
 /* Mobile top bar */
