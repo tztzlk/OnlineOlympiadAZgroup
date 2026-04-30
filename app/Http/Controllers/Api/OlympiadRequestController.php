@@ -62,6 +62,8 @@ class OlympiadRequestController extends Controller
             'parent_email' => $data['parent_email'],
         ];
 
+        $isFree = $price === 0;
+
         $existing = OlympiadRequest::query()
             ->where('user_id', $user->id)
             ->where('child_profile_id', $child->id)
@@ -76,11 +78,12 @@ class OlympiadRequestController extends Controller
                 ], 403);
             }
 
+            $shouldBePaid = $isFree || $existing->payment_status === 'paid';
             $existing->update([
                 ...$payload,
                 'status' => $existing->status,
-                'payment_status' => $existing->payment_status === 'paid' ? 'paid' : 'pending',
-                'paid_at' => $existing->payment_status === 'paid' ? $existing->paid_at : null,
+                'payment_status' => $shouldBePaid ? 'paid' : 'pending',
+                'paid_at' => $shouldBePaid ? ($existing->paid_at ?? now()) : null,
             ]);
 
             $requestModel = $existing->fresh(['subject', 'user', 'childProfile', 'paymentRecord']);
@@ -88,7 +91,8 @@ class OlympiadRequestController extends Controller
             $requestModel = OlympiadRequest::create([
                 ...$payload,
                 'status' => 'approved',
-                'payment_status' => 'pending',
+                'payment_status' => $isFree ? 'paid' : 'pending',
+                'paid_at' => $isFree ? now() : null,
             ]);
             $requestModel->load(['subject', 'user', 'childProfile', 'paymentRecord']);
 
@@ -97,7 +101,9 @@ class OlympiadRequestController extends Controller
                     user: $user,
                     type: 'olympiad_request_approved',
                     title: 'Участие оформлено',
-                    body: "Участие в олимпиаде по предмету {$requestModel->subject?->name} оформлено. Можно переходить к оплате.",
+                    body: $isFree
+                        ? "Участие в олимпиаде по предмету {$requestModel->subject?->name} оформлено. Доступ открыт — можно сразу начинать."
+                        : "Участие в олимпиаде по предмету {$requestModel->subject?->name} оформлено. Можно переходить к оплате.",
                     actionUrl: rtrim(config('app.url'), '/') . '/profile',
                     statusKey: 'approved',
                     payload: [
@@ -110,13 +116,15 @@ class OlympiadRequestController extends Controller
                     sendEmail: true
                 );
 
-                NotificationWorkflow::createForAdmins(
-                    type: 'new_payment_pending',
-                    title: 'Новый участник ждёт оплату',
-                    body: "Оформлено участие {$user->name} по предмету {$requestModel->subject?->name}. Ожидается оплата.",
-                    actionUrl: '/admin/payments',
-                    statusKey: 'pending'
-                );
+                if (!$isFree) {
+                    NotificationWorkflow::createForAdmins(
+                        type: 'new_payment_pending',
+                        title: 'Новый участник ждёт оплату',
+                        body: "Оформлено участие {$user->name} по предмету {$requestModel->subject?->name}. Ожидается оплата.",
+                        actionUrl: '/admin/payments',
+                        statusKey: 'pending'
+                    );
+                }
             } catch (\Throwable $notificationError) {
                 report($notificationError);
             }
@@ -131,9 +139,9 @@ class OlympiadRequestController extends Controller
         $payment = $this->syncPaymentRecordForRequest($requestModel, $user->id, $child->id, $price);
 
         return response()->json([
-            'message' => $existing
-                ? 'Участие обновлено. Можно переходить к оплате.'
-                : 'Участие оформлено. Переходите к оплате.',
+            'message' => $isFree
+                ? 'Участие оформлено. Доступ к олимпиаде уже открыт.'
+                : ($existing ? 'Участие обновлено. Можно переходить к оплате.' : 'Участие оформлено. Переходите к оплате.'),
             'request' => new OlympiadRequestResource($requestModel),
             'payment' => $this->mapPayment($payment),
             'payment_reference' => $requestModel->public_id,

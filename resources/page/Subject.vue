@@ -251,7 +251,7 @@
 
             <div class="single-action">
               <button :disabled="!canProceed || submitting" class="start-btn" @click="startOlympiad">
-                {{ submitting ? 'Сохраняем...' : 'Сохранить и перейти к оплате' }}
+                {{ submitting ? 'Сохраняем...' : (isFree ? 'Записаться и начать' : 'Сохранить и перейти к оплате') }}
               </button>
               <p v-if="submitError" class="submit-error">{{ submitError }}</p>
             </div>
@@ -458,6 +458,8 @@ const showReportPaymentButton = computed(() =>
 const canStartOlympiad = computed(() =>
   requestStatus.value === 'approved' && paymentStatus.value === 'paid'
 )
+
+const isFree = computed(() => Number(selectedSubject.value?.price) === 0)
 
 const reconciliationDescription = computed(() => {
   if (paymentStatus.value === 'paid') {
@@ -717,6 +719,14 @@ const startOlympiad = async () => {
     if (data.request?.child_profile_id) {
       userStore.setSelectedChild(data.request.child_profile_id)
       selectedChildId.value = String(data.request.child_profile_id)
+    }
+
+    if (data.redirect_to_quiz) {
+      router.push({
+        path: `/quiz/${selectedSubject.value.id}`,
+        query: selectedChildId.value ? { childId: selectedChildId.value } : {},
+      })
+      return
     }
 
     router.push({
