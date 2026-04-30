@@ -705,6 +705,7 @@ h2 { margin: 0; font-size: clamp(16px, 3.5vw, 24px); line-height: 1.45; }
   .answer-text { flex: 1; min-width: 0; word-break: break-word; }
   .answer-option.selected { border-color: rgba(26,95,168,0.5); background: rgba(26,95,168,0.12); }
   .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; padding: 12px 16px; display: flex; gap: 10px; }
+  .sticky-footer > :nth-child(2) { display: flex; }
   .mobile-nav-btn { flex: 0 0 48px; width: 48px; padding: 12px 0; font-size: 18px; }
   .mobile-next-btn { flex: 1; font-size: 16px; }
   .question-header { flex-direction: row; }
