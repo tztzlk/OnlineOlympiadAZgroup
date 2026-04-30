@@ -696,7 +696,8 @@ h2 { margin: 0; font-size: clamp(16px, 3.5vw, 24px); line-height: 1.45; }
   .question-card { border-radius: 0; border-left: none; border-right: none; padding: 20px 16px; min-height: 0; }
   .question-header { flex-direction: row; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
   .question-hint { font-size: 11px; }
-  h2 { font-size: 18px; }
+  h2 { font-size: 18px; word-break: break-word; overflow-wrap: break-word; }
+  .question-header > div { min-width: 0; }
   .question-image-shell { min-height: 200px; max-height: 240px; border-radius: 14px; }
   .answer-list { gap: 10px; }
   .answer-option { display: flex; align-items: flex-start; gap: 12px; padding: 16px 14px; border-radius: 14px; font-size: 15px; }
