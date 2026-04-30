@@ -610,9 +610,7 @@ h1 {
 }
 
 .request-top > div:first-child h2 {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
 }
 
 .request-id {
