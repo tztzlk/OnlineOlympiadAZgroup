@@ -92,7 +92,7 @@
 
         <div class="intro-actions">
           <RouterLink class="action-btn secondary" to="/profile">Вернуться в кабинет</RouterLink>
-          <button class="action-btn" :disabled="!rulesAccepted" @click="startExam">Начать тест в полноэкранном режиме</button>
+          <button class="action-btn" :disabled="!rulesAccepted" @click="startExam">{{ isMobile ? 'Начать тест' : 'Начать тест в полноэкранном режиме' }}</button>
         </div>
       </section>
 
@@ -223,6 +223,7 @@ const skippedQuestions = ref(new Set())
 const examStarted = ref(false)
 const fullscreenError = ref('')
 const isFullscreen = ref(false)
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 const rulesAccepted = ref(false)
 const questionNavRef = ref(null)
 const questionCardRef = ref(null)
@@ -408,6 +409,12 @@ const confirmSubmitQuiz = async () => {
 
 const requestFullscreen = async () => {
   fullscreenError.value = ''
+
+  if (isMobile) {
+    isFullscreen.value = true
+    return true
+  }
+
   const element = document.documentElement
 
   if (!element.requestFullscreen) {
@@ -456,6 +463,7 @@ const handleWindowBlur = () => {
 }
 
 const handleFullscreenChange = () => {
+  if (isMobile) return
   isFullscreen.value = !!document.fullscreenElement
   if (examStarted.value && !isFullscreen.value) {
     registerViolation('fullscreen_exit')
