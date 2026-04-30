@@ -303,6 +303,9 @@ const decodeText = (() => {
     if (!el) el = document.createElement('textarea')
     el.innerHTML = s
     return el.value
+      .replace(/\u00A0/g, ' ')
+      .replace(/\u202F/g, ' ')
+      .replace(/\u2007/g, ' ')
   }
 })()
 
