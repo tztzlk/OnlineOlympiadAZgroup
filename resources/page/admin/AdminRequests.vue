@@ -604,6 +604,17 @@ h1 {
   margin-bottom: 18px;
 }
 
+.request-top > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+
+.request-top > div:first-child h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .request-id {
   margin: 0 0 8px;
   color: var(--text-secondary);
@@ -617,9 +628,11 @@ h1 {
 }
 
 .pill-stack {
-  display: grid;
-  gap: 8px;
-  justify-items: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .status-pill,
@@ -692,6 +705,7 @@ h1 {
 .ghost-btn,
 .success-btn,
 .warning-btn,
+.reset-btn,
 .close-btn,
 .link-btn {
   border: 0;
@@ -700,6 +714,7 @@ h1 {
   font-weight: 800;
   cursor: pointer;
   text-decoration: none;
+  font-size: 14px;
 }
 
 .ghost-btn,
