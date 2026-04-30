@@ -97,7 +97,17 @@
       </section>
 
       <section v-else class="exam-shell">
-        <header class="exam-header">
+        <!-- Mobile top bar -->
+        <div v-if="isMobile" class="mobile-topbar">
+          <RouterLink to="/profile" class="mobile-back">✕</RouterLink>
+          <div class="mobile-topbar-center">
+            <span class="mobile-title">{{ quiz.subject?.name || 'Олимпиада' }}</span>
+            <span class="mobile-qcount">Вопрос {{ currentQuestionIndex + 1 }} из {{ quiz.questions.length }}</span>
+          </div>
+          <span class="mobile-timer" :class="{ warn: timeLeft < 300 }">{{ formatTime(timeLeft) }}</span>
+        </div>
+
+        <header v-if="!isMobile" class="exam-header">
           <div>
             <p class="eyebrow">{{ quiz.subject?.name || 'Олимпиада' }}</p>
             <h1>{{ quiz.title }}</h1>
@@ -178,10 +188,13 @@
             </article>
 
             <footer class="sticky-footer">
-              <button class="action-btn secondary" :disabled="currentQuestionIndex === 0" @click="goPrev">Назад</button>
-              <button class="action-btn secondary" @click="skipQuestion">Пропустить</button>
-              <button v-if="!isLastQuestion" class="action-btn secondary" @click="goNext">Далее</button>
-              <button v-else class="action-btn" :disabled="submitting" @click="confirmSubmitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
+              <button v-if="!isMobile" class="action-btn secondary" :disabled="currentQuestionIndex === 0" @click="goPrev">Назад</button>
+              <button v-if="!isMobile" class="action-btn secondary" @click="skipQuestion">Пропустить</button>
+              <template v-if="isMobile">
+                <button class="action-btn secondary mobile-nav-btn" :disabled="currentQuestionIndex === 0" @click="goPrev">←</button>
+              </template>
+              <button v-if="!isLastQuestion" class="action-btn" :class="{ 'mobile-next-btn': isMobile }" @click="goNext">Следующий вопрос</button>
+              <button v-else class="action-btn" :class="{ 'mobile-next-btn': isMobile }" :disabled="submitting" @click="confirmSubmitQuiz">{{ submitting ? 'Отправляем...' : 'Завершить тест' }}</button>
             </footer>
           </div>
         </div>
@@ -662,5 +675,67 @@ h2 { margin: 0; font-size: 24px; line-height: 1.45; }
 .sticky-footer > :nth-child(2) { display: none; }
 @media (max-width: 980px) { .question-card { min-height: 0; } }
 @media (max-width: 900px) { .exam-header, .sticky-footer { flex-direction: column; align-items: stretch; } .hero-stats { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .quiz-page { padding-inline: 14px; padding-bottom: 148px; } .question-header { flex-direction: column; } .hero-stats { grid-template-columns: 1fr; } .progress-meta { flex-direction: column; gap: 6px; } .question-image-shell { min-height: 180px; } .sticky-footer { position: static; } .floating-timer { right: 14px; bottom: 14px; left: 14px; min-width: 0; grid-template-columns: 1fr auto; align-items: center; } .floating-timer strong { font-size: 22px; } .intro-actions .action-btn, .result-panel :deep(.state-panel__actions), .sticky-footer .action-btn { width: 100%; } }
+@media (max-width: 640px) {
+  .quiz-page { padding: 0 0 100px; background: var(--bg); }
+  .exam-shell { gap: 0; }
+  .floating-timer { display: none; }
+  .progress-card { border-radius: 0; border-left: none; border-right: none; border-top: none; padding: 12px 16px 14px; }
+  .progress-top { display: none; }
+  .progress-track { display: none; }
+  .progress-meta { display: none; }
+  .question-map { gap: 8px; margin-top: 0; padding: 0; }
+  .question-dot { flex: 0 0 38px; width: 38px; height: 38px; font-size: 13px; }
+  .question-card { border-radius: 0; border-left: none; border-right: none; padding: 20px 16px; min-height: 0; }
+  .question-header { flex-direction: row; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .question-hint { font-size: 11px; }
+  h2 { font-size: 18px; }
+  .question-image-shell { min-height: 200px; max-height: 240px; border-radius: 14px; }
+  .answer-list { gap: 10px; }
+  .answer-option { grid-template-columns: 0 28px 1fr; gap: 10px; padding: 16px 14px; border-radius: 14px; font-size: 15px; }
+  .answer-option input { display: none; }
+  .answer-label { width: 28px; height: 28px; font-size: 13px; }
+  .answer-option.selected { border-color: rgba(26,95,168,0.5); background: rgba(26,95,168,0.12); }
+  .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; padding: 12px 16px; display: flex; gap: 10px; }
+  .mobile-nav-btn { flex: 0 0 48px; width: 48px; padding: 12px 0; font-size: 18px; }
+  .mobile-next-btn { flex: 1; font-size: 16px; }
+  .question-header { flex-direction: row; }
+  .intro-card { border-radius: 0; }
+  .intro-actions { flex-direction: column; }
+  .intro-actions .action-btn { width: 100%; }
+}
+
+/* Mobile top bar */
+.mobile-topbar { display: none; }
+@media (max-width: 640px) {
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--surface-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .mobile-back {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,252,244,0.9);
+    border: 1px solid var(--surface-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .mobile-topbar-center { flex: 1; min-width: 0; }
+  .mobile-title { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mobile-qcount { display: block; font-size: 13px; color: var(--text-secondary); }
+  .mobile-timer {
+    font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--text); flex-shrink: 0;
+  }
+  .mobile-timer.warn { color: #c65a5a; }
+}
 </style>
