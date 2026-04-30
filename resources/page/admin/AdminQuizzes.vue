@@ -331,6 +331,24 @@
         <p class="upload-note">Поддерживаются Word (.docx) и PDF, до 20 МБ</p>
       </div>
 
+      <div class="answer-key-box">
+        <label class="field full">
+          <span>Ключ правильных ответов</span>
+          <textarea
+            v-model="importAnswerKey"
+            rows="8"
+            placeholder="1. C&#10;2. A&#10;3. B&#10;4. B"
+          ></textarea>
+        </label>
+        <p class="upload-note">Вставьте ответы в формате `1. C`, `2. A` или `5) А`.</p>
+        <div class="answer-key-actions">
+          <button class="ghost-btn" type="button" :disabled="!importPreview.length || !importAnswerKey.trim()" @click="applyAnswerKeyToPreview">
+            Применить ключ
+          </button>
+          <span v-if="importPreview.length" class="upload-note">Найдено вопросов для автозаполнения: {{ importPreview.length }}</span>
+        </div>
+      </div>
+
       <p v-if="importError" class="error-text" style="white-space: pre-wrap;">{{ importError }}</p>
 
       <div v-if="importWarnings.length" class="import-warnings">
@@ -400,6 +418,7 @@ const importing = ref(false)
 const importError = ref('')
 const importPreview = ref([])
 const importWarnings = ref([])
+const importAnswerKey = ref('')
 
 const importingQuiz = ref(false)
 
@@ -778,11 +797,60 @@ const openImportModal = (catIndex) => {
   importError.value = ''
   importPreview.value = []
   importWarnings.value = []
+  importAnswerKey.value = ''
   showImportModal.value = true
 }
 
 const closeImportModal = () => {
   showImportModal.value = false
+  importAnswerKey.value = ''
+}
+
+const normalizeAnswerLabel = (value = '') => {
+  const normalized = String(value).trim().toUpperCase()
+  const cyrillicMap = {
+    'А': 'A',
+    'В': 'B',
+    'С': 'C',
+    'Д': 'D',
+    'Е': 'E',
+    'Ф': 'F',
+  }
+
+  return cyrillicMap[normalized] || normalized
+}
+
+const parseAnswerKey = (raw) =>
+  raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^(\d+)\s*[\.\)\-:]?\s*([A-Za-zА-Яа-я])$/u)
+      if (!match) return null
+
+      return {
+        index: Number(match[1]) - 1,
+        label: normalizeAnswerLabel(match[2]),
+      }
+    })
+    .filter(Boolean)
+
+const applyAnswerKeyToPreview = () => {
+  const parsedAnswers = parseAnswerKey(importAnswerKey.value)
+
+  if (!parsedAnswers.length) {
+    importError.value = 'Не удалось разобрать ключ ответов. Используйте формат вида: 1. C'
+    return
+  }
+
+  importError.value = ''
+  const answerMap = new Map(parsedAnswers.map((item) => [item.index, item.label]))
+
+  importPreview.value = importPreview.value.map((question, index) => ({
+    ...question,
+    correct_answer: answerMap.get(index) || question.correct_answer || '',
+  }))
 }
 
 const handleDocumentUpload = async (event) => {
@@ -802,6 +870,9 @@ const handleDocumentUpload = async (event) => {
     })
     importPreview.value = data.questions || []
     importWarnings.value = data.warnings || []
+    if (importAnswerKey.value.trim()) {
+      applyAnswerKeyToPreview()
+    }
   } catch (e) {
     const msg = e?.response?.data?.message || 'Ошибка при разборе документа.'
     const detail = e?.response?.data?.detail
@@ -958,6 +1029,8 @@ input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var
 .import-file-label { display: inline-flex; align-items: center; gap: 10px; background: rgba(201,171,99,0.12); color: var(--accent-strong); border-radius: 14px; padding: 13px 18px; font-weight: 700; cursor: pointer; }
 .import-file-label input { display: none; }
 .import-file-label.label-disabled { opacity: 0.6; cursor: not-allowed; }
+.answer-key-box { margin-top: 16px; display: grid; gap: 10px; }
+.answer-key-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .import-warnings { background: rgba(201,171,99,0.08); border: 1px solid rgba(201,171,99,0.28); border-radius: 16px; padding: 14px 18px; margin-top: 12px; }
 .warning-title { margin: 0 0 8px; font-weight: 700; color: var(--accent-strong); font-size: 13px; }
 .import-warnings ul { margin: 0; padding: 0 0 0 18px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
