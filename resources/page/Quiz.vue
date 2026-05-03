@@ -493,12 +493,33 @@ const registerViolation = async (reason = 'window_focus_lost') => {
   }
 }
 
+// Mobile browsers fire visibilitychange/blur during normal use (notifications,
+// soft keyboard, app switcher), so we exempt them entirely. Desktop gets a small
+// grace period to absorb transient blurs (devtools focus, alt-tab to copy).
+let hiddenSince = 0
+const HIDDEN_GRACE_MS = 8000
+
 const handleVisibilityLoss = () => {
-  if (document.hidden) registerViolation('tab_hidden')
+  if (isMobile.value) return
+  if (document.hidden) {
+    hiddenSince = Date.now()
+    setTimeout(() => {
+      if (document.hidden && hiddenSince && Date.now() - hiddenSince >= HIDDEN_GRACE_MS) {
+        registerViolation('tab_hidden')
+      }
+    }, HIDDEN_GRACE_MS + 100)
+  } else {
+    hiddenSince = 0
+  }
 }
 
 const handleWindowBlur = () => {
-  registerViolation('window_blur')
+  if (isMobile.value) return
+  setTimeout(() => {
+    if (!document.hasFocus() && examStarted.value && !violated && !result.value) {
+      registerViolation('window_blur')
+    }
+  }, 1500)
 }
 
 const handleFullscreenChange = () => {
@@ -641,7 +662,7 @@ onUnmounted(async () => {
 
 <style scoped>
 * { box-sizing: border-box; }
-.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(201,171,99,0.14), transparent 22%), linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%); color: var(--text); padding: 90px 20px 110px; display: block; width: 100%; max-width: 100%; overflow-x: hidden; }
+.quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(201,171,99,0.14), transparent 22%), linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%); color: var(--text); padding: 90px 20px 110px; display: block; width: 100%; max-width: 100%; overflow-x: hidden; touch-action: pan-y; }
 .intro-card, .exam-header, .progress-card, .question-card, .result-card { max-width: 1100px; width: 100%; min-width: 0; margin: 0 auto; border-radius: var(--radius-lg); border: 1px solid var(--surface-border); background: var(--surface); backdrop-filter: blur(12px); box-shadow: var(--shadow-card); }
 .result-card, .intro-card { padding: 30px; display: grid; gap: 18px; }
 .result-panel { margin-top: 8px; }

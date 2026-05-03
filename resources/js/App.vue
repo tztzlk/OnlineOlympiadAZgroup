@@ -43,10 +43,16 @@ const acceptOffer = () => {
 </template>
 
 <style>
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 .app-root {
   min-height: 100vh;
   background: var(--bg);
   overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .app-main {
