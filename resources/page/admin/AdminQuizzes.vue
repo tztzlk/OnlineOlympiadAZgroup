@@ -222,40 +222,47 @@
               </label>
 
               <div class="image-tools">
-                <label class="field">
-                  <span>Источник изображения</span>
-                  <select v-model="question.image_source" @change="handleImageSourceChange(question)">
-                    <option value="">Без изображения</option>
-                    <option value="url">Ссылка</option>
-                    <option value="upload">Загрузка файла</option>
-                  </select>
-                </label>
+                <div
+                  class="image-dropzone"
+                  :class="{ 'dropzone--dragging': question._dragging, 'dropzone--uploading': question.uploading, 'dropzone--filled': question.image && !question.uploading }"
+                  tabindex="0"
+                  role="button"
+                  :aria-label="`Зона загрузки изображения для вопроса ${qIndex + 1}`"
+                  @paste.stop="handlePasteImage($event, question)"
+                  @dragover.prevent="question._dragging = true"
+                  @dragleave.prevent="question._dragging = false"
+                  @drop.prevent="handleDropImage($event, question)"
+                >
+                  <template v-if="question.uploading">
+                    <div class="dropzone-spinner"></div>
+                    <span class="dropzone-msg">Загружаем изображение...</span>
+                  </template>
+                  <template v-else-if="question.image">
+                    <img :src="question.image" :alt="`Вопрос ${qIndex + 1}`" class="dropzone-preview-img" />
+                    <button type="button" class="dropzone-remove-btn" @click.stop="clearQuestionImage(question)">✕ Удалить</button>
+                  </template>
+                  <template v-else>
+                    <div class="dropzone-icon-wrap">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <p class="dropzone-label">Перетащите или нажмите <kbd>Ctrl+V</kbd></p>
+                    <p class="dropzone-sublabel">PNG, JPG, WEBP до 5 МБ</p>
+                    <label class="dropzone-file-btn">
+                      <input type="file" accept="image/png,image/jpeg,image/webp" @change="uploadQuestionImage($event, question)" />
+                      <span>Выбрать файл</span>
+                    </label>
+                  </template>
+                </div>
 
-                <label v-if="question.image_source === 'url'" class="field full">
-                  <span>Ссылка на изображение</span>
+                <label class="field full">
+                  <span>Или ссылка на изображение</span>
                   <input
                     v-model="question.image_url"
                     type="url"
-                    placeholder="https://example.com/question-image.jpg"
+                    placeholder="https://example.com/image.jpg"
+                    @input="onImageUrlInput(question)"
                   />
                 </label>
-
-                <div v-if="question.image_source === 'upload'" class="field full">
-                  <span>Файл изображения</span>
-                  <div class="upload-row">
-                    <label class="upload-btn">
-                      <input type="file" accept="image/*" @change="uploadQuestionImage($event, question)" />
-                      <span>{{ question.uploading ? 'Загрузка...' : 'Загрузить изображение' }}</span>
-                    </label>
-                    <span class="upload-note">
-                      {{ question.image_path ? 'Файл загружен' : 'PNG, JPG, WEBP до 5 МБ' }}
-                    </span>
-                  </div>
-                </div>
-
-                <div v-if="question.image" class="image-preview full">
-                  <img :src="question.image" :alt="`Изображение вопроса ${qIndex + 1}`" />
-                </div>
               </div>
 
               <div class="answers-grid">
@@ -438,6 +445,7 @@ const createEmptyQuestion = (index) => ({
   image_path: '',
   image: '',
   uploading: false,
+  _dragging: false,
   answers: Array.from({ length: 4 }, (_, answerIndex) => createAnswerOption(answerIndex)),
 })
 
@@ -521,6 +529,7 @@ const mapCategoryFromResponse = (category, preset) => ({
     image_path: question.image_path || '',
     image: question.image || question.image_url || question.image_path || '',
     uploading: false,
+    _dragging: false,
     answers: normalizeAnswers(question.answers || []),
   })),
 })
@@ -571,6 +580,7 @@ const applyQuestionCount = (categoryIndex) => {
       position: index + 1,
       image: buildImage(existing),
       uploading: false,
+      _dragging: false,
       answers: normalizeAnswers(existing.answers),
     }
   })
@@ -600,49 +610,83 @@ const removeAnswerOption = (question) => {
   reindexAnswers(question)
 }
 
-const handleImageSourceChange = (question) => {
-  if (!question.image_source) {
-    question.image_url = ''
-    question.image_path = ''
-    question.image = ''
-    return
-  }
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
-  if (question.image_source === 'url') {
-    question.image_path = ''
-    question.image = question.image_url || ''
-    return
-  }
-
+const clearQuestionImage = (question) => {
+  question.image_source = ''
+  question.image_path = ''
   question.image_url = ''
-  question.image = question.image_path || ''
+  question.image = ''
 }
 
-const uploadQuestionImage = async (event, question) => {
-  const [file] = event.target.files || []
-  if (!file) return
+const uploadFileToQuestion = async (file, question) => {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    formError.value = 'Поддерживаются форматы PNG, JPG, WEBP.'
+    return
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    formError.value = 'Изображение не должно превышать 5 МБ.'
+    return
+  }
 
+  // Instant preview while uploading
+  const previewUrl = URL.createObjectURL(file)
+  question.image = previewUrl
   question.uploading = true
   formError.value = ''
 
   try {
     const payload = new FormData()
     payload.append('image', file)
-
     const { data } = await api.post('/admin/quizzes/upload-image', payload, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
-
     question.image_source = 'upload'
     question.image_path = data.path || ''
     question.image = data.url || data.path || ''
   } catch (error) {
+    question.image = ''
+    question.image_source = ''
+    question.image_path = ''
     formError.value = error.response?.data?.message || 'Не удалось загрузить изображение.'
   } finally {
     question.uploading = false
-    event.target.value = ''
+    URL.revokeObjectURL(previewUrl)
+  }
+}
+
+const uploadQuestionImage = async (event, question) => {
+  const [file] = event.target.files || []
+  if (!file) return
+  await uploadFileToQuestion(file, question)
+  event.target.value = ''
+}
+
+const handlePasteImage = async (event, question) => {
+  const items = Array.from(event.clipboardData?.items || [])
+  const imageItem = items.find((item) => item.type.startsWith('image/'))
+  if (!imageItem) return
+  event.preventDefault()
+  const file = imageItem.getAsFile()
+  if (file) await uploadFileToQuestion(file, question)
+}
+
+const handleDropImage = async (event, question) => {
+  question._dragging = false
+  const file = event.dataTransfer?.files?.[0]
+  if (!file || !file.type.startsWith('image/')) return
+  await uploadFileToQuestion(file, question)
+}
+
+const onImageUrlInput = (question) => {
+  if (question.image_url.trim()) {
+    question.image_source = 'url'
+    question.image_path = ''
+    question.image = question.image_url
+  } else {
+    question.image_source = ''
+    question.image = ''
   }
 }
 
@@ -1046,4 +1090,124 @@ input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var
 .answer-count-badge { background: rgba(201,171,99,0.14); color: var(--accent-strong); border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
 @media (max-width: 900px) { .form-grid, .answers-grid, .image-tools { grid-template-columns: 1fr; } .mini-field { width: 100%; } }
 @media (max-width: 640px) { .admin-page, .modal-backdrop { padding: 16px; } .header, .modal-head, .categories-toolbar, .modal-actions, .category-top, .question-head { flex-direction: column; } .modal-actions .primary-btn, .modal-actions .ghost-btn, .header .primary-btn, .upload-btn { width: 100%; justify-content: center; } .category-top-right { width: 100%; } }
+
+/* Drop zone */
+.image-dropzone {
+  grid-column: 1 / -1;
+  border: 2px dashed rgba(201,171,99,0.35);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 120px;
+  background: rgba(255,252,244,0.7);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  outline: none;
+  text-align: center;
+  position: relative;
+}
+.image-dropzone:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(201,171,99,0.18);
+}
+.image-dropzone.dropzone--dragging {
+  border-color: var(--accent);
+  background: rgba(201,171,99,0.1);
+  box-shadow: 0 0 0 4px rgba(201,171,99,0.18);
+}
+.image-dropzone.dropzone--filled {
+  border-style: solid;
+  border-color: rgba(201,171,99,0.25);
+  padding: 12px;
+  background: rgba(255,252,244,0.9);
+}
+.image-dropzone.dropzone--uploading {
+  border-style: solid;
+  background: rgba(201,171,99,0.06);
+  pointer-events: none;
+}
+
+.dropzone-icon-wrap {
+  color: rgba(201,171,99,0.7);
+}
+.dropzone-label {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.dropzone-sublabel {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+.dropzone-label kbd {
+  background: rgba(201,171,99,0.18);
+  border: 1px solid rgba(201,171,99,0.35);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font: inherit;
+  font-size: 0.82em;
+  color: var(--accent-strong);
+}
+
+.dropzone-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(201,171,99,0.14);
+  color: var(--accent-strong);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.15s;
+}
+.dropzone-file-btn:hover { background: rgba(201,171,99,0.22); }
+.dropzone-file-btn input { display: none; }
+
+.dropzone-preview-img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+.dropzone-remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(143,59,59,0.12);
+  color: #8f3b3b;
+  border: 0;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dropzone-remove-btn:hover { background: rgba(143,59,59,0.22); }
+
+.dropzone-msg {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.dropzone-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(201,171,99,0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
 </style>
