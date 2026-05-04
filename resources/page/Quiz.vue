@@ -208,6 +208,19 @@
         </aside>
       </section>
     </template>
+
+    <Teleport to="body">
+      <div v-if="showConfirmModal" class="confirm-overlay" @click.self="onConfirmNo">
+        <div class="confirm-dialog" role="dialog" aria-modal="true">
+          <p class="confirm-dialog__title">Завершить тест?</p>
+          <p class="confirm-dialog__body">После отправки ответы изменить нельзя.</p>
+          <div class="confirm-dialog__actions">
+            <button class="action-btn secondary" @click="onConfirmNo">Отмена</button>
+            <button class="action-btn" :disabled="submitting" @click="onConfirmYes">{{ submitting ? 'Отправляем...' : 'Завершить' }}</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -437,13 +450,20 @@ const skipQuestion = () => {
   }
 }
 
-const confirmSubmitQuiz = async () => {
+const showConfirmModal = ref(false)
+
+const confirmSubmitQuiz = () => {
   if (submitting.value || violated) return
+  showConfirmModal.value = true
+}
 
-  const confirmed = window.confirm('Вы уверены, что хотите завершить тест? После отправки ответы изменить нельзя.')
-  if (!confirmed) return
-
+const onConfirmYes = async () => {
+  showConfirmModal.value = false
   await submitQuiz()
+}
+
+const onConfirmNo = () => {
+  showConfirmModal.value = false
 }
 
 const requestFullscreen = async () => {
@@ -846,5 +866,48 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
     color: var(--text); flex-shrink: 0;
   }
   .mobile-timer.warn { color: #c65a5a; }
+}
+</style>
+
+<style>
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.confirm-dialog {
+  background: var(--card, #fff);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.confirm-dialog__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.confirm-dialog__body {
+  font-size: 0.9375rem;
+  color: var(--text-muted, #666);
+  margin: 0 0 1.25rem;
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 </style>
