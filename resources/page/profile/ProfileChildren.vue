@@ -13,6 +13,8 @@
           <button class="profile-btn primary" @click="startCreateChild">Добавить участника</button>
         </div>
 
+        <div v-if="saveSuccess" class="child-save-banner">Участник успешно добавлен и появился в списке</div>
+
         <div v-if="children.length" class="profile-card-grid">
           <article
             v-for="child in children"
@@ -96,6 +98,7 @@ const children = ref([])
 const editingChildId = ref(null)
 const savingChild = ref(false)
 const deletingChildId = ref(null)
+const saveSuccess = ref(false)
 const gradeOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 const childForm = reactive({
@@ -206,6 +209,9 @@ const saveChild = async () => {
     }
 
     resetChildForm()
+    saveSuccess.value = true
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => { saveSuccess.value = false }, 3500)
   } finally {
     savingChild.value = false
   }
@@ -221,3 +227,15 @@ onMounted(async () => {
 </script>
 
 <style src="../../css/profile-hub.css"></style>
+
+<style scoped>
+.child-save-banner {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(44, 122, 75, 0.1);
+  border: 1px solid rgba(44, 122, 75, 0.28);
+  color: #2c7a4b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+</style>

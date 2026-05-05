@@ -41,11 +41,10 @@
           tone="success"
           eyebrow="Готово"
           title="Сертификат можно сохранить"
-          description="Откройте PDF-сертификат в новом окне или скачайте его на устройство."
+          description="Скачайте PDF-сертификат на устройство."
         >
           <template #actions>
-            <a class="btn btn-primary" :href="certificate.download_url" target="_blank" rel="noopener">Открыть PDF</a>
-            <button class="btn btn-outline" @click="downloadCertificate">Скачать файл</button>
+            <button class="btn btn-primary" @click="downloadCertificate">Скачать сертификат</button>
           </template>
         </StatePanel>
       </section>

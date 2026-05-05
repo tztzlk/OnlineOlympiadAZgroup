@@ -23,25 +23,28 @@
 
     <template v-else-if="result">
       <div class="result-card">
-        <p class="eyebrow">Результат</p>
-        <h1>{{ result.score }} / {{ result.total }}</h1>
-        <p class="description">Правильных ответов: {{ result.percent }}%</p>
-        <StatusBadge :label="result.status === 'passed' ? 'Пройдено' : 'Не пройдено'" :tone="result.status === 'passed' ? 'success' : 'warning'" />
+        <div class="result-icon" :class="result.status === 'passed' ? 'result-icon--passed' : 'result-icon--failed'">
+          {{ result.status === 'passed' ? '🏆' : '📋' }}
+        </div>
 
-        <StatePanel
-          class="result-panel"
-          :tone="result.status === 'passed' ? 'success' : 'warning'"
-          eyebrow="Следующий шаг"
-          :title="result.status === 'passed' ? 'Результат уже сохранён' : 'Попытка завершена и сохранена'"
-          description="Откройте страницу результатов, чтобы увидеть историю участия, и при необходимости проверьте сертификат участника."
-        >
-          <template #actions>
-            <RouterLink v-if="result.id" class="action-btn secondary" :to="`/profile/results/${result.id}/certificate-preview`">Превью сертификата</RouterLink>
-            <button class="action-btn secondary" @click="downloadCertificate">Скачать сертификат</button>
-            <RouterLink v-if="result.mistakes_url" class="action-btn secondary" :to="result.mistakes_url">Работа над ошибками</RouterLink>
-            <RouterLink class="action-btn" to="/results">Перейти к результатам</RouterLink>
-          </template>
-        </StatePanel>
+        <div class="result-heading">
+          <p class="eyebrow">{{ result.status === 'passed' ? 'Поздравляем!' : 'Олимпиада завершена' }}</p>
+          <h1>{{ result.status === 'passed' ? 'Вы прошли олимпиаду!' : 'Результат сохранён' }}</h1>
+        </div>
+
+        <div class="result-score-row">
+          <div class="result-score-chip">
+            <span class="result-score-main">{{ result.score }}<span class="result-score-total"> / {{ result.total }}</span></span>
+            <span class="result-score-pct">{{ result.percent }}% правильных</span>
+          </div>
+          <StatusBadge :label="result.status === 'passed' ? 'Пройдено' : 'Не пройдено'" :tone="result.status === 'passed' ? 'success' : 'warning'" />
+        </div>
+
+        <div class="result-actions">
+          <RouterLink class="action-btn" to="/results">Перейти к результатам</RouterLink>
+          <button class="action-btn secondary" @click="downloadCertificate">Скачать сертификат</button>
+          <RouterLink v-if="result.mistakes_url" class="action-btn secondary" :to="result.mistakes_url">Работа над ошибками</RouterLink>
+        </div>
       </div>
     </template>
 
@@ -698,8 +701,18 @@ onUnmounted(async () => {
 * { box-sizing: border-box; }
 .quiz-page { min-height: 100vh; background: radial-gradient(circle at top center, rgba(201,171,99,0.14), transparent 22%), linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%); color: var(--text); padding: 90px 20px 110px; display: block; width: 100%; max-width: 100%; overflow-x: hidden; touch-action: pan-y; }
 .intro-card, .exam-header, .progress-card, .question-card, .result-card { max-width: 1100px; width: 100%; min-width: 0; margin: 0 auto; border-radius: var(--radius-lg); border: 1px solid var(--surface-border); background: var(--surface); backdrop-filter: blur(12px); box-shadow: var(--shadow-card); }
-.result-card, .intro-card { padding: 30px; display: grid; gap: 18px; }
-.result-panel { margin-top: 8px; }
+.result-card, .intro-card { padding: 30px; display: grid; gap: 20px; }
+.result-icon { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; }
+.result-icon--passed { background: rgba(44,122,75,0.12); border: 2px solid rgba(44,122,75,0.28); }
+.result-icon--failed { background: rgba(201,171,99,0.14); border: 2px solid rgba(201,171,99,0.3); }
+.result-heading { text-align: center; }
+.result-heading h1 { margin: 6px 0 0; }
+.result-score-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 24px; border-radius: var(--radius-md); background: rgba(255,252,244,0.9); border: 1px solid var(--surface-border); }
+.result-score-chip { display: flex; flex-direction: column; gap: 4px; }
+.result-score-main { font-size: clamp(2rem, 6vw, 3rem); font-weight: 800; line-height: 1; color: var(--text); }
+.result-score-total { font-size: 0.55em; color: var(--text-secondary); font-weight: 600; }
+.result-score-pct { font-size: 0.875rem; color: var(--text-secondary); }
+.result-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
 .eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-strong); font-size: 0.75rem; font-weight: 700; }
 h1 { margin: 0; font-size: clamp(1.875rem, 4vw, 2.75rem); }
 h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-break: break-word; overflow-wrap: anywhere; hyphens: auto; min-width: 0; }
@@ -756,8 +769,6 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
 .action-btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 14px; padding: 12px 18px; min-height: 2.75rem; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--text); font-weight: 700; cursor: pointer; text-decoration: none; box-shadow: 0 12px 26px rgba(201,168,76,0.24); }
 .action-btn.secondary { background: var(--info-soft); color: var(--info); border: 1px solid rgba(26,95,168,0.18); box-shadow: none; }
 .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-:deep(.result-panel .state-panel__actions > :nth-child(1)),
-:deep(.result-panel .state-panel__actions > :nth-child(2)) { display: none; }
 .hero-stats > :nth-child(2),
 .progress-meta > :nth-child(2),
 .sticky-footer > :nth-child(2) { display: none; }
@@ -805,7 +816,7 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
   .question-header > div { min-width: 0; }
   .question-copy { min-width: 0; max-width: 100%; }
   .question-title { font-size: 1.125rem; line-height: 1.5; }
-  .question-image-shell { min-height: 200px; max-height: 240px; border-radius: 14px; }
+  .question-image-shell { min-height: 0; max-height: min(220px, 38vh); border-radius: 14px; }
   .answer-list { gap: 10px; }
   .answer-option { display: flex; align-items: flex-start; gap: 12px; padding: 16px 14px; border-radius: 14px; font-size: 0.9375rem; min-height: 2.75rem; }
   .answer-option input { display: none; }
@@ -837,7 +848,7 @@ h2 { margin: 0; font-size: clamp(1rem, 3.5vw, 1.5rem); line-height: 1.45; word-b
   .question-card { padding: 14px 12px; }
   .question-hint { font-size: 0.625rem; }
   .question-title { font-size: 1rem; line-height: 1.45; }
-  .question-image-shell { min-height: 160px; max-height: 200px; }
+  .question-image-shell { min-height: 0; max-height: min(170px, 32vh); }
   .answer-list { gap: 8px; }
   .answer-option { padding: 12px 10px; gap: 10px; border-radius: 12px; font-size: 0.875rem; min-height: 2.75rem; }
   .answer-label { width: 1.625rem; height: 1.625rem; font-size: 0.6875rem; }

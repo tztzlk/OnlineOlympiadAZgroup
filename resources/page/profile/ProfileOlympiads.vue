@@ -29,7 +29,7 @@
 
             <div class="profile-actions-row">
               <button
-                v-if="item.status === 'approved' && item.payment_status === 'paid' && !item.completed"
+                v-if="item.status === 'approved' && item.payment_status === 'paid' && item.reconciliation_status === 'matched' && !item.completed"
                 class="profile-btn primary"
                 @click="startQuiz(item.subject.id, item.child?.id)"
               >
