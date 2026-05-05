@@ -15,17 +15,18 @@
           </div>
         </header>
 
-        <div v-if="success" class="message success">
-          <span class="message__icon" aria-hidden="true">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <div>
-            <strong>Аккаунт создан</strong>
-            <p>Перенаправляем в личный кабинет...</p>
+        <div v-if="success" class="success-screen">
+          <div class="success-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="success-body">
+            <p class="eyebrow">Готово!</p>
+            <h2>Вы успешно зарегистрировались</h2>
+            <p class="success-hint">Аккаунт создан. Переходим в личный кабинет...</p>
           </div>
         </div>
 
-        <form @submit.prevent="handleRegister" class="register-form" novalidate>
+        <form v-if="!success" @submit.prevent="handleRegister" class="register-form" novalidate>
           <div v-if="currentStep === 1" class="form-section">
             <div class="form-section__head">
               <h3>Данные для входа</h3>
@@ -351,7 +352,7 @@ async function handleRegister() {
 
     success.value = true
     userStore.setAuth(response.data.user, response.data.token)
-    setTimeout(() => router.push('/profile'), 500)
+    setTimeout(() => router.push('/profile'), 2000)
   } catch (err) {
     if (err.response?.data?.errors) {
       error.value = Object.values(err.response.data.errors)[0][0]
@@ -669,6 +670,44 @@ watch(rulesAccepted, () => {
   width: 16px;
   height: 16px;
   accent-color: var(--success-soft);
+}
+
+.success-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  padding: 20px 0 8px;
+}
+
+.success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #dcfce7;
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #15803d;
+  animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.success-body h2 {
+  margin: 8px 0 0;
+  color: var(--text);
+}
+
+.success-hint {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+@keyframes pop-in {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 
 .message {
