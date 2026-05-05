@@ -352,6 +352,7 @@ async function handleRegister() {
 
     success.value = true
     userStore.setAuth(response.data.user, response.data.token)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     setTimeout(() => router.push('/profile'), 2000)
   } catch (err) {
     if (err.response?.data?.errors) {
