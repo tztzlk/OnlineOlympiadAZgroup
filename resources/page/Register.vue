@@ -185,7 +185,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../js/api'
 import { solveProofOfWork } from '../js/pow'
@@ -311,6 +311,7 @@ function goToStepTwo() {
   }
 
   currentStep.value = 2
+  nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
 }
 
 function goBack() {

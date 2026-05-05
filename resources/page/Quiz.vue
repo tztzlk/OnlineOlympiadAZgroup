@@ -139,7 +139,7 @@
             <span>Пропущено: {{ skippedCount }}</span>
             <span>Текущий: {{ currentQuestionIndex + 1 }}/{{ quiz.questions.length }}</span>
           </div>
-          <div class="question-map-scroller">
+          <div ref="questionMapScrollerRef" class="question-map-scroller">
             <div class="question-map question-map--horizontal">
               <button
                 v-for="(question, index) in quiz.questions"
@@ -263,6 +263,7 @@ recomputeIsMobile()
 const rulesAccepted = ref(false)
 const questionNavRef = ref(null)
 const questionCardRef = ref(null)
+const questionMapScrollerRef = ref(null)
 const defaultRules = [
   'Запрещено переключать вкладку, окно, выходить из полноэкранного режима или сворачивать браузер.',
   'Нельзя использовать подсказки, списывать и обращаться к сторонней помощи.',
@@ -403,6 +404,19 @@ const questionState = (index) => {
   if (visitedQuestions.value.has(index)) return 'visited'
   return 'unvisited'
 }
+
+const scrollActiveDotIntoView = async (index) => {
+  await nextTick()
+  const scroller = questionMapScrollerRef.value
+  if (!scroller) return
+  const dots = scroller.querySelectorAll('.question-dot')
+  const dot = dots[index]
+  if (!dot) return
+  const targetLeft = dot.offsetLeft - scroller.offsetWidth / 2 + dot.offsetWidth / 2
+  scroller.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' })
+}
+
+watch(currentQuestionIndex, (index) => scrollActiveDotIntoView(index))
 
 const scrollToQuestionTop = async (behavior = 'smooth') => {
   await nextTick()
