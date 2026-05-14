@@ -63,7 +63,23 @@
           <div class="profile-form-grid">
             <label class="profile-field"><span>Имя</span><input v-model="childForm.first_name" placeholder="Имя" required /></label>
             <label class="profile-field"><span>Фамилия</span><input v-model="childForm.last_name" placeholder="Фамилия" required /></label>
-            <label class="profile-field"><span>Дата рождения</span><input v-model="childForm.birth_date" type="date" /></label>
+            <label class="profile-field">
+              <span>Дата рождения</span>
+              <div class="date-selects">
+                <select v-model="birthDay" class="date-select">
+                  <option value="">День</option>
+                  <option v-for="d in 31" :key="d" :value="d">{{ d }}</option>
+                </select>
+                <select v-model="birthMonth" class="date-select">
+                  <option value="">Месяц</option>
+                  <option v-for="(m, i) in MONTHS" :key="i" :value="i + 1">{{ m }}</option>
+                </select>
+                <select v-model="birthYear" class="date-select">
+                  <option value="">Год</option>
+                  <option v-for="y in BIRTH_YEARS" :key="y" :value="y">{{ y }}</option>
+                </select>
+              </div>
+            </label>
             <label class="profile-field">
               <span>Класс</span>
               <select v-model="childForm.grade">
@@ -72,7 +88,13 @@
               </select>
             </label>
             <label class="profile-field"><span>Школа</span><input v-model="childForm.school" placeholder="Школа" /></label>
-            <label class="profile-field"><span>Город</span><input v-model="childForm.city" placeholder="Город" /></label>
+            <label class="profile-field">
+              <span>Город</span>
+              <input v-model="childForm.city" list="kz-cities-children" placeholder="Город" />
+              <datalist id="kz-cities-children">
+                <option v-for="c in KZ_CITIES" :key="c" :value="c" />
+              </datalist>
+            </label>
           </div>
 
           <div class="profile-form-actions">
@@ -86,11 +108,12 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import StatusBadge from '../../components/StatusBadge.vue'
 import api from '../../js/api'
 import { useUserStore } from '../../stores/user'
+import { KZ_CITIES } from '../../js/kazakhstanData'
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -100,6 +123,32 @@ const savingChild = ref(false)
 const deletingChildId = ref(null)
 const saveSuccess = ref(false)
 const gradeOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+const currentYear = new Date().getFullYear()
+const BIRTH_YEARS = Array.from({ length: currentYear - 2000 + 1 }, (_, i) => currentYear - i)
+
+const birthDay = ref('')
+const birthMonth = ref('')
+const birthYear = ref('')
+
+watch([birthDay, birthMonth, birthYear], ([d, m, y]) => {
+  if (d && m && y) {
+    const mm = String(m).padStart(2, '0')
+    const dd = String(d).padStart(2, '0')
+    childForm.birth_date = `${y}-${mm}-${dd}`
+  } else {
+    childForm.birth_date = ''
+  }
+})
+
+function parseBirthDate(dateStr) {
+  if (!dateStr) { birthYear.value = ''; birthMonth.value = ''; birthDay.value = ''; return }
+  const [y, m, d] = dateStr.split('-')
+  birthYear.value = parseInt(y, 10) || ''
+  birthMonth.value = parseInt(m, 10) || ''
+  birthDay.value = parseInt(d, 10) || ''
+}
 
 const childForm = reactive({
   first_name: '',
@@ -130,6 +179,7 @@ const resetChildForm = () => {
   childForm.school = userStore.user?.school || ''
   childForm.city = userStore.user?.city || ''
   childForm.language_preference = 'ru'
+  parseBirthDate('')
 }
 
 const hydrate = async () => {
@@ -182,6 +232,7 @@ const startEditChild = (child) => {
   childForm.school = child.school || ''
   childForm.city = child.city || ''
   childForm.language_preference = child.language_preference || 'ru'
+  parseBirthDate(child.birth_date || '')
   scrollToForm()
 }
 
@@ -237,5 +288,15 @@ onMounted(async () => {
   color: #2c7a4b;
   font-weight: 600;
   margin-bottom: 4px;
+}
+
+.date-selects {
+  display: flex;
+  gap: 8px;
+}
+
+.date-select {
+  flex: 1;
+  min-width: 0;
 }
 </style>

@@ -199,7 +199,20 @@
             <div class="fields-row">
               <div class="field">
                 <label>Дата рождения</label>
-                <input v-model="form.birth_date" type="date" class="step-input" />
+                <div class="date-selects">
+                  <select v-model="birthDay" class="step-input date-select">
+                    <option value="">День</option>
+                    <option v-for="d in 31" :key="d" :value="d">{{ d }}</option>
+                  </select>
+                  <select v-model="birthMonth" class="step-input date-select">
+                    <option value="">Месяц</option>
+                    <option v-for="(m, i) in MONTHS" :key="i" :value="i + 1">{{ m }}</option>
+                  </select>
+                  <select v-model="birthYear" class="step-input date-select">
+                    <option value="">Год</option>
+                    <option v-for="y in BIRTH_YEARS" :key="y" :value="y">{{ y }}</option>
+                  </select>
+                </div>
               </div>
               <div class="field">
                 <label>Класс</label>
@@ -217,7 +230,10 @@
               </div>
               <div class="field">
                 <label>Город</label>
-                <input v-model="form.city" placeholder="Город" class="step-input" />
+                <input v-model="form.city" list="kz-cities-subject" placeholder="Город" class="step-input" />
+                <datalist id="kz-cities-subject">
+                  <option v-for="c in KZ_CITIES" :key="c" :value="c" />
+                </datalist>
               </div>
             </div>
 
@@ -276,7 +292,6 @@
                   <a :href="paymentUrl" target="_blank" rel="noopener" class="step-link">Оплатить через Kaspi</a>
                   <span class="payment-action__hint">Оплата открывается в Kaspi</span>
                 </div>
-                <button v-if="canStartOlympiad" class="step-link secondary" @click="goToQuiz">Начать олимпиаду</button>
               </template>
             </StatePanel>
 
@@ -330,6 +345,7 @@ import StatusBadge from '../components/StatusBadge.vue'
 import CountdownBadge from '../components/CountdownBadge.vue'
 import KaspiPaymentAssist from '../components/KaspiPaymentAssist.vue'
 import { applySeo, getStaticSeoForPath } from '../js/composables/useSeo'
+import { KZ_CITIES } from '../js/kazakhstanData'
 
 const router = useRouter()
 const route = useRoute()
@@ -354,6 +370,33 @@ const pageLoading = ref(true)
 const pageError = ref('')
 const nowTs = ref(Date.now())
 const gradeOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+const subjectCurrentYear = new Date().getFullYear()
+const BIRTH_YEARS = Array.from({ length: subjectCurrentYear - 2000 + 1 }, (_, i) => subjectCurrentYear - i)
+
+const birthDay = ref('')
+const birthMonth = ref('')
+const birthYear = ref('')
+
+watch([birthDay, birthMonth, birthYear], ([d, m, y]) => {
+  if (d && m && y) {
+    const mm = String(m).padStart(2, '0')
+    const dd = String(d).padStart(2, '0')
+    form.birth_date = `${y}-${mm}-${dd}`
+  } else {
+    form.birth_date = ''
+  }
+})
+
+function parseBirthDate(dateStr) {
+  if (!dateStr) { birthYear.value = ''; birthMonth.value = ''; birthDay.value = ''; return }
+  const [y, m, d] = dateStr.split('-')
+  birthYear.value = parseInt(y, 10) || ''
+  birthMonth.value = parseInt(m, 10) || ''
+  birthDay.value = parseInt(d, 10) || ''
+}
+
 const participationRules = [
   {
     title: 'Индивидуальное участие',
@@ -569,6 +612,7 @@ const applyChildSelection = () => {
   form.school = child.school || userStore.user?.school || ''
   form.city = child.city || userStore.user?.city || ''
   form.language = child.language_preference || 'ru'
+  parseBirthDate(child.birth_date || '')
   scrollToRegistration()
 }
 
@@ -894,6 +938,8 @@ watch(selectedChildId, async () => {
 .helper { font-size: 12px; color: var(--text-secondary); }
 
 .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.date-selects { display: flex; gap: 6px; }
+.date-select { flex: 1; min-width: 0; }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
 .step-input { padding: 12px 15px; border-radius: 11px; border: 1.5px solid var(--border); font-size: 15px; color: var(--text); width: 100%; background: var(--card); transition: border-color 0.18s ease, box-shadow 0.18s ease; }

@@ -9,8 +9,8 @@
 
       <form @submit.prevent="updateProfile" class="form">
         <label class="field">
-          <span>Имя</span>
-          <input v-model="form.name" type="text" required placeholder="Имя" aria-label="Имя" />
+          <span>Имя и фамилия</span>
+          <input v-model="form.name" type="text" required placeholder="Имя и фамилия" aria-label="Имя и фамилия" />
         </label>
         <label class="field">
           <span>Email</span>
@@ -114,7 +114,7 @@ input { width: 100%; padding: 14px 16px; border-radius: var(--radius-sm); border
 input::placeholder { color: #9ca3af; }
 .buttons { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
 .save-btn, .cancel-btn { flex: 1 1 0; min-width: 0; padding: 14px 20px; border: none; border-radius: var(--radius-sm); font-size: 1rem; font-weight: 700; cursor: pointer; }
-.save-btn { background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); box-shadow: 0 12px 26px rgba(201,171,99,.2); }
+.save-btn { background: var(--accent); color: var(--text); box-shadow: 0 4px 14px rgba(201,171,99,.18); }
 .save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 .cancel-btn { background: rgba(79,167,116,.1); color: #316a49; }
 .message { margin: 0; font-size: .95rem; border-radius: var(--radius-sm); padding: 12px 14px; }
