@@ -14,7 +14,7 @@
         </span>
 
         <h1 class="hero__title">
-          Проверь знания<br>
+          Проверьте знания<br>
           <span class="hero__title-highlight">на Eurika!</span>
         </h1>
 
@@ -70,6 +70,14 @@
             <strong>8 мин</strong>
             <span>до результата</span>
           </div>
+        </div>
+
+        <div class="hero__coming-soon">
+          <span class="coming-soon__pulse"></span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+          </svg>
+          <span>Ближайшая олимпиада — <strong>28 мая</strong> · Успейте зарегистрироваться!</span>
         </div>
       </div>
 
@@ -385,6 +393,50 @@ export default { name: 'Hero' }
   flex-shrink: 0;
 }
 
+.hero__coming-soon {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.10) 0%, rgba(245, 200, 66, 0.14) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+  animation: heroFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation-delay: 500ms;
+}
+
+.hero__coming-soon strong {
+  font-weight: 800;
+  color: #dc2626;
+}
+
+.coming-soon__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.coming-soon__pulse::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.3);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.7); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
 .hero__visual {
   position: relative;
   display: flex;
@@ -466,6 +518,7 @@ export default { name: 'Hero' }
   .hero__sub { max-width: 560px; }
   .hero__actions, .hero__chips { justify-content: center; }
   .hero__stats { flex-wrap: wrap; justify-content: center; gap: 16px; }
+  .hero__coming-soon { justify-content: center; text-align: center; }
   .hero__visual { min-height: 300px; }
   .trophy-wrap { width: 220px; height: 280px; }
   .trophy-svg { width: 180px; }

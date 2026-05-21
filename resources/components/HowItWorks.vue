@@ -14,7 +14,7 @@
           :class="['step-card', `step-card--${step.id}`]"
           :style="`--i: ${index}`"
         >
-          <div class="step-card__num">{{ String(step.id).padStart(2, '0') }}</div>
+          <div class="step-card__num">{{ step.id }} шаг</div>
           <div class="step-card__icon-wrap">
             <div class="step-card__icon" v-html="step.icon"></div>
           </div>
@@ -30,7 +30,7 @@
 
       <div class="hiw__cta">
         <router-link to="/register" class="hiw__btn">
-          Зарегистрироваться бесплатно
+          Пройти регистрацию
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
           </svg>
@@ -62,8 +62,8 @@ onMounted(() => {
 const steps = [
   {
     id: 1,
-    title: 'Зарегистрируйся',
-    text: 'Создай аккаунт за 2 минуты. Выбери предмет и подходящую олимпиаду для своего ребёнка.',
+    title: 'Зарегистрируйтесь',
+    text: 'Создайте аккаунт за 2 минуты. Выберите удобное для вас время прохождения олимпиады и подходящий предмет для вашего ребёнка.',
     tags: ['Бесплатно', 'Онлайн', '2 мин'],
     icon: `
       <svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -75,9 +75,9 @@ const steps = [
   },
   {
     id: 2,
-    title: 'Выполни задания',
-    text: 'Отвечай на вопросы в удобном интерфейсе с таймером. Без лишних шагов.',
-    tags: ['Тест', 'Таймер', 'Онлайн'],
+    title: 'Выполните задания',
+    text: 'Удобный интерфейс, таймер с обратным отсчётом, система прокторинга. Задания составлены согласно вашей возрастной категории.',
+    tags: ['Таймер', 'Прокторинг', 'Онлайн'],
     icon: `
       <svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="28" cy="28" r="20"/>
@@ -87,9 +87,9 @@ const steps = [
   },
   {
     id: 3,
-    title: 'Получи результат',
-    text: 'Сразу после теста — итог, сертификат и разбор ошибок. Всё онлайн.',
-    tags: ['Сертификат', 'Сразу', 'Разбор'],
+    title: 'Получите результат',
+    text: 'Мгновенный результат после завершения теста, сертификат участника и подробный разбор ошибок — всё онлайн.',
+    tags: ['Сертификат', 'Результат', 'Разбор ошибок'],
     icon: `
       <svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 14h28v20H14z"/>

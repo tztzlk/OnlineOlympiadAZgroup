@@ -6,8 +6,19 @@
           <span class="reviews-eyebrow">Отзывы</span>
           <h2>Что говорят родители и участники</h2>
           <p class="reviews-lead">
-            Короткие впечатления тех, кто уже прошёл олимпиаду и получил результат без лишних шагов и путаницы.
+            Впечатления тех, кто уже прошёл олимпиаду и получил результат с сертификатом.
           </p>
+
+          <div class="reviews-filter">
+            <button
+              v-for="f in filters"
+              :key="f.key"
+              type="button"
+              class="filter-btn"
+              :class="{ active: activeFilter === f.key }"
+              @click="activeFilter = f.key"
+            >{{ f.label }}</button>
+          </div>
 
           <div class="reviews-stats">
             <div class="stat-row" v-for="stat in stats" :key="stat.label">
@@ -32,7 +43,7 @@
 
         <div class="reviews-content">
           <div class="reviews-track" ref="scrollContainer">
-            <article class="review-card" v-for="(review, index) in reviews" :key="index">
+            <article class="review-card" v-for="(review, index) in filteredReviews" :key="index">
               <div class="review-card__top">
                 <svg class="review-card__quote" width="34" height="34" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -69,7 +80,7 @@
 
           <div class="reviews-dots">
             <button
-              v-for="(_, i) in reviews"
+              v-for="(_, i) in filteredReviews"
               :key="i"
               type="button"
               class="dot"
@@ -85,28 +96,76 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 const scrollContainer = ref(null)
 const sectionRef = ref(null)
 const isVisible = ref(false)
 const activeDot = ref(0)
+const activeFilter = ref('all')
+
+const filters = [
+  { key: 'all', label: 'Все отзывы' },
+  { key: 'parent', label: 'Родители' },
+  { key: 'student', label: 'Участники' },
+]
 
 const stats = [
-  { value: '1 200+', label: 'участников' },
-  { value: '98%', label: 'рекомендуют' },
+  { value: '1 247+', label: 'участников' },
+  { value: '97.4%', label: 'рекомендуют' },
   { value: '4.9 / 5', label: 'средняя оценка' },
   { value: '6', label: 'предметов олимпиады' },
 ]
 
 const reviews = [
-  { name: 'Айгуль С.', role: 'Родитель', text: 'Очень удобная платформа. Ребёнок прошёл олимпиаду с интересом, а результат увидели сразу после завершения.', rating: 5 },
-  { name: 'Илья К.', role: '7 класс', text: 'Задания понятные и интересные. Особенно понравилось, что потом можно вернуться к разбору и понять ошибки.', rating: 5 },
-  { name: 'Мария П.', role: 'Родитель', text: 'Современный дизайн и хорошая организация. Всё прошло спокойно, без лишних шагов и путаницы.', rating: 5 },
-  { name: 'Данияр А.', role: '9 класс', text: 'Интерфейс простой и приятный. Проходить тест было удобно даже с телефона.', rating: 4 },
-  { name: 'Алина Т.', role: 'Родитель', text: 'Удобно отслеживать результаты ребёнка в кабинете. После участия всё понятно: результат, сертификат и что делать дальше.', rating: 5 },
-  { name: 'Сергей Л.', role: '8 класс', text: 'Интересные задания, хороший темп и нормальная навигация по вопросам. Хочется участвовать ещё.', rating: 4 },
+  {
+    name: 'Айгуль М.',
+    role: 'Родитель',
+    type: 'parent',
+    text: 'Очень рада, что узнала о платформе. Дочь прошла олимпиаду по математике, и результат с разбором ошибок получили сразу после теста. Никакой путаницы, всё чётко и понятно.',
+    rating: 5,
+  },
+  {
+    name: 'Амина Б.',
+    role: 'Родитель',
+    type: 'parent',
+    text: 'Удобно, что можно выбрать время самостоятельно. Сын проходил олимпиаду вечером после школы — никаких проблем с подключением. Сертификат получили мгновенно.',
+    rating: 5,
+  },
+  {
+    name: 'Светлана К.',
+    role: 'Родитель',
+    type: 'parent',
+    text: 'Порекомендую всем родителям. Платформа современная, дизайн приятный, а поддержка ответила на вопросы очень быстро. Ребёнок доволен, планируем участвовать ещё.',
+    rating: 5,
+  },
+  {
+    name: 'Данияр А.',
+    role: '9 класс',
+    type: 'student',
+    text: 'Интерфейс простой и удобный. Таймер не давит, задания интересные. После теста сразу увидел свой результат и понял, где допустил ошибки. Буду участвовать снова.',
+    rating: 5,
+  },
+  {
+    name: 'Илья К.',
+    role: '7 класс',
+    type: 'student',
+    text: 'Задания были по уровню — не слишком лёгкие и не слишком сложные. Разбор ошибок помог разобраться в темах, которые я не до конца понимал. Хорошая платформа.',
+    rating: 5,
+  },
+  {
+    name: 'Сабина Н.',
+    role: '8 класс',
+    type: 'student',
+    text: 'Удобно проходить с телефона. Интерфейс не лагал, вопросы переключались плавно. Получила сертификат — теперь могу добавить в портфолио.',
+    rating: 4,
+  },
 ]
+
+const filteredReviews = computed(() => {
+  if (activeFilter.value === 'all') return reviews
+  return reviews.filter((r) => r.type === activeFilter.value)
+})
 
 const getCardStep = () => {
   const firstCard = scrollContainer.value?.children[0]
@@ -116,7 +175,7 @@ const getCardStep = () => {
 }
 
 const clampActiveDot = (value) => {
-  activeDot.value = Math.max(0, Math.min(reviews.length - 1, value))
+  activeDot.value = Math.max(0, Math.min(filteredReviews.value.length - 1, value))
 }
 
 const updateDot = () => {
@@ -140,6 +199,11 @@ const scrollToCard = (index) => {
 }
 
 let observer = null
+
+watch(activeFilter, () => {
+  activeDot.value = 0
+  if (scrollContainer.value) scrollContainer.value.scrollLeft = 0
+})
 
 onMounted(() => {
   scrollContainer.value?.addEventListener('scroll', updateDot, { passive: true })
@@ -231,6 +295,31 @@ onUnmounted(() => {
   font-size: 17px;
   line-height: 1.7;
   max-width: 34ch;
+}
+
+.reviews-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #ffffff;
 }
 
 .reviews-stats {
