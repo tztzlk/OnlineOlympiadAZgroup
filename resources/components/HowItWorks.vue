@@ -64,7 +64,7 @@ const steps = [
     id: 1,
     title: 'Зарегистрируйтесь',
     text: 'Создайте аккаунт за 2 минуты. Выберите удобное для вас время прохождения олимпиады и подходящий предмет для вашего ребёнка.',
-    tags: ['Бесплатно', 'Онлайн', '2 мин'],
+    tags: ['Бесплатно', 'Онлайн', 'Мгновенный результат'],
     icon: `
       <svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="28" cy="20" r="9"/>

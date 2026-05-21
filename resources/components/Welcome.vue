@@ -67,8 +67,8 @@
           </div>
           <div class="stat-divider" aria-hidden="true"></div>
           <div class="stat">
-            <strong>8 мин</strong>
-            <span>до результата</span>
+            <strong>Мгновенный</strong>
+            <span>результат</span>
           </div>
         </div>
 
