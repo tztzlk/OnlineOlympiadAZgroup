@@ -1,4 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
+
+// Prevent browser from restoring scroll on refresh — Vue Router handles it
+if (typeof window !== "undefined") {
+  window.history.scrollRestoration = "manual";
+}
 import Home from "../page/Home.vue";
 import Subject from "../page/Subject.vue";
 import api from "../js/api";
@@ -91,7 +96,7 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
       // Restore position when using browser back/forward
       return savedPosition;
@@ -113,7 +118,7 @@ const router = createRouter({
 function getHeaderOffset() {
   return document.querySelector(".header")?.offsetHeight ?? 72;
 }
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem("token");
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
   const requiredCapability = to.matched.find((record) => record.meta.adminCapability)?.meta.adminCapability;
