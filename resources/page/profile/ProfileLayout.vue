@@ -32,7 +32,7 @@
         <div class="profile-actions">
           <RouterLink v-if="canReturnToAdminPanel" to="/admin" class="profile-btn ghost">Вернуться в админку</RouterLink>
           <RouterLink to="/edit-profile" class="profile-btn outline">Редактировать профиль</RouterLink>
-          <RouterLink to="/subject" class="profile-btn primary">Выбрать олимпиаду</RouterLink>
+          <RouterLink to="/subject" class="profile-btn primary highlight-subtle">Выбрать олимпиаду</RouterLink>
         </div>
       </section>
 

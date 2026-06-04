@@ -350,9 +350,37 @@
 }
 
 .profile-btn.primary {
-  background: var(--accent);
-  color: var(--text);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #fde047 0%, #f5c842 100%);
+  color: #1a1a1a;
+  box-shadow: 0 8px 28px rgba(245, 200, 66, 0.35), 0 0 1px rgba(0, 0, 0, 0.1);
+  font-weight: 800;
+  transition: all 0.22s ease;
+  position: relative;
+}
+
+.profile-btn.primary:hover {
+  box-shadow: 0 12px 40px rgba(245, 200, 66, 0.45), 0 0 1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.profile-btn.primary:active {
+  box-shadow: 0 4px 16px rgba(245, 200, 66, 0.3), 0 0 1px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+}
+
+.profile-btn.primary.highlight-subtle {
+  box-shadow: 0 6px 20px rgba(245, 200, 66, 0.25), 0 0 1px rgba(0, 0, 0, 0.05);
+  font-weight: 700;
+}
+
+.profile-btn.primary.highlight-subtle:hover {
+  box-shadow: 0 8px 28px rgba(245, 200, 66, 0.32), 0 0 1px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.profile-btn.primary.highlight-subtle:active {
+  box-shadow: 0 3px 12px rgba(245, 200, 66, 0.2), 0 0 1px rgba(0, 0, 0, 0.05);
+  transform: translateY(0);
 }
 
 .profile-btn.outline {
