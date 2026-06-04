@@ -110,7 +110,7 @@ const router = createRouter({
       };
     }
     // Always scroll to top on any new navigation
-    return { top: 0, behavior: "instant" };
+    return { top: 0, behavior: "instant", left: 0 };
   },
 });
 
@@ -173,6 +173,12 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   next();
+});
+
+router.afterEach(() => {
+  setTimeout(() => {
+    window.scrollTo(0, 0);
+  }, 0);
 });
 
 export default router;

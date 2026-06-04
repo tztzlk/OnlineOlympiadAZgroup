@@ -2,7 +2,7 @@
 import Footer from '../components/Footer.vue'
 import Header from '../components/Header.vue'
 import PublicOffer from '../components/PublicOffer.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -19,6 +19,11 @@ const showOfferModal = computed(() => {
 const acceptOffer = () => {
   offerAccepted.value = true
 }
+
+watch(() => route.path, async () => {
+  await nextTick()
+  window.scrollTo({ top: 0, behavior: 'instant' })
+})
 </script>
 
 <template>
