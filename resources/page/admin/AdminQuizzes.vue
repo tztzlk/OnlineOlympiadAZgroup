@@ -467,7 +467,7 @@ const createForm = () => ({
   },
   title: '',
   description: '',
-  price: 2990,
+  price: 2000,
   time_limit: 60,
   is_published: false,
   categories: CATEGORY_PRESETS.map((preset) => createCategory(preset)),
@@ -552,7 +552,7 @@ const editQuiz = async (quiz) => {
     },
     title: data.title,
     description: data.description ?? '',
-    price: data.price ?? 2990,
+    price: data.price ?? 2000,
     time_limit: data.time_limit,
     is_published: data.is_published,
     categories: CATEGORY_PRESETS.map((preset) => {

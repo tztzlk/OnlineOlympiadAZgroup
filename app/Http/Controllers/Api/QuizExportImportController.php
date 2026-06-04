@@ -135,7 +135,7 @@ class QuizExportImportController extends Controller
                     'subject_id'   => $subject->id,
                     'title'        => $q['title'],
                     'description'  => $q['description'] ?? null,
-                    'price'        => (int) ($q['price'] ?? 2990),
+                    'price'        => (int) ($q['price'] ?? 2000),
                     'time_limit'   => (int) ($q['time_limit'] ?? 60),
                     'is_published' => false,
                 ]);

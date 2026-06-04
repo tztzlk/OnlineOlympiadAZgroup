@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('quizzes', function (Blueprint $table) {
-            $table->unsignedInteger('price')->default(2990)->after('description');
+            $table->unsignedInteger('price')->default(2000)->after('description');
         });
     }
 

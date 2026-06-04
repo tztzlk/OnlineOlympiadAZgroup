@@ -493,7 +493,7 @@ it('stores explanation text when admin creates a quiz', function () {
         ],
         'title' => '��������� �� ������',
         'description' => '�������� ������',
-        'price' => 2990,
+        'price' => 2000,
         'time_limit' => 45,
         'is_published' => false,
         'categories' => [[
