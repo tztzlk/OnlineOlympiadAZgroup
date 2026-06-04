@@ -167,11 +167,6 @@ router.beforeEach(async (to, _from, next) => {
     } catch {}
   }
 
-  // Redirect authenticated regular users away from the home page to their profile
-  if (to.path === "/" && token && localStorage.getItem("session_type") === "user") {
-    return next("/profile");
-  }
-
   next();
 });
 
