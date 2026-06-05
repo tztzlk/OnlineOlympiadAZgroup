@@ -142,7 +142,7 @@ const content = {
   ru: {
     title: 'ПУБЛИЧНАЯ ОФЕРТА',
     subtitle: 'о предоставлении услуг участия в онлайн-олимпиаде',
-    intro: 'Пожалуйста, внимательно ознакомьтесь с условиями публичной оферты и подтвердите своё согласие.',
+    intro: 'Используя сервис, вы принимаете условия публичной оферты. Внимательно ознакомьтесь с текстом документа перед подтверждением.',
     checkbox: 'Я прочитал(а) и согласен(на) с условиями публичной оферты',
     confirmBtn: 'Подтвердить и продолжить',
     accepted: 'Принято',
@@ -150,45 +150,40 @@ const content = {
     scrollHint: 'Прокрутите для ознакомления',
     sections: [
       {
-        title: 'Общие положения',
+        title: '1. Общие положения',
         text: '1.1. Настоящий документ является официальным предложением (публичной офертой) Образовательной компании ТОО «AZ GROUP LLC» (далее — Исполнитель) заключить договор на оказание услуг на изложенных ниже условиях.<br><br>1.2. В соответствии с гражданским законодательством Республики Казахстан данный документ является публичной офертой.<br><br>1.3. Акцептом (принятием) настоящей оферты считается факт оплаты услуги Заказчиком.'
       },
       {
-        title: 'Предмет договора',
+        title: '2. Предмет договора',
         text: '2.1. Исполнитель предоставляет Заказчику доступ к участию в онлайн-олимпиаде <strong>Eurika</strong> по математике, английскому языку для учащихся 3–11 классов.<br><br>2.2. Услуга предоставляется в дистанционном формате через интернет на сайте eurikaolympiads.com.'
       },
       {
-        title: 'Стоимость услуг и порядок оплаты',
+        title: '3. Стоимость услуг и порядок оплаты',
         text: '3.1. Стоимость участия в одной олимпиаде составляет <strong>2000 (две тысячи) тенге</strong>.<br><br>3.2. Оплата производится единовременно через доступные на сайте способы оплаты.<br><br>3.3. Услуга считается оплаченной с момента поступления денежных средств на счёт Исполнителя.'
       },
       {
-        title: 'Порядок оказания услуг',
+        title: '4. Порядок оказания услуг',
         text: '4.1. После оплаты Заказчику предоставляется доступ к участию в олимпиаде.<br><br>4.2. Сроки проведения олимпиады и условия участия публикуются на сайте.<br><br>4.3. Исполнитель не несёт ответственности за невозможность участия по причинам, не зависящим от него (проблемы с интернетом, устройством пользователя и др.).'
       },
       {
-        title: 'Права и обязанности сторон',
+        title: '5. Права и обязанности сторон',
         text: '<strong>Исполнитель обязуется:</strong><br> - предоставить доступ к олимпиаде;<br> - обеспечить корректную работу платформы (в пределах технических возможностей).<br><br><strong>Заказчик обязуется:</strong><br> - предоставить достоверные данные при регистрации;<br> - соблюдать правила участия в олимпиаде.'
       },
       {
-        title: 'Возврат средств',
+        title: '6. Возврат средств',
         text: '6.1. После предоставления доступа к олимпиаде услуга считается оказанной.<br><br>6.2. Возврат денежных средств не осуществляется, за исключением случаев технических сбоев по вине Исполнителя.'
       },
       {
-        title: 'Ответственность сторон',
+        title: '7. Ответственность сторон',
         text: '7.1. Стороны несут ответственность в соответствии с законодательством Республики Казахстан.<br><br>7.2. Исполнитель не несёт ответственности за результаты участия Заказчика в олимпиаде.'
       },
       {
-        title: 'Заключительные положения',
+        title: '8. Заключительные положения',
         text: '8.1. Исполнитель имеет право вносить изменения в настоящую оферту без предварительного уведомления.<br><br>8.2. Новая редакция вступает в силу с момента её публикации на сайте.<br><br>8.3. Заказчик обязуется самостоятельно отслеживать изменения.'
       },
       {
-        title: 'Реквизиты Исполнителя',
-        list: [
-          '<strong>Название компании:</strong> ТОО "AZ GROUP LLC"',
-          '<strong>БИН:</strong> 241140003039',
-          '<strong>Адрес:</strong> Астана, Жилой массив Ақ-Бұлақ-3 улица Аскар Токпанов, дом 27',
-          '<strong>Телефон:</strong> +7 (700) 033 02 26'
-        ]
+        title: '9. Реквизиты Исполнителя',
+        text: '<strong>Название компании:</strong> ТОО "AZ GROUP LLC"<br><strong>БИН:</strong> 241140003039<br><strong>Адрес:</strong> Астана, Жилой массив Ақ-Бұлақ-3 улица Аскар Токпанов, дом 27<br><strong>Телефон:</strong> +7 (700) 033 02 26'
       }
     ]
   },
@@ -628,96 +623,6 @@ const confirmOffer = async () => {
 }
 </style>
 
-<style scoped>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-.offer-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 48px 16px 64px;
-  background: var(--bg);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Orbs */
-.bg-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-}
-.bg-orb--1 {
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(225,29,72,0.1), transparent 70%);
-  top: -100px; right: -80px;
-  opacity: 0.6;
-}
-.bg-orb--2 {
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(225,29,72,0.08), transparent 70%);
-  bottom: -80px; left: -60px;
-  opacity: 0.5;
-}
-
-/* Card */
-.offer-card {
-  position: relative;
-  width: 100%;
-  max-width: 740px;
-  background: var(--surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--surface-border);
-  border-radius: 24px;
-  padding: 44px 48px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  animation: cardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Header */
-.offer-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.offer-header__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px; height: 56px;
-  background: rgba(225, 29, 72, 0.2);
-  border-radius: 16px;
-  color: #E11D48;
-  border: 1px solid rgba(225, 29, 72, 0.3);
-  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.2);
-  margin-bottom: 18px;
-}
-
-.offer-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-on-surface);
-  letter-spacing: -0.5px;
-  margin-bottom: 8px;
-}
-
-.offer-subtitle {
-  font-size: 13.5px;
-  color: var(--text-muted-on-surface);
-  font-weight: 300;
-}
-
-/* Content scroll area */
-.offer-content {
-  position: relative;
   max-height: 340px;
   overflow-y: auto;
   padding-right: 12px;
