@@ -1,126 +1,165 @@
 <template>
   <div class="subject-detail-page">
-    <StatePanel
-      v-if="loading"
-      tone="neutral" loading
-      eyebrow="Предмет"
-      title="Загружаем страницу олимпиады"
-      description="Подготавливаем описание предмета, классы, формат участия и ответы на частые вопросы."
-    />
+    <div class="sd-wrap">
+      <StatePanel
+        v-if="loading"
+        tone="neutral" loading
+        eyebrow="Предмет"
+        title="Загружаем страницу олимпиады"
+        description="Подготавливаем описание предмета, классы, формат участия и ответы на частые вопросы."
+      />
 
-    <StatePanel
-      v-else-if="error"
-      tone="warning"
-      eyebrow="Предмет"
-      title="Не удалось загрузить предмет"
-      :description="error"
-    >
-      <template #actions>
-        <RouterLink class="cta secondary" to="/subject">Вернуться в каталог</RouterLink>
-      </template>
-    </StatePanel>
+      <StatePanel
+        v-else-if="error"
+        tone="warning"
+        eyebrow="Предмет"
+        title="Не удалось загрузить предмет"
+        :description="error"
+      >
+        <template #actions>
+          <RouterLink class="ds-btn ds-btn-ghost" to="/subject">Вернуться в каталог</RouterLink>
+        </template>
+      </StatePanel>
 
-    <template v-else-if="subject">
-      <section class="hero-card">
-        <div class="hero-copy">
-          <p class="eyebrow">Онлайн-олимпиада</p>
-          <h1>Олимпиада по предмету {{ subject.name }}</h1>
-          <p class="lead">{{ subject.description }}</p>
+      <template v-else-if="subject">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки">
+          <RouterLink to="/">Главная</RouterLink>
+          <span aria-hidden="true">/</span>
+          <RouterLink to="/subject">Каталог олимпиад</RouterLink>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{{ subject.name }}</span>
+        </nav>
 
-          <div class="hero-actions">
-            <RouterLink class="cta primary" :to="subject.registration_url || `/subject?subject=${subject.id}`">Зарегистрироваться на олимпиаду</RouterLink>
-            <RouterLink class="cta secondary" :to="`/subject?subject=${subject.id}&openRules=1`">Смотреть правила</RouterLink>
-          </div>
+        <section class="hero-card" aria-labelledby="sd-title">
+          <div class="hero-copy">
+            <span class="ds-eyebrow sun">Онлайн-олимпиада</span>
+            <h1 id="sd-title">Олимпиада по предмету {{ subject.name }}</h1>
+            <p class="lead">{{ subject.description }}</p>
 
-          <div v-if="countdownStatusLabel" class="deadline-banner">
-            <div>
-              <p class="eyebrow">Регистрация</p>
-              <strong>{{ countdownStatusLabel }}</strong>
+            <div class="hero-actions">
+              <RouterLink class="ds-btn ds-btn-sun ds-btn-lg" :to="subject.registration_url || `/subject?subject=${subject.id}`">Зарегистрироваться на олимпиаду</RouterLink>
+              <RouterLink class="ds-btn ds-btn-lg hero-ghost" :to="`/subject?subject=${subject.id}&openRules=1`">Смотреть правила</RouterLink>
             </div>
-            <span v-if="countdownParts">{{ countdownParts }}</span>
           </div>
+
+          <div class="hero-aside">
+            <img v-if="subject.image" :src="subject.image" :alt="subject.name" class="hero-image" />
+            <dl class="facts">
+              <div class="fact">
+                <dt>Классы</dt>
+                <dd>{{ gradeRangesLabel }}</dd>
+              </div>
+              <div class="fact">
+                <dt>Формат</dt>
+                <dd>Онлайн</dd>
+              </div>
+              <div class="fact">
+                <dt>Длительность</dt>
+                <dd>{{ timeLimitLabel }}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <div v-if="countdownStatusLabel" class="deadline-banner">
+          <span class="deadline-banner__icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
+          </span>
+          <div class="deadline-banner__text">
+            <p class="deadline-banner__eyebrow">Регистрация</p>
+            <strong>{{ countdownStatusLabel }}</strong>
+          </div>
+          <span v-if="countdownParts" class="deadline-banner__value">{{ countdownParts }}</span>
         </div>
 
-        <div class="hero-aside">
-          <article class="info-pill">
-            <span>Классы</span>
-            <strong>{{ gradeRangesLabel }}</strong>
+        <section class="content-grid">
+          <article class="content-card" v-reveal="0">
+            <span class="content-card__icon tone-blue" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+            </span>
+            <h2>Для кого подходит олимпиада</h2>
+            <p>
+              Онлайн-олимпиада по предмету {{ subject.name }} подходит для школьников из Казахстана,
+              а родители могут оформить участие, оплатить олимпиаду и посмотреть результат в одном кабинете.
+            </p>
           </article>
-          <article class="info-pill">
-            <span>Формат</span>
-            <strong>Онлайн</strong>
+
+          <article class="content-card" v-reveal="1">
+            <span class="content-card__icon tone-sun" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </span>
+            <h2>Как проходит участие</h2>
+            <p>
+              Сначала родитель выбирает предмет, затем сохраняет данные участника и оплачивает участие через Kaspi.
+              После подтверждения платежа ребёнок получает доступ к олимпиаде и проходит задания онлайн.
+            </p>
           </article>
-          <article class="info-pill">
-            <span>Длительность</span>
-            <strong>{{ timeLimitLabel }}</strong>
+
+          <article class="content-card" v-reveal="2">
+            <span class="content-card__icon tone-green" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg>
+            </span>
+            <h2>Результаты и сертификаты</h2>
+            <p>
+              После завершения олимпиады результат появляется в личном кабинете.
+              Сертификат можно проверить публично по ID на странице проверки сертификатов.
+            </p>
+            <RouterLink class="inline-link" to="/certificate-check">
+              Проверить сертификат
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </RouterLink>
           </article>
-        </div>
-      </section>
+        </section>
 
-      <section class="content-grid">
-        <article class="content-card">
-          <h2>Для кого подходит олимпиада</h2>
-          <p>
-            Онлайн-олимпиада по предмету {{ subject.name }} подходит для школьников из Казахстана,
-            а родители могут оформить участие, оплатить олимпиаду и посмотреть результат в одном кабинете.
-          </p>
-        </article>
+        <section class="faq-card" aria-labelledby="faq-title">
+          <div class="faq-head">
+            <span class="ds-eyebrow">FAQ</span>
+            <h2 id="faq-title">Частые вопросы родителей</h2>
+          </div>
 
-        <article class="content-card">
-          <h2>Как проходит участие</h2>
-          <p>
-            Сначала родитель выбирает предмет, затем сохраняет данные участника и оплачивает участие через Kaspi.
-            После подтверждения платежа ребёнок получает доступ к олимпиаде и проходит задания онлайн.
-          </p>
-        </article>
+          <div class="faq-list">
+            <div v-for="(item, index) in faqItems" :key="item.question" class="faq-item" :class="{ 'is-open': openFaqIndex === index }">
+              <h3>
+                <button
+                  :id="`faq-q-${index}`"
+                  class="faq-question"
+                  type="button"
+                  :aria-expanded="openFaqIndex === index ? 'true' : 'false'"
+                  :aria-controls="`faq-a-${index}`"
+                  @click="toggleFaq(index)"
+                >
+                  <span>{{ item.question }}</span>
+                  <span class="faq-question__icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  </span>
+                </button>
+              </h3>
+              <p v-if="openFaqIndex === index" :id="`faq-a-${index}`" role="region" :aria-labelledby="`faq-q-${index}`">{{ item.answer }}</p>
+            </div>
+          </div>
+        </section>
 
-        <article class="content-card">
-          <h2>Результаты и сертификаты</h2>
-          <p>
-            После завершения олимпиады результат появляется в личном кабинете.
-            Сертификат можно проверить публично по ID на странице проверки сертификатов.
-          </p>
-          <RouterLink class="inline-link" to="/certificate-check">Проверить сертификат</RouterLink>
-        </article>
-      </section>
-
-      <section class="faq-card">
-        <div class="faq-head">
-          <p class="eyebrow">FAQ</p>
-          <h2>Частые вопросы родителей</h2>
-        </div>
-
-        <div class="faq-list">
-          <article v-for="(item, index) in faqItems" :key="item.question" class="faq-item">
-            <button class="faq-question" type="button" @click="toggleFaq(index)">
-              <h3>{{ item.question }}</h3>
-              <span>{{ openFaqIndex === index ? '−' : '+' }}</span>
-            </button>
-            <p v-if="openFaqIndex === index">{{ item.answer }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="link-grid">
-        <RouterLink class="link-card" to="/subject">
-          <strong>Каталог олимпиад</strong>
-          <span>Посмотреть все доступные предметы</span>
-        </RouterLink>
-        <RouterLink class="link-card" to="/leaderboard">
-          <strong>Рейтинг участников</strong>
-          <span>Посмотреть лучшие результаты платформы</span>
-        </RouterLink>
-        <RouterLink class="link-card" to="/help-desk">
-          <strong>Help Desk</strong>
-          <span>Связаться с поддержкой по оплате и доступу</span>
-        </RouterLink>
-      </section>
-    </template>
+        <nav class="link-grid" aria-label="Полезные разделы">
+          <RouterLink class="link-card" to="/subject">
+            <strong>Каталог олимпиад</strong>
+            <span>Посмотреть все доступные предметы</span>
+          </RouterLink>
+          <RouterLink class="link-card" to="/leaderboard">
+            <strong>Рейтинг участников</strong>
+            <span>Посмотреть лучшие результаты платформы</span>
+          </RouterLink>
+          <RouterLink class="link-card" to="/help-desk">
+            <strong>Help Desk</strong>
+            <span>Связаться с поддержкой по оплате и доступу</span>
+          </RouterLink>
+        </nav>
+      </template>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../js/api'
 import StatePanel from '../components/StatePanel.vue'
@@ -220,247 +259,336 @@ const loadSubject = async () => {
   }
 }
 
+let clockTimer = null
+
 onMounted(() => {
   loadSubject()
-  setInterval(() => {
+  clockTimer = setInterval(() => {
     nowTs.value = Date.now()
   }, 60000)
+})
+
+onBeforeUnmount(() => {
+  if (clockTimer) clearInterval(clockTimer)
 })
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
 .subject-detail-page {
-  min-height: 100vh;
-  padding: 110px 18px 48px;
-  background: radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%), var(--bg);
+  min-height: 100dvh;
+  padding: calc(var(--header-h) + 24px) 20px 80px;
+  background: var(--bg);
+}
+
+.sd-wrap {
+  max-width: 1160px;
+  margin: 0 auto;
   display: grid;
   gap: 18px;
 }
 
-.hero-card,
-.content-card,
-.faq-card,
-.link-card {
-  max-width: 1120px;
-  width: 100%;
-  margin: 0 auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 14px;
 }
 
+.breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+.breadcrumbs a:hover { color: var(--brand-ink); }
+.breadcrumbs [aria-current] { color: var(--text); font-weight: 500; }
+
+/* ---- Первый экран ---- */
 .hero-card {
-  padding: 28px;
+  position: relative;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
-  gap: 22px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 32px;
+  align-items: center;
+  padding: clamp(24px, 4vw, 44px);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(600px 300px at 100% 0%, rgba(255, 255, 255, 0.16), transparent 70%),
+    linear-gradient(155deg, #3d6cff 0%, #2b5bf5 50%, #2046d4 100%);
+  color: #ffffff;
+  box-shadow: var(--shadow-brand), var(--shadow-md);
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--accent-strong);
+.hero-copy {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
 }
 
-.hero-copy h1,
-.faq-head h2,
-.content-card h2 {
-  margin: 0;
-  color: var(--text);
-}
+.hero-copy h1 { font-size: clamp(28px, 4vw, 46px); }
 
-.lead,
-.content-card p,
-.faq-item p,
-.link-card span {
-  color: var(--text-secondary);
-  line-height: 1.65;
+.lead {
+  max-width: 54ch;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 17px;
+  line-height: 1.6;
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 22px;
+  gap: 10px;
+  margin-top: 8px;
 }
 
-.deadline-banner {
-  margin-top: 18px;
-  padding: 16px 18px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(201, 171, 99, 0.24);
-  background: linear-gradient(135deg, rgba(210, 178, 97, 0.14), rgba(255, 248, 232, 0.86));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+.hero-ghost {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
 }
 
-.deadline-banner strong {
-  color: var(--text);
-  font-size: 18px;
-}
-
-.deadline-banner span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 96px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--accent-strong);
-  font-weight: 800;
-}
-
-.cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 12px 18px;
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.cta.primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
-  color: var(--text);
-}
-
-.cta.secondary {
-  background: rgba(255, 252, 244, 0.82);
-  border: 1px solid var(--surface-border);
-  color: var(--accent-strong);
-}
+.hero-ghost:hover { background: rgba(255, 255, 255, 0.24); }
 
 .hero-aside {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
-.info-pill,
-.faq-item,
-.content-card,
-.link-card {
-  padding: 18px;
+.hero-image {
+  max-height: 170px;
+  justify-self: center;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 24px rgba(10, 25, 90, 0.35));
 }
 
-.info-pill {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 244, 0.82);
+.facts {
   display: grid;
   gap: 8px;
-}
-
-.info-pill span {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.info-pill strong {
-  color: var(--text);
-  font-size: 24px;
-}
-
-.content-grid,
-.faq-list,
-.link-grid {
-  max-width: 1120px;
-  width: 100%;
-  margin: 0 auto;
-  display: grid;
-  gap: 16px;
-}
-
-.content-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.faq-card {
-  padding: 24px;
-}
-
-.faq-list {
-  margin-top: 16px;
-}
-
-.faq-item {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 244, 0.82);
-}
-
-.faq-question {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0;
-  text-align: left;
-  cursor: pointer;
-}
-
-.faq-item h3 {
   margin: 0;
 }
 
-.faq-question span {
-  display: inline-flex;
+.fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.fact dt {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* ---- Дедлайн ---- */
+.deadline-banner {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: rgba(201, 171, 99, 0.16);
-  color: var(--accent-strong);
-  font-weight: 800;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--sun-soft);
 }
 
-.faq-item p {
-  margin: 12px 0 0;
-}
-
-.link-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.link-card {
-  text-decoration: none;
-  color: var(--text);
+.deadline-banner__icon {
+  width: 42px;
+  height: 42px;
   display: grid;
-  gap: 6px;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 13px;
+  background: var(--card);
+  color: #d99a00;
+}
+
+.deadline-banner__text { flex: 1; }
+
+.deadline-banner__eyebrow {
+  color: var(--sun-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.deadline-banner strong { font-size: 17px; }
+
+.deadline-banner__value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- Контент ---- */
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.content-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.content-card__icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+}
+
+.tone-blue { background: var(--brand-soft); color: var(--brand); }
+.tone-sun { background: var(--sun-soft); color: #c98a00; }
+.tone-green { background: var(--success-soft); color: var(--success); }
+
+.content-card h2 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.content-card p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .inline-link {
   display: inline-flex;
-  margin-top: 12px;
-  color: var(--accent-strong);
-  font-weight: 700;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand-ink);
+  font-weight: 600;
   text-decoration: none;
 }
 
+.inline-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- FAQ ---- */
+.faq-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+  gap: 32px;
+  padding: clamp(22px, 3vw, 36px);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.faq-head {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 12px;
+}
+
+.faq-head h2 { font-size: clamp(22px, 2.6vw, 30px); }
+
+.faq-list {
+  display: grid;
+  gap: 8px;
+}
+
+.faq-item {
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  transition: background-color var(--dur) ease;
+}
+
+.faq-item.is-open { background: var(--brand-softer); }
+
+.faq-item h3 {
+  font-size: inherit;
+  letter-spacing: 0;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.faq-question__icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--brand);
+  transition: transform var(--dur) var(--ease-out), background-color var(--dur) ease, color var(--dur) ease;
+}
+
+.faq-item.is-open .faq-question__icon {
+  transform: rotate(45deg);
+  background: var(--brand);
+  color: #ffffff;
+}
+
+.faq-item p {
+  padding: 0 18px 16px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ---- Ссылки ---- */
+.link-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.link-card {
+  display: grid;
+  gap: 4px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform var(--dur) var(--ease-out), border-color var(--dur) ease;
+}
+
+.link-card:hover { transform: translateY(-2px); border-color: var(--brand); }
+.link-card strong { font-size: 16px; }
+.link-card span { color: var(--text-secondary); font-size: 14px; }
+
 @media (max-width: 960px) {
   .hero-card,
+  .faq-card { grid-template-columns: 1fr; }
   .content-grid,
-  .link-grid {
-    grid-template-columns: 1fr;
-  }
+  .link-grid { grid-template-columns: 1fr; }
+}
 
-  .deadline-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+@media (max-width: 600px) {
+  .subject-detail-page { padding: calc(var(--header-h) + 14px) 12px 96px; }
+  .hero-actions .ds-btn { flex: 1 1 100%; }
+  .deadline-banner { flex-wrap: wrap; }
 }
 </style>
