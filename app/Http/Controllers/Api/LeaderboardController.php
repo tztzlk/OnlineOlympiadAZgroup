@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -69,7 +70,7 @@ class LeaderboardController extends Controller
                     'score' => $item->score,
                     'total' => $item->total,
                     'percent' => (int) $item->percent,
-                    'date' => optional($item->created_at)->format('d.m.Y'),
+                    'date' => $item->created_at ? Carbon::parse($item->created_at)->format('d.m.Y') : null,
                 ];
             });
 

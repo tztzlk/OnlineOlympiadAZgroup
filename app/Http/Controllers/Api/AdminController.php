@@ -99,7 +99,7 @@ class AdminController extends Controller
                 'failed' => PaymentRecord::where('status', 'failed')->count(),
             ],
             'top_subjects' => QuizResult::query()
-                ->selectRaw('subjects.id, subjects.name as subject_name, COUNT(quiz_results.id) as results_count, ROUND(AVG((quiz_results.score / NULLIF(quiz_results.total, 0)) * 100), 0) as average_percent')
+                ->selectRaw('subjects.id, subjects.name as subject_name, COUNT(quiz_results.id) as results_count, ROUND(AVG((quiz_results.score * 100.0) / NULLIF(quiz_results.total, 0)), 0) as average_percent')
                 ->join('quizzes', 'quizzes.id', '=', 'quiz_results.quiz_id')
                 ->join('subjects', 'subjects.id', '=', 'quizzes.subject_id')
                 ->groupBy('subjects.id', 'subjects.name')

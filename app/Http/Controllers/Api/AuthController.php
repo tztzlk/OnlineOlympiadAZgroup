@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\NotificationWorkflow;
 use App\Support\OnboardingProgress;
+use App\Support\Pii;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -78,7 +79,7 @@ class AuthController extends Controller
         Log::channel('security')->info('auth.register_success', [
             'event' => 'auth.register_success',
             'user_public_id' => $user->public_id,
-            'email' => $user->email,
+            'email' => Pii::maskEmail($user->email),
             'ip' => $request->ip(),
         ]);
         } catch (Throwable $sideEffectError) {
@@ -109,10 +110,11 @@ class AuthController extends Controller
         $email = $request->string('email')->lower()->value();
         $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($request->string('password')->value(), $user->password)) {
+        if (!$this->passwordMatches($user, $request->string('password')->value())) {
             Log::channel('security')->warning('auth.login_failed', [
                 'event' => 'auth.login_failed',
-                'email' => $email,
+                'email' => Pii::maskEmail($email),
+                'email_fp' => Pii::fingerprint($email),
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'guard' => 'user',
@@ -125,7 +127,7 @@ class AuthController extends Controller
             Log::channel('security')->warning('auth.login_blocked_admin_endpoint_mismatch', [
                 'event' => 'auth.login_blocked_admin_endpoint_mismatch',
                 'user_public_id' => $user->public_id,
-                'email' => $user->email,
+                'email' => Pii::maskEmail($user->email),
                 'ip' => $request->ip(),
             ]);
 
@@ -139,7 +141,7 @@ class AuthController extends Controller
         Log::channel('security')->info('auth.login_success', [
             'event' => 'auth.login_success',
             'user_public_id' => $user->public_id,
-            'email' => $user->email,
+            'email' => Pii::maskEmail($user->email),
             'ip' => $request->ip(),
             'guard' => 'user',
         ]);
@@ -160,10 +162,11 @@ class AuthController extends Controller
         $email = $request->string('email')->lower()->value();
         $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($request->string('password')->value(), $user->password)) {
+        if (!$this->passwordMatches($user, $request->string('password')->value())) {
             Log::channel('security')->warning('auth.admin_login_failed', [
                 'event' => 'auth.admin_login_failed',
-                'email' => $email,
+                'email' => Pii::maskEmail($email),
+                'email_fp' => Pii::fingerprint($email),
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'guard' => 'admin',
@@ -176,7 +179,7 @@ class AuthController extends Controller
             Log::channel('security')->warning('auth.admin_login_forbidden', [
                 'event' => 'auth.admin_login_forbidden',
                 'user_public_id' => $user->public_id,
-                'email' => $user->email,
+                'email' => Pii::maskEmail($user->email),
                 'ip' => $request->ip(),
             ]);
 
@@ -188,7 +191,7 @@ class AuthController extends Controller
         Log::channel('security')->info('auth.admin_login_success', [
             'event' => 'auth.admin_login_success',
             'user_public_id' => $user->public_id,
-            'email' => $user->email,
+            'email' => Pii::maskEmail($user->email),
             'ip' => $request->ip(),
             'guard' => 'admin',
         ]);
@@ -248,6 +251,22 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Пароль успешно обновлён. Теперь можно войти.',
         ]);
+    }
+
+    /**
+     * Проверка пароля, которая тратит одинаковое время и для существующего, и для
+     * несуществующего email — по задержке ответа нельзя узнать, зарегистрирован ли адрес.
+     */
+    protected function passwordMatches(?User $user, string $password): bool
+    {
+        if (!$user) {
+            $rounds = sprintf('%02d', (int) config('hashing.bcrypt.rounds', 12));
+            Hash::check($password, '$2y$' . $rounds . '$' . str_repeat('a', 53));
+
+            return false;
+        }
+
+        return Hash::check($password, $user->password);
     }
 
     public function profile(Request $request)

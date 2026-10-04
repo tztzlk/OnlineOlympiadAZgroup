@@ -24,6 +24,12 @@ class RepairMojibakeCommand extends Command
         $idColumn = (string) $this->option('id');
         $limit = max(1, (int) $this->option('limit'));
 
+        if (!in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            $this->error('Команда поддерживает только MySQL/MariaDB.');
+
+            return self::FAILURE;
+        }
+
         $wrappedColumn = DB::getQueryGrammar()->wrap($column);
         $wrappedId = DB::getQueryGrammar()->wrap($idColumn);
         $conversionSql = "CONVERT(BINARY CONVERT({$wrappedColumn} USING latin1) USING utf8mb4)";

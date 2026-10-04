@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedDate;
+use App\Casts\EncryptedString;
 use App\Models\Concerns\HasPublicId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,7 +37,9 @@ class OlympiadRequest extends Model
 
     protected $casts = [
         'completed' => 'boolean',
-        'birth_date' => 'date',
+        'birth_date' => EncryptedDate::class,
+        'parent_phone' => EncryptedString::class,
+        'parent_email' => EncryptedString::class,
         'paid_at' => 'datetime',
         'disqualified_at' => 'datetime',
         'attempt_started_at' => 'datetime',

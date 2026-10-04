@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedDate;
 use App\Models\Concerns\HasPublicId;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,7 +23,7 @@ class ChildProfile extends Model
     ];
 
     protected $casts = [
-        'birth_date' => 'date',
+        'birth_date' => EncryptedDate::class,
     ];
 
     protected $hidden = ['id', 'parent_id'];

@@ -37,7 +37,7 @@ class ProfileController extends Controller
             $resultsCount = QuizResult::where('user_id', $user->id)->count();
             $trainingCount = TrainingAttempt::where('parent_id', $user->id)->count();
             $paymentStats = PaymentRecord::where('parent_id', $user->id)
-                ->selectRaw('COUNT(*) as total, SUM(status = "pending") as pending_count, SUM(status = "paid") as paid_count, SUM(status = "failed") as failed_count')
+                ->selectRaw("COUNT(*) as total, SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count, SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count, SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_count")
                 ->first();
             $paymentsCount = (int) $paymentStats->total;
             $notifications = PlatformNotification::query()

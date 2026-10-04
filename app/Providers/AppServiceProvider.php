@@ -34,8 +34,10 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Per-IP limit stops one attacker; per-account limit stops distributed password guessing against one parent.
         RateLimiter::for('login', fn (Request $request) => [
             Limit::perMinute(5)->by('login:' . $request->ip()),
+            Limit::perMinutes(15, 10)->by('login-account:' . sha1(mb_strtolower(trim((string) $request->input('email'))))),
         ]);
 
         RateLimiter::for('register', fn (Request $request) => [
