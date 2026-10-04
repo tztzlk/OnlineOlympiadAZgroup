@@ -43,12 +43,13 @@ APP_DEBUG=false
 APP_URL=https://your-domain.com
 FRONTEND_URL=https://your-domain.com
 
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=online_olympiad
-DB_USERNAME=your_db_user
+DB_USERNAME=olympiad_app
 DB_PASSWORD=your_db_password
+DB_SSLMODE=prefer
 
 SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=true
@@ -192,6 +193,10 @@ This repository already includes:
 - webhook signature validation
 - rate limiting and anomaly logging
 
+- encryption at rest for child personal data: birth date (child profile and request), parent phone and email in requests (`app/Casts/EncryptedString.php`, `EncryptedDate.php`, migration `2026_10_04_000020_encrypt_child_personal_data`)
+- per-account login throttling, constant-time login check, masked emails in security logs
+- live olympiad payload never contains correct answers or explanations
+
 Still required before public launch:
 
 - final domain and HTTPS in `.env`
@@ -199,11 +204,30 @@ Still required before public launch:
 - no duplicate env keys
 - no predictable imported-user password
 
+### APP_KEY — обязательная резервная копия
+
+Персональные данные детей шифруются ключом `APP_KEY`. **Если ключ потерян, эти данные не восстановить.**
+
+- Храните копию `APP_KEY` вне сервера (менеджер паролей / сейф), отдельно от бэкапов базы.
+- Никогда не запускайте `php artisan key:generate` на работающем сервере.
+- Для ротации ключа: старый ключ перенесите в `APP_PREVIOUS_KEYS`, новый — в `APP_KEY`.
+
+### PostgreSQL
+
+Создание базы и отдельной роли приложения без прав суперпользователя:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\setup-postgres.ps1
+php artisan migrate --force
+```
+
+Скрипт (`database/postgres/setup.sql`) закрывает подключение к базе всем ролям, кроме приложения, включает scram-sha-256 и таймауты запросов. В PHP должно быть включено расширение `pdo_pgsql`. На сервере используйте `DB_SSLMODE=require`, если БД на отдельной машине.
+
 ## Backups And Recovery
 
 Minimum launch policy:
 
-- daily MySQL backup
+- daily database backup (`pg_dump -Fc`)
 - at least 7 daily retained backups
 - one tested restore before public launch
 - VPS snapshot before schema-changing releases

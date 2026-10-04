@@ -1,63 +1,54 @@
-# Design Context — Онлайн-олимпиада
+# Дизайн-система Eurika
 
-## Product
-Online olympiad platform for school children in Kazakhstan. Parents register their child, pay via Kaspi, child takes a timed test, receives an instant result + certificate + error review. Language: Russian.
+Онлайн-олимпиады для школьников Казахстана (3–11 классы). Родитель регистрирует ребёнка и оплачивает участие через Kaspi, ребёнок проходит тест на время и сразу получает результат, сертификат и разбор ошибок.
 
-## Tech Stack
-- Vue 3 SPA, Vue Router v4, Tailwind v4, Laravel backend
-- No Google Fonts (system font stack currently: `'Segoe UI', 'Trebuchet MS', Arial`)
-- Light mode primary, dark mode toggle exists (both use warm palette)
+Направление: **яркий и дружелюбный** — фирменный синий + солнечный жёлтый на прохладном светлом фоне. Ориентиры: Фоксфорд, Учи.ру.
 
-## Current Palette
-```
---bg:          #f5f0e8   warm beige
---bg-alt:      #efe7da
---text:        #2c2c2a
---text-secondary: #5f5a51
---accent:      #c9a84c   warm gold
---accent-hover:#b79133
---card:        #e8dfc8
-```
+## Где что лежит
 
-## Design Principles (inferred from code)
-1. **Warm and trustworthy** — beige/gold palette, soft shadows, no harsh contrast
-2. **Light over dark** — children and parents browse in daylight; warm light mode is the right call
-3. **Gentle motion** — stagger entrances, hover lifts, no bounce/elastic easing
-4. **Legible hierarchy** — large display headings, readable body at 14–17px
-5. **Mobile-first** — sticky CTA on mobile, burger menu, fluid layouts
+| Файл | Что внутри |
+|------|-----------|
+| `resources/css/app.css` | Токены, сброс, базовая типографика, компоненты `ds-*` |
+| `resources/css/auth.css` | Общие стили форм входа/регистрации |
+| `resources/css/profile-hub.css` | Кабинет родителя |
+| `resources/css/payment-flow.css` | Экраны «Заявка принята» и «Ожидание оплаты» |
+| `resources/css/admin.css` | Основа админ-панели (всё под `.admin-page`) |
+| `resources/js/directives/reveal.js` | `v-reveal` — появление блоков при прокрутке |
 
-## Components Map
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Welcome.vue | ✅ Improved | Hero with stagger entrance, fixed image path |
-| HowItWorks.vue | ✅ Improved | IntersectionObserver stagger, hover lift |
-| Header.vue | — | Transparent→opaque on scroll, mobile drawer |
-| Footer.vue | — | Not yet reviewed |
-| Reviews.vue | — | Not yet reviewed |
-| News.vue | — | Not yet reviewed |
+## Шрифты
 
-## Open Questions
-*To be confirmed by the team:*
+- **Unbounded** (600/700) — заголовки `h1`, `h2`, крупные цифры. Игровой, хорошо держит кириллицу.
+- **Onest** (400–700) — весь остальной текст.
 
-1. **Brand personality in 3 words** — how should this feel? (e.g. "encouraging, prestigious, safe" or "competitive, clear, celebratory")
-2. **Primary visitor** — parent deciding at home in the evening? A kid? A teacher? This determines tone and trust signals.
-3. **References** — any site (unrelated is fine) that captures the right vibe? Any anti-references?
+Подключаются в `resources/views/welcome.blade.php`. В CSS: `var(--font-display)` и `var(--font-sans)`.
 
-## Typography Direction (pending font decision)
-Current system stack is safe but forgettable. Once brand personality is confirmed, a Google Fonts pair will be added — a distinctive display face for headings + a refined body font. Both must be free and load fast (2 families max, `font-display: swap`).
+## Цвета (токены)
 
-## Animation Standards
-- Easing: `cubic-bezier(0.23, 1, 0.32, 1)` (strong ease-out)
-- Entrance: `opacity 0 → 1` + `translateY(20px → 0)`, 500ms
-- Stagger: `calc(var(--i) * 80ms)` delay per card
-- Hover lift: `translateY(-4px)`, 220ms
-- Active press: `scale(0.97)`, 100ms, no bounce
-- Below-fold: always via `IntersectionObserver`, never on mount
-- Guard all hover effects with `@media (hover: hover) and (pointer: fine)`
+| Токен | Светлая | Назначение |
+|-------|---------|-----------|
+| `--brand` | `#2b5bf5` | Главные кнопки, активные элементы |
+| `--brand-soft` / `--brand-ink` | `#e9efff` / `#1c3fb8` | Мягкий фон и текст на нём |
+| `--sun` | `#ffc933` | Акцент: награды, сертификат, праздничные действия |
+| `--success` / `--warning` / `--danger` | зелёный / оранжевый / красный | Статусы; у каждого есть `-soft` и `-ink` |
+| `--bg` / `--card` / `--text` | `#f4f6fb` / `#fff` / `#111a33` | Поверхности и текст |
 
-## Absolute Bans (from impeccable skill)
-- No `border-left` / `border-right` > 1px as accent stripe
-- No gradient text (`background-clip: text`)
-- No `transition: all` — always explicit properties
-- No glassmorphism used decoratively
-- No bounce/elastic easing
+Тёмная тема — класс `.dark` на `<html>`, те же имена токенов. Старые имена (`--green`, `--accent`, `--info`…) оставлены как ссылки на новые — **в новом коде их не использовать**.
+
+## Компоненты
+
+- Кнопки: `ds-btn` + `ds-btn-primary | ds-btn-sun | ds-btn-secondary | ds-btn-ghost | ds-btn-danger`, размеры `ds-btn-sm | ds-btn-lg`, `ds-btn-block`.
+- Поля: `ds-field`, `ds-label`, `ds-input` (+ `is-error`, `is-valid`), `ds-hint`, `ds-error-text`.
+- Сообщения: `ds-msg success | error | warning | info`.
+- Бейджи: `ds-badge green | yellow | red | blue`; статусы — компонент `StatusBadge`.
+- Состояния экрана (загрузка, пусто, ошибка): компонент `StatePanel` (`tone`, флаг `loading`).
+- Скелетоны: `ds-skeleton`. Спиннер: `ds-spinner`.
+
+## Правила
+
+1. Главное действие на экране одно и синее; «праздничное» (скачать сертификат, зарегистрироваться на олимпиаду) — солнечное.
+2. Минимальная зона нажатия — 44px, поля ввода — 16px шрифт (без автозума на iOS).
+3. Анимации только `transform`/`opacity`, кривая `var(--ease-out)`, уважаем `prefers-reduced-motion`.
+4. Контент первого экрана не прячется за анимацией появления (`v-reveal` сам это учитывает).
+5. Hover-эффекты — только внутри `@media (hover: hover) and (pointer: fine)`.
+6. Без `transition: all`, без градиентного текста, без декоративного «стекла».
+7. Иконки — инлайн SVG, `stroke-width` 2–2.4, `aria-hidden="true"` для декоративных.
