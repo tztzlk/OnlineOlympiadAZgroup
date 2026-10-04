@@ -23,7 +23,8 @@
     <link rel="canonical" href="{{ $seo['canonical'] }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap&subset=cyrillic" rel="stylesheet">
+    <meta name="theme-color" content="#2b5bf5">
     <script src="/theme-init.js"></script>
     <script nonce="{{ $cspNonce ?? '' }}">
         window.__SEO_DEFAULTS__ = @json($seoDefaults);
@@ -34,8 +35,9 @@
         html.app-mounted #seo-fallback { display: none; }
         .seo-fallback {
             display: block;
-            background: #fcf8ef;
-            color: #261b0f;
+            background: #f4f6fb;
+            color: #111a33;
+            font-family: 'Onest', 'Segoe UI', system-ui, sans-serif;
             padding: 120px 20px 48px;
         }
         .seo-fallback__shell {
@@ -52,7 +54,7 @@
         .seo-fallback__nav a,
         .seo-fallback__cta,
         .seo-fallback__subject-item a {
-            color: #1f5f38;
+            color: #1c3fb8;
             text-decoration: none;
             font-weight: 700;
         }
@@ -61,19 +63,17 @@
         .seo-fallback__faq-item,
         .seo-fallback__card,
         .seo-fallback__subject-item {
-            background: #fffaf1;
-            border: 1px solid rgba(201, 171, 99, 0.25);
-            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid rgba(17, 26, 51, 0.09);
+            border-radius: 22px;
             padding: 24px;
-            box-shadow: 0 12px 28px rgba(84, 65, 26, 0.08);
+            box-shadow: 0 1px 2px rgba(17, 26, 51, 0.05), 0 4px 12px rgba(17, 26, 51, 0.05);
         }
         .seo-fallback__eyebrow {
             margin: 0 0 12px;
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            font-size: 12px;
-            font-weight: 800;
-            color: #6c5a2f;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1c3fb8;
         }
         .seo-fallback__hero h1,
         .seo-fallback__section h2,
@@ -88,7 +88,7 @@
         .seo-fallback__card p {
             margin: 12px 0 0;
             line-height: 1.65;
-            color: #5b4a30;
+            color: #5b6585;
         }
         .seo-fallback__cta {
             display: inline-flex;
@@ -110,17 +110,14 @@
             margin: 0;
         }
     </style>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     @unless(app()->environment('testing'))
         @vite('resources/js/app.js')
     @endunless
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
     @foreach(($seo['schemas'] ?? []) as $schema)
         <script type="application/ld+json" data-dynamic-seo-schema="true">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     @endforeach
 </head>
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <div id="app"></div>
     @include('partials.seo-fallback', ['seo' => $seo])
 </body>

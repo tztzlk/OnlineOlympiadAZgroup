@@ -1,95 +1,78 @@
 <template>
-  <section ref="sectionRef" class="reviews-section" :class="{ visible: isVisible }">
-    <div class="reviews-inner">
-      <div class="reviews-layout">
-        <aside class="reviews-sidebar">
-          <span class="reviews-eyebrow">Отзывы</span>
-          <h2>Что говорят родители и участники</h2>
-          <p class="reviews-lead">
+  <section class="reviews" aria-labelledby="reviews-title">
+    <div class="reviews__inner">
+      <header class="reviews__head" v-reveal>
+        <div class="reviews__intro">
+          <span class="ds-eyebrow sun">Отзывы</span>
+          <h2 id="reviews-title">Что говорят родители и участники</h2>
+          <p class="reviews__lead">
             Впечатления тех, кто уже прошёл олимпиаду и получил результат с сертификатом.
           </p>
-
-          <div class="reviews-filter">
-            <button
-              v-for="f in filters"
-              :key="f.key"
-              type="button"
-              class="filter-btn"
-              :class="{ active: activeFilter === f.key }"
-              @click="activeFilter = f.key"
-            >{{ f.label }}</button>
-          </div>
-
-          <div class="reviews-stats">
-            <div class="stat-row" v-for="stat in stats" :key="stat.label">
-              <strong>{{ stat.value }}</strong>
-              <span>{{ stat.label }}</span>
-            </div>
-          </div>
-
-          <div class="reviews-controls">
-            <button class="scroll-btn" type="button" aria-label="Назад" @click="scrollLeft">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <button class="scroll-btn" type="button" aria-label="Вперёд" @click="scrollRight">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </div>
-        </aside>
-
-        <div class="reviews-content">
-          <div class="reviews-track" ref="scrollContainer">
-            <article class="review-card" v-for="(review, index) in filteredReviews" :key="index">
-              <div class="review-card__top">
-                <svg class="review-card__quote" width="34" height="34" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
-
-                <div class="review-card__stars">
-                  <svg v-for="i in 5" :key="i" width="14" height="14" viewBox="0 0 24 24" :fill="i <= review.rating ? '#f5c842' : '#d9dee8'" stroke="none">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                </div>
-              </div>
-
-              <p class="review-card__text">"{{ review.text }}"</p>
-
-              <footer class="review-card__footer">
-                <div class="review-card__person">
-                  <div class="review-card__avatar">{{ review.name.charAt(0) }}</div>
-                  <div class="review-card__meta">
-                    <strong>{{ review.name }}</strong>
-                    <span>{{ review.role }}</span>
-                  </div>
-                </div>
-
-                <div class="review-card__badge" title="Подтверждённый участник">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M9 12l2 2 4-4" />
-                    <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
-                  </svg>
-                  <span>Участник</span>
-                </div>
-              </footer>
-            </article>
-          </div>
-
-          <div class="reviews-dots">
-            <button
-              v-for="(_, i) in filteredReviews"
-              :key="i"
-              type="button"
-              class="dot"
-              :class="{ active: activeDot === i }"
-              :aria-label="`Отзыв ${i + 1}`"
-              @click="scrollToCard(i)"
-            ></button>
-          </div>
         </div>
+
+        <dl class="reviews__stats">
+          <div class="stat" v-for="stat in stats" :key="stat.label">
+            <dt>{{ stat.label }}</dt>
+            <dd>{{ stat.value }}</dd>
+          </div>
+        </dl>
+      </header>
+
+      <div class="reviews__toolbar" v-reveal>
+        <div class="segmented" role="tablist" aria-label="Фильтр отзывов">
+          <button
+            v-for="f in filters"
+            :key="f.key"
+            type="button"
+            role="tab"
+            class="segmented__btn"
+            :class="{ 'is-active': activeFilter === f.key }"
+            :aria-selected="activeFilter === f.key ? 'true' : 'false'"
+            @click="activeFilter = f.key"
+          >{{ f.label }}</button>
+        </div>
+
+        <div class="reviews__controls">
+          <span class="reviews__counter" aria-live="polite">
+            <strong>{{ activeDot + 1 }}</strong> / {{ filteredReviews.length }}
+          </span>
+          <button class="ds-icon-btn" type="button" aria-label="Назад" :disabled="activeDot === 0" @click="scrollLeft">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="ds-icon-btn" type="button" aria-label="Вперёд" :disabled="activeDot >= filteredReviews.length - 1" @click="scrollRight">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="reviews__track" ref="scrollContainer" tabindex="0" aria-label="Отзывы, листайте горизонтально">
+        <article class="review" v-for="(review, index) in filteredReviews" :key="review.name">
+          <div class="review__top">
+            <div class="review__stars" :aria-label="`Оценка ${review.rating} из 5`" role="img">
+              <svg v-for="i in 5" :key="i" width="18" height="18" viewBox="0 0 24 24" :class="i <= review.rating ? 'is-on' : 'is-off'" aria-hidden="true">
+                <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z" fill="currentColor"/>
+              </svg>
+            </div>
+            <span class="review__badge" title="Подтверждённый участник">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+              Участник
+            </span>
+          </div>
+
+          <blockquote class="review__text">«{{ review.text }}»</blockquote>
+
+          <footer class="review__person">
+            <span class="review__avatar" :class="`tone-${index % 4}`" aria-hidden="true">{{ review.name.charAt(0) }}</span>
+            <span class="review__meta">
+              <strong>{{ review.name }}</strong>
+              <span>{{ review.role }}</span>
+            </span>
+          </footer>
+        </article>
+      </div>
+
+      <div class="reviews__progress" aria-hidden="true">
+        <span :style="{ width: progressWidth }"></span>
       </div>
     </div>
   </section>
@@ -99,8 +82,6 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 const scrollContainer = ref(null)
-const sectionRef = ref(null)
-const isVisible = ref(false)
 const activeDot = ref(0)
 const activeFilter = ref('all')
 
@@ -167,10 +148,16 @@ const filteredReviews = computed(() => {
   return reviews.filter((r) => r.type === activeFilter.value)
 })
 
+const progressWidth = computed(() => {
+  const total = filteredReviews.value.length || 1
+  return `${((activeDot.value + 1) / total) * 100}%`
+})
+
 const getCardStep = () => {
-  const firstCard = scrollContainer.value?.children[0]
+  const track = scrollContainer.value
+  const firstCard = track?.children[0]
   if (!firstCard) return 360
-  const gap = 24
+  const gap = parseFloat(getComputedStyle(track).columnGap) || 20
   return firstCard.getBoundingClientRect().width + gap
 }
 
@@ -179,9 +166,14 @@ const clampActiveDot = (value) => {
 }
 
 const updateDot = () => {
-  if (!scrollContainer.value) return
-  const step = getCardStep()
-  clampActiveDot(Math.round(scrollContainer.value.scrollLeft / step))
+  const track = scrollContainer.value
+  if (!track) return
+  // В конце ленты последний отзыв считается активным, даже если он не доехал до левого края.
+  if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 4) {
+    clampActiveDot(filteredReviews.value.length - 1)
+    return
+  }
+  clampActiveDot(Math.round(track.scrollLeft / getCardStep()))
 }
 
 const scrollLeft = () => {
@@ -192,14 +184,6 @@ const scrollRight = () => {
   scrollContainer.value?.scrollBy({ left: getCardStep(), behavior: 'smooth' })
 }
 
-const scrollToCard = (index) => {
-  const card = scrollContainer.value?.children[index]
-  card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
-  clampActiveDot(index)
-}
-
-let observer = null
-
 watch(activeFilter, () => {
   activeDot.value = 0
   if (scrollContainer.value) scrollContainer.value.scrollLeft = 0
@@ -207,404 +191,272 @@ watch(activeFilter, () => {
 
 onMounted(() => {
   scrollContainer.value?.addEventListener('scroll', updateDot, { passive: true })
-
-  observer = new IntersectionObserver(
-    ([entry]) => {
-      if (entry.isIntersecting) {
-        isVisible.value = true
-        observer?.disconnect()
-      }
-    },
-    { threshold: 0.18, rootMargin: '0px 0px -40px 0px' }
-  )
-
-  if (sectionRef.value) {
-    observer.observe(sectionRef.value)
-  }
-
   updateDot()
 })
 
 onUnmounted(() => {
   scrollContainer.value?.removeEventListener('scroll', updateDot)
-  observer?.disconnect()
 })
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
-.reviews-section {
+.reviews {
+  padding: clamp(64px, 9vw, 112px) 0 clamp(72px, 10vw, 120px);
   background: var(--bg);
-  padding: 84px 0 96px;
   overflow: hidden;
 }
 
-.reviews-inner {
-  max-width: 1240px;
+.reviews__inner {
+  max-width: 1248px;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 24px;
 }
 
-.reviews-layout {
+.reviews__head {
   display: grid;
-  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 40px;
-  align-items: center;
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0s, transform 0s;
+  align-items: end;
+  margin-bottom: 36px;
 }
 
-.reviews-section.visible .reviews-layout {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.55s cubic-bezier(0.23, 1, 0.32, 1), transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.reviews-sidebar {
+.reviews__intro {
   display: grid;
-  gap: 20px;
-  align-content: center;
+  justify-items: start;
+  gap: 14px;
 }
 
-.reviews-eyebrow {
-  display: inline-flex;
-  width: fit-content;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: #8b6c11;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.reviews-sidebar h2 {
-  margin: 0;
-  color: var(--text);
-  font-size: clamp(34px, 4vw, 52px);
-  line-height: 0.98;
-  text-wrap: balance;
-}
-
-.reviews-lead {
-  margin: 0;
+.reviews__lead {
+  max-width: 46ch;
   color: var(--text-secondary);
-  font-size: 17px;
-  line-height: 1.7;
-  max-width: 34ch;
+  font-size: 18px;
 }
 
-.reviews-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filter-btn {
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.filter-btn.active,
-.filter-btn:hover {
-  background: var(--green);
-  border-color: var(--green);
-  color: #ffffff;
-}
-
-.reviews-stats {
+.reviews__stats {
   display: grid;
-  gap: 10px;
-}
-
-.stat-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.stat-row strong {
-  color: var(--green);
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1;
-  font-weight: 900;
-}
-
-.stat-row span {
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.4;
-}
-
-.reviews-controls {
-  display: flex;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  padding-top: 6px;
-}
-
-.scroll-btn {
-  width: 54px;
-  height: 54px;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .scroll-btn:hover {
-    transform: translateY(-2px);
-    border-color: rgba(22, 163, 74, 0.22);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  }
-}
-
-.scroll-btn:active {
-  transform: scale(0.95);
-  transition-duration: 0.1s;
-}
-
-.reviews-content {
-  min-width: 0;
-}
-
-.reviews-track {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 10px 6px 18px;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.reviews-track::-webkit-scrollbar {
-  display: none;
-}
-
-.review-card {
-  flex: 0 0 min(420px, calc(100vw - 96px));
-  min-height: 340px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 34px;
-  border-radius: 28px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  scroll-snap-align: start;
-  transition: transform 0.24s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.24s ease, border-color 0.24s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .review-card:hover {
-    transform: translateY(-6px);
-    border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  }
-}
-
-.review-card__top {
-  display: grid;
-  gap: 8px;
-}
-
-.review-card__quote {
-  color: var(--accent);
-  opacity: 0.82;
-}
-
-.review-card__stars {
-  display: flex;
-  gap: 3px;
-}
-
-.review-card__text {
   margin: 0;
-  color: var(--text);
-  font-size: 17px;
-  line-height: 1.75;
-  flex: 1;
 }
 
-.review-card__footer {
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.stat:nth-child(1) { background: var(--brand); border-color: transparent; }
+.stat:nth-child(1) dd,
+.stat:nth-child(1) dt { color: #ffffff; }
+.stat:nth-child(1) dt { opacity: 0.82; }
+.stat:nth-child(3) { background: var(--sun-soft); border-color: transparent; }
+
+.stat dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat dt {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ---- Панель управления ---- */
+.reviews__toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-top: 20px;
+  margin-bottom: 20px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-alt);
+}
+
+.segmented__btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.segmented__btn:hover { color: var(--text); }
+
+.segmented__btn.is-active {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.reviews__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviews__counter {
+  margin-right: 6px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.reviews__counter strong { color: var(--text); }
+
+.ds-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- Лента ---- */
+.reviews__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(300px, calc((100% - 40px) / 3));
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 4px;
+  padding: 4px 4px 12px;
+  margin: 0 -4px;
+  scrollbar-width: none;
+  border-radius: var(--radius-lg);
+}
+
+.reviews__track::-webkit-scrollbar { display: none; }
+
+.review {
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .review:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+}
+
+.review__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review__stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.review__stars .is-on { color: #ffb800; }
+.review__stars .is-off { color: var(--bg-alt); }
+
+.review__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  background: var(--success-soft);
+  color: var(--success-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.review__text {
+  flex: 1;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.review__person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
 }
 
-.review-card__person {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.review-card__avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--green);
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 800;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-
-.review-card__meta {
-  min-width: 0;
+.review__avatar {
+  width: 44px;
+  height: 44px;
   display: grid;
-  gap: 4px;
-}
-
-.review-card__meta strong {
-  color: var(--text);
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.review-card__meta span {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.review-card__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: var(--green-soft);
-  color: var(--green-strong);
-  border: 1px solid rgba(22, 163, 74, 0.18);
-  font-size: 13px;
+  place-items: center;
+  border-radius: 14px;
+  font-size: 17px;
   font-weight: 700;
-  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.reviews-dots {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-  padding-right: 8px;
+.tone-0 { background: var(--brand-soft); color: var(--brand-ink); }
+.tone-1 { background: var(--sun-soft); color: var(--sun-ink); }
+.tone-2 { background: var(--tone-violet-soft); color: var(--tone-violet); }
+.tone-3 { background: var(--tone-teal-soft); color: #0d8a7c; }
+
+.review__meta {
+  display: grid;
+  line-height: 1.3;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.12);
-  cursor: pointer;
-  transition: width 0.22s ease, background 0.22s ease;
+.review__meta strong { font-size: 15px; }
+.review__meta span { color: var(--text-secondary); font-size: 14px; }
+
+.reviews__progress {
+  height: 4px;
+  margin-top: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-alt);
+  overflow: hidden;
 }
 
-.dot.active {
-  width: 30px;
-  background: var(--green);
+.reviews__progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transition: width var(--dur-slow) var(--ease-out);
 }
 
-.dark .dot {
-  background: rgba(241, 245, 249, 0.16);
+@media (max-width: 960px) {
+  .reviews__head { grid-template-columns: 1fr; gap: 28px; align-items: start; }
+  .reviews__stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .reviews__track { grid-auto-columns: minmax(280px, calc((100% - 20px) / 2)); }
 }
 
-@media (max-width: 1080px) {
-  .reviews-layout {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-
-  .reviews-sidebar {
-    max-width: 760px;
-  }
-
-  .reviews-sidebar h2 {
-    max-width: 12ch;
-  }
-
-  .reviews-controls {
-    display: none;
-  }
-
-  .reviews-dots {
-    justify-content: center;
-    padding-right: 0;
-  }
-}
-
-@media (max-width: 680px) {
-  .reviews-section {
-    padding: 68px 0 78px;
-  }
-
-  .reviews-inner {
-    padding: 0 16px;
-  }
-
-  .reviews-sidebar h2 {
-    font-size: clamp(30px, 9vw, 42px);
-  }
-
-  .reviews-lead {
-    font-size: 16px;
-  }
-
-  .reviews-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 20px;
-  }
-
-  .stat-row {
-    display: grid;
-    gap: 2px;
-  }
-
-  .stat-row strong {
-    font-size: 28px;
-  }
-
-  .review-card {
-    flex-basis: min(88vw, 360px);
-    min-height: 320px;
-    padding: 26px 22px;
-  }
-
-  .review-card__text {
-    font-size: 16px;
-  }
-
-  .review-card__footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+@media (max-width: 640px) {
+  .reviews__inner { padding: 0 16px; }
+  .reviews__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reviews__toolbar { flex-direction: column; align-items: stretch; }
+  .segmented { display: flex; }
+  .segmented__btn { flex: 1; padding: 8px 10px; }
+  .reviews__controls { justify-content: flex-end; }
+  .reviews__track { grid-auto-columns: 86%; gap: 12px; }
+  .review { padding: 22px; }
 }
 </style>

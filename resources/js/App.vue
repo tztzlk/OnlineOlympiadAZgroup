@@ -28,9 +28,10 @@ watch(() => route.path, async () => {
 
 <template>
   <div class="app-root">
+    <a href="#main-content" class="skip-link">Перейти к содержимому</a>
     <Header v-if="showChrome" />
 
-    <main class="app-main">
+    <main id="main-content" class="app-main" tabindex="-1">
       <router-view />
     </main>
 
@@ -66,10 +67,14 @@ html, body {
   max-width: 100vw;
 }
 
+.app-main:focus {
+  outline: none;
+}
+
 .offer-modal {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--z-modal);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -81,8 +86,8 @@ html, body {
   position: fixed;
   inset: 0;
   background: var(--overlay);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .offer-modal-content {

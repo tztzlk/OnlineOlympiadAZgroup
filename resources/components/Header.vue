@@ -1,147 +1,169 @@
 <template>
-  <header class="header" :class="{ scrolled: isScrolled, transparent: isTransparent }">
-    <div class="header__container">
+  <header class="header" :class="{ 'is-scrolled': isScrolled, 'is-home': isHome }">
+    <div class="header__bar">
 
       <!-- Логотип -->
-      <router-link to="/" class="header__logo">
-        <div class="logo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      <router-link to="/" class="logo" aria-label="Eurika — на главную">
+        <span class="logo__mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/>
           </svg>
-        </div>
-        <span>Eurika!</span>
+        </span>
+        <span class="logo__text">Eurika!</span>
       </router-link>
 
       <!-- Навигация -->
-      <nav class="header__nav">
-        <router-link to="/" class="header__link">Главная</router-link>
-        <router-link to="/subject" class="header__link">Предметы</router-link>
-        <router-link to="/rules" class="header__link">Правила</router-link>
+      <nav class="nav" aria-label="Основная навигация">
+        <router-link to="/" class="nav__link" exact-active-class="is-active">Главная</router-link>
+        <router-link to="/subject" class="nav__link" active-class="is-active">Предметы</router-link>
+        <router-link to="/rules" class="nav__link" active-class="is-active">Правила</router-link>
       </nav>
 
       <!-- Тема и пользователь -->
-      <div class="header__user">
+      <div class="actions">
         <button
           type="button"
-          class="header__theme-toggle"
+          class="icon-btn"
           :aria-label="isDark ? 'Светлая тема' : 'Тёмная тема'"
+          :title="isDark ? 'Светлая тема' : 'Тёмная тема'"
           @click="toggleTheme"
         >
-          <svg v-if="isDark" class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
           </svg>
-          <svg v-else class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
           </svg>
         </button>
-        <template v-if="loading">
-          <div class="skeleton-user"></div>
-        </template>
+
+        <div v-if="loading" class="skeleton-user ds-skeleton" aria-hidden="true"></div>
+
         <template v-else>
-          <router-link v-if="userStore.isAuthenticated" to="/profile" class="header__profile">
-            <div class="header__avatar">{{ avatarLetter }}</div>
-            <span>{{ user?.name || 'Профиль' }}</span>
-          </router-link>
-          <button v-if="userStore.isAuthenticated" class="btn-logout" @click="logout">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-            Выйти
-          </button>
+          <template v-if="userStore.isAuthenticated">
+            <router-link to="/profile" class="profile-pill">
+              <span class="avatar" aria-hidden="true">{{ avatarLetter }}</span>
+              <span class="profile-pill__name">{{ user?.name || 'Профиль' }}</span>
+            </router-link>
+            <button type="button" class="logout-btn" @click="logout">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              Выйти
+            </button>
+          </template>
           <template v-else>
-            <router-link to="/login" class="btn-ghost">Войти</router-link>
-            <router-link to="/register" class="btn-primary">Регистрация</router-link>
+            <router-link to="/login" class="ds-btn ds-btn-ghost ds-btn-sm">Войти</router-link>
+            <router-link to="/register" class="ds-btn ds-btn-primary ds-btn-sm">Регистрация</router-link>
           </template>
         </template>
       </div>
 
       <!-- Бургер -->
-      <button class="burger" @click="toggleMenu" :class="{ active: menuOpen }" aria-label="Меню">
+      <button
+        type="button"
+        class="burger"
+        :class="{ 'is-open': menuOpen }"
+        :aria-expanded="menuOpen ? 'true' : 'false'"
+        aria-controls="mobile-menu"
+        aria-label="Меню"
+        @click="toggleMenu"
+      >
         <span></span><span></span><span></span>
       </button>
     </div>
 
-    <!-- Overlay -->
+    <!-- Затемнение -->
     <transition name="fade">
-      <div v-if="menuOpen" class="overlay" @click="closeMenu"></div>
+      <div v-if="menuOpen" class="overlay" aria-hidden="true" @click="closeMenu"></div>
     </transition>
 
     <!-- Мобильное меню -->
-    <transition name="slide">
-      <div v-if="menuOpen" class="mobile-menu">
-        <div class="mobile-menu__header">
-          <div class="logo-icon small">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    <transition name="drawer">
+      <aside v-if="menuOpen" id="mobile-menu" class="drawer" aria-label="Меню" @keydown.esc="closeMenu">
+        <div class="drawer__head">
+          <span class="logo__mark logo__mark--sm" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/>
             </svg>
-          </div>
-          <span class="mobile-menu__title">Eurika!</span>
-          <button class="mobile-close" @click="closeMenu">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </span>
+          <span class="drawer__title">Eurika!</span>
+          <button ref="closeButton" type="button" class="icon-btn icon-btn--sm" aria-label="Закрыть меню" @click="closeMenu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
           </button>
         </div>
 
-        <div v-if="userStore.isAuthenticated && user" class="mobile-profile">
-          <div class="mobile-avatar">{{ avatarLetter }}</div>
-          <div>
-            <div class="mobile-name">{{ user.name }}</div>
-            <div class="mobile-role">Участник олимпиады</div>
+        <div v-if="userStore.isAuthenticated && user" class="drawer__profile">
+          <span class="avatar avatar--lg" aria-hidden="true">{{ avatarLetter }}</span>
+          <div class="drawer__profile-text">
+            <div class="drawer__name">{{ user.name }}</div>
+            <div class="drawer__role">Участник олимпиады</div>
           </div>
         </div>
 
-        <nav class="mobile-nav">
-          <router-link @click="closeMenu" to="/" class="mobile-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <nav class="drawer__nav" aria-label="Мобильная навигация">
+          <router-link @click="closeMenu" to="/" class="drawer__link" exact-active-class="is-active">
+            <span class="drawer__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            </span>
             Главная
           </router-link>
-          <router-link @click="closeMenu" to="/subject" class="mobile-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <router-link @click="closeMenu" to="/subject" class="drawer__link" active-class="is-active">
+            <span class="drawer__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>
+            </span>
             Предметы
           </router-link>
-          <router-link @click="closeMenu" to="/rules" class="mobile-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <router-link @click="closeMenu" to="/rules" class="drawer__link" active-class="is-active">
+            <span class="drawer__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            </span>
             Правила
           </router-link>
-          <router-link @click="closeMenu" to="/results" class="mobile-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <router-link @click="closeMenu" to="/results" class="drawer__link" active-class="is-active">
+            <span class="drawer__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            </span>
             Результаты
           </router-link>
-          <router-link v-if="userStore.isAuthenticated" @click="closeMenu" to="/profile" class="mobile-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <router-link v-if="userStore.isAuthenticated" @click="closeMenu" to="/profile" class="drawer__link" active-class="is-active">
+            <span class="drawer__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
             Профиль
           </router-link>
         </nav>
 
-        <div class="mobile-footer">
-          <button type="button" class="mobile-theme-toggle" :aria-label="isDark ? 'Светлая тема' : 'Тёмная тема'" @click="toggleTheme(); closeMenu();">
-            <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <div class="drawer__foot">
+          <button type="button" class="drawer__theme" :aria-label="isDark ? 'Светлая тема' : 'Тёмная тема'" @click="toggleTheme(); closeMenu();">
+            <svg v-if="isDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
             <span>{{ isDark ? 'Светлая тема' : 'Тёмная тема' }}</span>
           </button>
-          <button v-if="userStore.isAuthenticated" @click="logout" class="mobile-btn-logout">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          <button v-if="userStore.isAuthenticated" type="button" @click="logout" class="ds-btn ds-btn-danger ds-btn-block">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>
             </svg>
             Выйти из аккаунта
           </button>
           <template v-else>
-            <router-link @click="closeMenu" to="/login" class="mobile-btn-ghost">Войти</router-link>
-            <router-link @click="closeMenu" to="/register" class="mobile-btn-primary">Регистрация</router-link>
+            <router-link @click="closeMenu" to="/login" class="ds-btn ds-btn-ghost ds-btn-block">Войти</router-link>
+            <router-link @click="closeMenu" to="/register" class="ds-btn ds-btn-primary ds-btn-block">Регистрация</router-link>
           </template>
         </div>
-      </div>
+      </aside>
     </transition>
 
     <router-link v-if="showStickyOlympiadCta" to="/subject" class="sticky-cta">
       Выбрать олимпиаду
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </router-link>
   </header>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useTheme } from '../js/composables/useTheme'
@@ -151,6 +173,7 @@ const router = useRouter()
 const { isDark, toggle: toggleTheme } = useTheme()
 const menuOpen = ref(false)
 const loading = ref(true)
+const closeButton = ref(null)
 const userStore = useUserStore()
 
 const user = computed(() => userStore.user)
@@ -165,9 +188,8 @@ const closeMenu = () => menuOpen.value = false
 
 const logout = async () => {
   try {
-    await api.post('/logout', {}, {
-      headers: { Authorization: `Bearer ${userStore.token}` }
-    })
+    // Отзываем токен на сервере, чтобы он перестал работать сразу после выхода.
+    await api.post('/auth/logout')
   } catch {}
   userStore.logout()
   router.push('/')
@@ -177,7 +199,6 @@ const logout = async () => {
 const isScrolled = ref(false)
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
-const isTransparent = computed(() => isHome.value && !isScrolled.value)
 const showStickyOlympiadCta = computed(() => {
   if (route.path === '/subject') return false
   if (route.path === '/register') return false
@@ -189,11 +210,19 @@ const showStickyOlympiadCta = computed(() => {
 })
 
 const handleScroll = () => {
-  isScrolled.value = window.scrollY > 20
+  isScrolled.value = window.scrollY > 12
 }
 
-watch(menuOpen, (value) => {
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && menuOpen.value) closeMenu()
+}
+
+watch(menuOpen, async (value) => {
   document.body.style.overflow = value ? 'hidden' : ''
+  if (value) {
+    await nextTick()
+    closeButton.value?.focus()
+  }
 })
 
 watch(() => route.fullPath, () => {
@@ -201,553 +230,452 @@ watch(() => route.fullPath, () => {
 })
 
 onMounted(async () => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('keydown', handleKeydown)
+  handleScroll()
   await userStore.fetchUser()
   loading.value = false
-  window.addEventListener('scroll', handleScroll)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('keydown', handleKeydown)
   document.body.style.overflow = ''
 })
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
 .header {
-  width: 100%;
-  background: color-mix(in srgb, var(--card) 97%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   position: fixed;
-  top: 0;
-  z-index: 1000;
-  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-}
-.dark .header {
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  inset: 0 0 auto;
+  z-index: var(--z-header);
+  padding: 10px 16px 0;
+  pointer-events: none;
 }
 
-/* Transparent on homepage before scroll — light hero, so keep dark text */
-.header.transparent {
-  background: rgba(255, 255, 255, 0.72);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-:global(.dark) .header.transparent {
-  background: rgba(17, 24, 39, 0.8);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-.header__container {
+.header__bar {
+  pointer-events: auto;
   max-width: 1200px;
-  height: 68px;
+  height: 60px;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 10px 0 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  transition: box-shadow var(--dur-slow) ease, background-color var(--dur-slow) ease;
 }
 
-/* Logo */
-.header__logo {
-  display: flex;
+.header.is-scrolled .header__bar {
+  background: color-mix(in srgb, var(--card) 96%, transparent);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- Логотип ---- */
+.logo {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  flex-shrink: 0;
-}
-.header__logo span {
-  font-size: 18px;
-  font-weight: 700;
   color: var(--text);
-  white-space: nowrap;
-  transition: color 0.4s ease;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
 }
-/* transparent header inherits normal dark text — no override needed */
-.logo-icon {
-  width: 36px;
-  height: 36px;
-  background: var(--green);
+
+.logo__mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: var(--sun);
+  box-shadow: var(--shadow-brand);
+  transform: rotate(-6deg);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.logo__mark--sm {
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  flex-shrink: 0;
-  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.28);
-}
-.logo-icon.small {
-  width: 28px; height: 28px;
-  border-radius: 8px;
-}
-
-/* Nav */
-.header__nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.header__link {
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
-  padding: 7px 14px;
-  border-radius: 10px;
-  transition: color 0.25s ease, background 0.25s ease;
-}
-.header__link:hover,
-.header__link.router-link-active {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-}
-/* nav links use normal theme colors on transparent header */
-
-/* User area */
-.header__user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.header__theme-toggle {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-.header__theme-toggle:hover {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-.theme-icon {
-  flex-shrink: 0;
-}
-/* theme toggle: same as scrolled state on light background */
-
-.header__profile {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  text-decoration: none;
-  padding: 6px 14px 6px 6px;
-  border-radius: 40px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--text) 4%, transparent);
-  transition: border-color 0.25s ease, background 0.25s ease;
-}
-.header__profile:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-.header__profile span {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  transition: color 0.3s;
-}
-/* profile pill: same as scrolled state on light background */
-
-.header__avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.btn-ghost {
-  padding: 8px 16px;
-  border-radius: 12px;
-  background: transparent;
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
-  transition: background 0.25s ease;
-  cursor: pointer;
-}
-.btn-ghost:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-/* btn-ghost: same on transparent — inherits normal styles */
-.btn-ghost:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
-.header.transparent .btn-ghost {
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--accent);
-  border: 2px solid color-mix(in srgb, var(--accent) 45%, white 55%);
-}
-.header.transparent .btn-ghost:hover { background: rgba(255, 255, 255, 0.94); }
-
-.btn-primary {
-  padding: 8px 18px;
-  border-radius: 12px;
-  background: var(--green);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.28);
-  transition: all 0.2s;
-}
-.btn-primary:hover {
-  background: var(--green-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.34);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .btn-primary:hover {
-    background: var(--green-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34);
-  }
+  .logo:hover .logo__mark { transform: rotate(6deg) scale(1.04); }
 }
 
-.btn-primary:active {
-  transform: scale(0.96);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.22);
-  transition-duration: 0.1s;
+.logo__text {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
-.btn-logout {
+/* ---- Навигация ---- */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: auto;
+}
+
+.nav__link {
+  position: relative;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--dur) ease, background-color var(--dur) ease;
+}
+
+.nav__link:hover {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.nav__link.is-active {
+  color: var(--brand-ink);
+  background: var(--brand-soft);
+  font-weight: 600;
+}
+
+/* ---- Действия ---- */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-secondary);
+}
+
+.icon-btn:hover {
+  color: var(--brand-ink);
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
+  background: var(--brand-softer);
+}
+
+.icon-btn--sm {
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+}
+
+.profile-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 220px;
+  padding: 4px 14px 4px 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--card);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color var(--dur) ease, background-color var(--dur) ease;
+}
+
+.profile-pill:hover {
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
+  background: var(--brand-softer);
+}
+
+.profile-pill__name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--sun);
+  color: #1f1600;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.avatar--lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  font-size: 18px;
+}
+
+.logout-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  background: rgba(73, 168, 107, 0.12);
-  color: #2f7f4b;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid rgba(73, 168, 107, 0.26);
-  cursor: pointer;
-  transition: background 0.25s ease;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
 }
-.btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
-/* btn-logout: inherits same green style on light background */
-.btn-logout:active { background: rgba(73, 168, 107, 0.24); }
-:global(.dark) .btn-logout { color: var(--green-strong); }
-.header.transparent .btn-logout {
-  background: rgba(73, 168, 107, 0.12);
-  color: #2f7f4b;
-  border-color: rgba(73, 168, 107, 0.26);
-}
-.header.transparent .btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
 
-/* Skeleton */
+.logout-btn:hover {
+  color: var(--danger-ink);
+  background: var(--danger-soft);
+}
+
 .skeleton-user {
-  width: 120px;
-  height: 36px;
-  border-radius: 40px;
-  background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.4s infinite;
-}
-@keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  width: 150px;
+  height: 42px;
+  border-radius: var(--radius-pill);
 }
 
-/* Burger */
+/* ---- Бургер ---- */
 .burger {
   display: none;
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
-  padding: 8px;
-  border-radius: 10px;
-  background: transparent;
+  width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  margin-left: auto;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  background: var(--card);
 }
-.burger:hover { background: var(--accent-soft); border-color: rgba(245, 200, 66, 0.4); }
+
 .burger span {
   display: block;
   height: 2px;
-  background: var(--text);
   border-radius: 2px;
-  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
-  transform-origin: center;
+  background: var(--text);
+  transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur) ease;
 }
-.burger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.burger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* Overlay */
+.burger.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.burger.is-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.burger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ---- Мобильное меню ---- */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 15, 15, 0.6);
+  z-index: var(--z-overlay);
+  background: var(--overlay);
   backdrop-filter: blur(4px);
-  z-index: 1500;
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
-/* Mobile menu */
-.mobile-menu {
+.drawer {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 300px;
-  height: 100vh;
-  background: var(--surface);
-  border-right: 1px solid var(--surface-border);
-  box-shadow: 8px 0 40px rgba(0, 0, 0, 0.4);
+  right: 0;
+  z-index: var(--z-drawer);
+  width: min(340px, 88vw);
+  height: 100dvh;
   display: flex;
   flex-direction: column;
-  z-index: 2000;
+  background: var(--card);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
   overflow-y: auto;
+  pointer-events: auto;
+  overscroll-behavior: contain;
 }
 
-.mobile-menu__header {
+.drawer__head {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 20px 20px 18px;
-  border-bottom: 1px solid var(--surface-border);
+  padding: 16px 16px 16px 20px;
 }
-.mobile-menu__title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-on-surface);
-  flex: 1;
-}
-.mobile-close {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  background: var(--surface-soft);
-  border: 1px solid var(--surface-border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  color: var(--text-muted-on-surface);
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-.mobile-close:hover { background: rgba(208, 179, 107, 0.14); color: var(--accent); border-color: rgba(208, 179, 107, 0.28); }
 
-.mobile-profile {
+.drawer__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.drawer__profile {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 18px 20px;
-  background: var(--surface-soft);
-  border-bottom: 1px solid var(--surface-border);
+  margin: 4px 16px 8px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--brand-softer);
 }
-.mobile-avatar {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  background: var(--success-soft);
-  color: white;
+
+.drawer__profile-text { min-width: 0; }
+
+.drawer__name {
   font-size: 16px;
   font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 8px 18px rgba(73, 168, 107, 0.22);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.mobile-name { font-size: 15px; font-weight: 700; color: var(--text-on-surface); }
-.mobile-role {
-  font-size: 11px;
-  font-weight: 600;
-  color: #22663b;
-  background: rgba(73, 168, 107, 0.16);
-  padding: 2px 8px;
-  border-radius: 10px;
+
+.drawer__role {
   display: inline-block;
   margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: 12px;
+  font-weight: 600;
 }
-:global(.dark) .mobile-role { color: var(--green-strong); }
 
-.mobile-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
+.drawer__nav {
+  display: grid;
   gap: 4px;
+  padding: 8px 12px;
   flex: 1;
+  align-content: start;
 }
-.mobile-link {
+
+.drawer__link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
   text-decoration: none;
-  color: var(--text-on-surface);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+
+.drawer__icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+
+.drawer__link:hover { background: var(--surface-soft); }
+
+.drawer__link.is-active {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+
+.drawer__link.is-active .drawer__icon {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.drawer__foot {
+  display: grid;
+  gap: 10px;
+  padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+}
+
+.drawer__theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  color: var(--text);
   font-size: 15px;
   font-weight: 600;
-  padding: 12px 14px;
-  border-radius: 14px;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-.mobile-link svg { color: var(--text-muted-on-surface); flex-shrink: 0; }
-.mobile-link:hover,
-.mobile-link.router-link-active {
-  background: rgba(208, 179, 107, 0.14);
-  color: var(--accent);
-}
-.mobile-link:hover svg,
-.mobile-link.router-link-active svg { color: var(--accent); }
-
-.mobile-footer {
-  padding: 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.mobile-theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: color-mix(in srgb, var(--text) 6%, transparent);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-.mobile-theme-toggle:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-}
-.mobile-btn-logout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: rgba(73, 168, 107, 0.12);
-  color: #2f7f4b;
-  font-size: 14px;
-  font-weight: 700;
-  border: 1px solid rgba(73, 168, 107, 0.26);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.mobile-btn-logout:hover { background: rgba(73, 168, 107, 0.18); }
-.mobile-btn-logout:active { background: rgba(73, 168, 107, 0.26); }
-:global(.dark) .mobile-btn-logout { color: var(--green-strong); }
-
-.mobile-btn-ghost {
-  display: block;
-  text-align: center;
-  padding: 12px;
-  background: transparent;
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 700;
-  border: 2px solid rgba(208, 179, 107, 0.45);
-  border-radius: 14px;
-  text-decoration: none;
-  transition: background 0.2s ease;
-}
-.mobile-btn-ghost:hover { background: rgba(208, 179, 107, 0.14); }
-.mobile-btn-ghost:active { background: rgba(208, 179, 107, 0.22); }
-
-.mobile-btn-primary {
-  display: block;
-  text-align: center;
-  padding: 12px;
-  background: var(--green);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 14px;
-  text-decoration: none;
-  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28);
-  transition: all 0.2s;
-}
-.mobile-btn-primary:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(22, 163, 74, 0.34); }
-.mobile-btn-primary:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.22); transition-duration: 0.1s; }
-
-/* Transitions */
-.slide-enter-active, .slide-leave-active { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.slide-enter-from, .slide-leave-to { transform: translateX(-100%); }
-
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-/* Responsive */
-@media (max-width: 767px) {
-  .header__nav, .header__user { display: none; }
-  .burger { display: flex; }
-  .sticky-cta { display: inline-flex; }
 }
 
+.drawer__theme:hover { border-color: var(--brand); color: var(--brand-ink); }
+
+/* ---- Плавающая кнопка на мобильных ---- */
 .sticky-cta {
   position: fixed;
   left: 16px;
   right: 16px;
   bottom: max(16px, env(safe-area-inset-bottom));
-  min-height: 52px;
+  z-index: var(--z-sticky);
+  min-height: 54px;
   display: none;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
-  background: var(--green);
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 800;
+  gap: 8px;
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 16px;
+  font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.32);
-  z-index: 1400;
+  box-shadow: var(--shadow-brand), var(--shadow-md);
+  pointer-events: auto;
+  transition: transform var(--dur) var(--ease-out), background-color var(--dur) ease;
 }
 
-.sticky-cta:hover {
-  transform: translateY(-1px);
+.sticky-cta:active { transform: scale(0.98); }
+
+/* ---- Переходы ---- */
+.drawer-enter-active,
+.drawer-leave-active { transition: transform var(--dur-slow) var(--ease-out); }
+.drawer-enter-from,
+.drawer-leave-to { transform: translateX(100%); }
+
+.fade-enter-active,
+.fade-leave-active { transition: opacity var(--dur-slow) ease; }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
+
+/* ---- Адаптив ---- */
+@media (max-width: 900px) {
+  .nav__link { padding: 9px 10px; }
+  .profile-pill__name { display: none; }
+  .profile-pill { padding: 4px; }
+}
+
+@media (max-width: 767px) {
+  .header { padding: 8px 10px 0; }
+  .header__bar { height: 56px; padding: 0 6px 0 10px; border-radius: var(--radius-md); }
+  .nav,
+  .actions { display: none; }
+  .burger { display: flex; }
+  .sticky-cta { display: inline-flex; }
+  .logo__mark { width: 34px; height: 34px; }
+  .logo__text { font-size: 17px; }
 }
 
 @media (min-width: 768px) {
   .burger,
-  .mobile-menu,
+  .drawer,
   .overlay,
-  .sticky-cta {
-    display: none !important;
-  }
-}
-
-@media (max-width: 767px) {
-  .header__container {
-    height: 64px;
-    padding: 0 16px;
-  }
-
-  .header__logo span {
-    font-size: 16px;
-  }
-
-  .mobile-menu {
-    width: min(320px, 86vw);
-  }
+  .sticky-cta { display: none !important; }
 }
 </style>

@@ -6,9 +6,12 @@ import { createPinia } from 'pinia'
 import { useUserStore } from '../stores/user.js'
 import { i18n } from '../i18n.js'
 import { applySeo, getStaticSeoForPath } from './composables/useSeo.js'
+import reveal from './directives/reveal.js'
 
 const app = createApp(App)
 const pinia = createPinia()
+
+app.directive('reveal', reveal)
 
 app.use(pinia)
 app.use(router)
