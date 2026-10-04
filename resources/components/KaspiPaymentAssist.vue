@@ -1,15 +1,17 @@
 <template>
   <div class="kaspi-assist">
     <div class="kaspi-assist__main">
-      <a :href="paymentUrl" target="_blank" rel="noopener" class="kaspi-assist__button">
+      <a :href="paymentUrl" target="_blank" rel="noopener noreferrer" class="kaspi-assist__button">
+        <img :src="'/kaspi.png'" alt="" width="24" height="24" class="kaspi-assist__logo" />
         {{ isMobile ? mobileCta : desktopCta }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
       </a>
       <span class="kaspi-assist__hint">{{ hint }}</span>
     </div>
 
     <div v-if="showQr" class="kaspi-assist__qr">
       <div class="kaspi-assist__qr-code">
-        <QrcodeVue :value="paymentUrl" :size="148" level="M" render-as="svg" />
+        <QrcodeVue :value="paymentUrl" :size="140" level="M" render-as="svg" />
       </div>
       <div class="kaspi-assist__qr-copy">
         <strong>Оплата с телефона</strong>
@@ -71,10 +73,12 @@ onBeforeUnmount(() => {
 .kaspi-assist {
   display: grid;
   gap: 14px;
+  width: 100%;
 }
 
 .kaspi-assist__main {
   display: grid;
+  justify-items: start;
   gap: 6px;
 }
 
@@ -82,57 +86,70 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 12px 18px;
-  border-radius: 14px;
-  text-decoration: none;
+  gap: 10px;
+  min-height: 52px;
+  padding: 12px 20px 12px 14px;
+  border-radius: var(--radius-sm);
+  background: #f14635;
+  color: #ffffff;
+  font-size: 16px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--accent) 0%, #e3c06e 100%);
-  color: var(--text);
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(241, 70, 53, 0.3);
+  transition: background-color var(--dur) ease, transform var(--dur) var(--ease-out);
+}
+
+.kaspi-assist__button:hover { background: #dc3626; }
+.kaspi-assist__button:active { transform: scale(0.98); }
+
+.kaspi-assist__logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #ffffff;
+  object-fit: contain;
 }
 
 .kaspi-assist__hint {
-  font-size: 12px;
-  font-weight: 600;
   color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .kaspi-assist__qr {
   display: grid;
-  grid-template-columns: 164px 1fr;
-  gap: 16px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
   align-items: center;
   padding: 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(201,171,99,.24);
-  background: rgba(255,252,244,.82);
+  border-radius: var(--radius-md);
+  background: var(--bg);
 }
 
 .kaspi-assist__qr-code {
-  width: 164px;
-  height: 164px;
+  width: 156px;
+  height: 156px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
-  background: white;
-  box-shadow: inset 0 0 0 1px rgba(201,171,99,.18);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  box-shadow: var(--shadow-xs);
 }
 
 .kaspi-assist__qr-copy strong {
   display: block;
-  margin-bottom: 6px;
-  color: var(--text);
+  margin-bottom: 4px;
+  font-size: 16px;
 }
 
 .kaspi-assist__qr-copy p {
-  margin: 0;
   color: var(--text-secondary);
-  line-height: 1.6;
+  font-size: 14.5px;
+  line-height: 1.55;
 }
 
 @media (max-width: 640px) {
-  .kaspi-assist__button {
-    width: 100%;
-  }
+  .kaspi-assist__main { justify-items: stretch; }
+  .kaspi-assist__button { width: 100%; }
 }
 </style>

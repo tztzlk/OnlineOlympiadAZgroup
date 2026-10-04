@@ -1,7 +1,12 @@
 <template>
-  <div class="countdown-badge">
-    <p class="countdown-badge__label">{{ label }}</p>
-    <strong class="countdown-badge__value">{{ value }}</strong>
+  <div class="countdown-badge" :class="{ 'is-open': isOpen }">
+    <span class="countdown-badge__icon" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
+    </span>
+    <span class="countdown-badge__text">
+      <span class="countdown-badge__label">{{ label }}</span>
+      <strong class="countdown-badge__value">{{ value }}</strong>
+    </span>
   </div>
 </template>
 
@@ -15,6 +20,12 @@ const props = defineProps({
 
 const now = ref(Date.now())
 let timerId = null
+
+const isOpen = computed(() => {
+  if (!props.target) return false
+  const diff = new Date(props.target).getTime() - now.value
+  return !Number.isNaN(diff) && diff <= 0
+})
 
 const value = computed(() => {
   if (!props.target) {
@@ -53,22 +64,42 @@ onBeforeUnmount(() => {
 <style scoped>
 .countdown-badge {
   display: inline-flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgba(255, 252, 244, 0.88);
-  border: 1px solid var(--surface-border);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--sun-soft);
+}
+
+.countdown-badge__icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--card);
+  color: #d99a00;
+}
+
+.countdown-badge__text {
+  display: grid;
+  line-height: 1.25;
 }
 
 .countdown-badge__label {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--sun-ink);
+  font-size: 12.5px;
+  font-weight: 500;
 }
 
 .countdown-badge__value {
   color: var(--text);
-  font-size: 16px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
+
+.countdown-badge.is-open { background: var(--success-soft); }
+.countdown-badge.is-open .countdown-badge__icon { color: var(--success); }
+.countdown-badge.is-open .countdown-badge__label { color: var(--success-ink); }
 </style>

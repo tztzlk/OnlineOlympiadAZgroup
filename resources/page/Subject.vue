@@ -1,24 +1,25 @@
 <template>
   <div class="subject-page">
     <div class="container">
-      <div class="page-header">
+      <header class="page-header">
         <nav class="breadcrumbs" aria-label="Хлебные крошки">
           <RouterLink to="/">Главная</RouterLink>
-          <span>/</span>
+          <span aria-hidden="true">/</span>
           <span>Предметы</span>
-          <span>/</span>
-          <span>Оформление участия</span>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">Оформление участия</span>
         </nav>
-        <div class="page-badge">Предметы</div>
+        <span class="ds-eyebrow">Предметы</span>
         <h1 class="page-title">Выберите олимпиаду и ознакомьтесь с условиями участия</h1>
         <p class="page-subtitle">
           Выберите предмет, укажите участника и оформите участие.
         </p>
-      </div>
+      </header>
 
       <StatePanel
         v-if="pageLoading"
         tone="info"
+        loading
         eyebrow="Загрузка"
         title="Загружаем предметы"
         description="Подождите немного, собираем доступные олимпиады и статус участия."
@@ -32,32 +33,47 @@
         :description="pageError"
       >
         <template #actions>
-          <button type="button" class="step-link" @click="initializePage">Повторить загрузку</button>
+          <button type="button" class="ds-btn ds-btn-primary" @click="initializePage">Повторить загрузку</button>
         </template>
       </StatePanel>
 
       <template v-else>
-        <div class="subjects-grid">
+        <div class="subjects-grid" role="list">
           <div
-            v-for="subject in subjects"
+            v-for="(subject, index) in subjects"
             :key="subject.id"
+            v-reveal="index"
             class="subject-card"
-            :class="{ selected: selectedSubject?.id === subject.id }"
+            :class="[{ selected: selectedSubject?.id === subject.id }, `tone-${index % 4}`]"
+            role="button"
+            tabindex="0"
+            :aria-pressed="selectedSubject?.id === subject.id ? 'true' : 'false'"
             @click="selectSubject(subject)"
+            @keydown.enter.prevent="selectSubject(subject)"
+            @keydown.space.prevent="selectSubject(subject)"
           >
+            <span v-if="selectedSubject?.id === subject.id" class="subject-card__picked" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </span>
             <div class="subject-card__img-wrap">
-              <img :src="subject.image" :alt="subject.name" />
+              <img :src="subject.image" :alt="subject.name" loading="lazy" />
             </div>
-            <h2 class="subject-card__name">{{ subject.name }}</h2>
-            <p class="subject-card__desc">{{ subject.description }}</p>
-            <p class="subject-card__price">Участие: {{ formatPrice(subject.price) }}</p>
-            <CountdownBadge :target="subject.start_date" label="До старта" />
+            <div class="subject-card__body">
+              <h2 class="subject-card__name">{{ subject.name }}</h2>
+              <p class="subject-card__desc">{{ subject.description }}</p>
+            </div>
+            <div class="subject-card__meta">
+              <p class="subject-card__price">Участие: {{ formatPrice(subject.price) }}</p>
+              <CountdownBadge :target="subject.start_date" label="До старта" />
+            </div>
             <RouterLink
               class="subject-card__link"
               :to="`/subjects/${subject.id}`"
               @click.stop
+              @keydown.stop
             >
               Страница предмета
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </RouterLink>
           </div>
         </div>
@@ -70,11 +86,11 @@
           description="Как только организаторы откроют новый набор, карточки предметов появятся здесь."
         />
 
-        <div v-if="selectedSubject" ref="registrationBoxRef" class="step-box">
+        <section v-if="selectedSubject" ref="registrationBoxRef" class="step-box" aria-labelledby="step-box-title">
           <div class="step-box__header">
             <div>
-              <p class="page-badge soft">Шаг 1 из 3</p>
-              <h2>Оформление участия</h2>
+              <p class="step-pill">Шаг 1 из 3</p>
+              <h2 id="step-box-title">Оформление участия</h2>
               <p class="chosen">Предмет: <strong>{{ selectedSubject.name }}</strong></p>
               <p v-if="registrationDeadlineLabel" class="deadline-copy">
                 До закрытия регистрации: <strong>{{ registrationDeadlineLabel }}</strong>
@@ -88,7 +104,7 @@
               <p class="deadline-banner__eyebrow">Регистрация</p>
               <strong>{{ countdownStatusLabel }}</strong>
             </div>
-            <span v-if="countdownParts">{{ countdownParts }}</span>
+            <span v-if="countdownParts" class="deadline-banner__value">{{ countdownParts }}</span>
           </div>
 
           <section v-if="!canStartOlympiad" class="rules-card">
@@ -96,30 +112,37 @@
               type="button"
               class="rules-card__toggle"
               :aria-expanded="String(rulesExpanded)"
+              aria-controls="participation-rules"
               @click="rulesExpanded = !rulesExpanded"
             >
-              <div>
-                <p class="rules-card__eyebrow">Правила участия</p>
-                <h3>Правила теперь доступны прямо на странице оформления</h3>
-                <p class="rules-card__summary">Ознакомьтесь с условиями без перехода на отдельный экран.</p>
-              </div>
-              <span class="rules-card__action">{{ rulesExpanded ? 'Скрыть' : 'Открыть' }}</span>
+              <span class="rules-card__icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+              </span>
+              <span class="rules-card__text">
+                <span class="rules-card__eyebrow">Правила участия</span>
+                <span class="rules-card__title">Правила теперь доступны прямо на странице оформления</span>
+                <span class="rules-card__summary">Ознакомьтесь с условиями без перехода на отдельный экран.</span>
+              </span>
+              <span class="rules-card__action">
+                {{ rulesExpanded ? 'Скрыть' : 'Открыть' }}
+                <svg :class="{ 'is-open': rulesExpanded }" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </span>
             </button>
 
-            <div v-if="rulesExpanded" class="rules-card__body">
-              <div class="rules-card__notice">
+            <div v-if="rulesExpanded" id="participation-rules" class="rules-card__body">
+              <p class="ds-msg warning">
                 Нарушение правил может привести к аннулированию результатов. Участие в олимпиаде означает согласие с условиями платформы.
-              </div>
+              </p>
 
-              <div class="rules-list">
-                <article v-for="(rule, index) in participationRules" :key="rule.title" class="rule-item">
+              <ol class="rules-list">
+                <li v-for="(rule, index) in participationRules" :key="rule.title" class="rule-item">
                   <span class="rule-item__index">{{ String(index + 1).padStart(2, '0') }}</span>
                   <div>
                     <h4>{{ rule.title }}</h4>
                     <p>{{ rule.desc }}</p>
                   </div>
-                </article>
-              </div>
+                </li>
+              </ol>
             </div>
           </section>
 
@@ -131,146 +154,164 @@
             description="После входа можно сохранить данные ребёнка, сразу перейти к оплате и отслеживать подтверждение платежа."
           >
             <template #actions>
-              <RouterLink to="/login" class="step-link">Войти</RouterLink>
-              <RouterLink to="/register" class="step-link secondary">Регистрация</RouterLink>
+              <RouterLink to="/login" class="ds-btn ds-btn-primary">Войти</RouterLink>
+              <RouterLink to="/register" class="ds-btn ds-btn-ghost">Регистрация</RouterLink>
             </template>
           </StatePanel>
 
           <template v-else>
-            <!-- PROMINENT START BUTTON — shown first when access is already open -->
+            <!-- Доступ уже открыт — главная кнопка сразу наверху -->
             <div v-if="canStartOlympiad" class="start-hero">
-              <div class="start-hero__badge">Доступ открыт</div>
+              <span class="start-hero__badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                Доступ открыт
+              </span>
               <h3 class="start-hero__title">Олимпиада готова к прохождению</h3>
               <p class="start-hero__hint">Данные участника сохранены. Нажмите кнопку, чтобы начать.</p>
-              <button class="start-hero__btn" @click="goToQuiz">Начать олимпиаду →</button>
+              <button type="button" class="start-hero__btn" @click="goToQuiz">Начать олимпиаду →</button>
             </div>
 
             <template v-if="!canStartOlympiad">
-            <div class="flow-grid">
-              <article class="flow-step">
-                <span class="flow-step__index">1</span>
-                <div>
-                  <h3>Выберите участника</h3>
-                  <p>Можно использовать уже созданный профиль ребёнка или заполнить форму ниже для нового участника.</p>
-                </div>
-              </article>
-              <article class="flow-step">
-                <span class="flow-step__index">2</span>
-                <div>
-                  <h3>Сохраните данные и оплатите</h3>
-                  <p>Укажите язык олимпиады и контакты родителя. После сохранения откроется ссылка на оплату Kaspi.</p>
-                </div>
-              </article>
-              <article class="flow-step">
-                <span class="flow-step__index">3</span>
-                <div>
-                  <h3>Дождитесь подтверждения оплаты</h3>
-                  <p>После оплаты нажмите «Я оплатил». Дальше статус автосверки появится прямо на этой странице.</p>
-                </div>
-              </article>
-            </div>
+              <ol class="flow-grid">
+                <li class="flow-step">
+                  <span class="flow-step__index">1</span>
+                  <div>
+                    <h3>Выберите участника</h3>
+                    <p>Можно использовать уже созданный профиль ребёнка или заполнить форму ниже для нового участника.</p>
+                  </div>
+                </li>
+                <li class="flow-step">
+                  <span class="flow-step__index">2</span>
+                  <div>
+                    <h3>Сохраните данные и оплатите</h3>
+                    <p>Укажите язык олимпиады и контакты родителя. После сохранения откроется ссылка на оплату Kaspi.</p>
+                  </div>
+                </li>
+                <li class="flow-step">
+                  <span class="flow-step__index">3</span>
+                  <div>
+                    <h3>Дождитесь подтверждения оплаты</h3>
+                    <p>После оплаты нажмите «Я оплатил». Дальше статус автосверки появится прямо на этой странице.</p>
+                  </div>
+                </li>
+              </ol>
 
-            <div class="field">
-              <label>Ребёнок</label>
-              <select v-model="selectedChildId" class="step-input" @change="applyChildSelection">
-                <option value="">Создать или обновить профиль ребёнка из формы ниже</option>
-                <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
-                  {{ child.full_name }} · {{ child.grade || 'без класса' }}
-                </option>
-              </select>
-              <small v-if="!userStore.children.length" class="helper">
-                У вас пока нет профилей детей. Заполните форму ниже, и профиль создастся автоматически вместе с участием.
-              </small>
-            </div>
-
-            <div class="form-section-label">Данные ребёнка</div>
-
-            <div class="fields-row">
-              <div class="field">
-                <label>Имя</label>
-                <input v-model="form.first_name" placeholder="Введите имя" class="step-input" />
-              </div>
-              <div class="field">
-                <label>Фамилия</label>
-                <input v-model="form.last_name" placeholder="Введите фамилию" class="step-input" />
-              </div>
-            </div>
-
-            <div class="fields-row">
-              <div class="field">
-                <label>Дата рождения</label>
-                <div class="date-selects">
-                  <select v-model="birthDay" class="step-input date-select">
-                    <option value="">День</option>
-                    <option v-for="d in 31" :key="d" :value="d">{{ d }}</option>
+              <div class="form-card">
+                <label class="ds-field">
+                  <span class="ds-label">Ребёнок</span>
+                  <select v-model="selectedChildId" class="ds-input" @change="applyChildSelection">
+                    <option value="">Создать или обновить профиль ребёнка из формы ниже</option>
+                    <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
+                      {{ child.full_name }} · {{ child.grade || 'без класса' }}
+                    </option>
                   </select>
-                  <select v-model="birthMonth" class="step-input date-select">
-                    <option value="">Месяц</option>
-                    <option v-for="(m, i) in MONTHS" :key="i" :value="i + 1">{{ m }}</option>
-                  </select>
-                  <select v-model="birthYear" class="step-input date-select">
-                    <option value="">Год</option>
-                    <option v-for="y in BIRTH_YEARS" :key="y" :value="y">{{ y }}</option>
-                  </select>
-                </div>
+                  <small v-if="!userStore.children.length" class="ds-hint">
+                    У вас пока нет профилей детей. Заполните форму ниже, и профиль создастся автоматически вместе с участием.
+                  </small>
+                </label>
               </div>
-              <div class="field">
-                <label>Класс</label>
-                <select v-model.number="form.grade" class="step-input">
-                  <option disabled value="">Выберите класс</option>
-                  <option v-for="item in gradeOptions" :key="item" :value="item">{{ item }} класс</option>
+
+              <fieldset class="form-card">
+                <legend class="form-section-label">
+                  <span class="form-section-label__icon tone-child" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>
+                  </span>
+                  Данные ребёнка
+                </legend>
+
+                <div class="fields-row">
+                  <label class="ds-field">
+                    <span class="ds-label">Имя</span>
+                    <input v-model="form.first_name" placeholder="Введите имя" class="ds-input" autocomplete="off" />
+                  </label>
+                  <label class="ds-field">
+                    <span class="ds-label">Фамилия</span>
+                    <input v-model="form.last_name" placeholder="Введите фамилию" class="ds-input" autocomplete="off" />
+                  </label>
+                </div>
+
+                <div class="fields-row">
+                  <div class="ds-field">
+                    <span class="ds-label" id="birth-label">Дата рождения</span>
+                    <div class="date-selects" role="group" aria-labelledby="birth-label">
+                      <select v-model="birthDay" class="ds-input" aria-label="День">
+                        <option value="">День</option>
+                        <option v-for="d in 31" :key="d" :value="d">{{ d }}</option>
+                      </select>
+                      <select v-model="birthMonth" class="ds-input" aria-label="Месяц">
+                        <option value="">Месяц</option>
+                        <option v-for="(m, i) in MONTHS" :key="i" :value="i + 1">{{ m }}</option>
+                      </select>
+                      <select v-model="birthYear" class="ds-input" aria-label="Год">
+                        <option value="">Год</option>
+                        <option v-for="y in BIRTH_YEARS" :key="y" :value="y">{{ y }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <label class="ds-field">
+                    <span class="ds-label">Класс</span>
+                    <select v-model.number="form.grade" class="ds-input">
+                      <option disabled value="">Выберите класс</option>
+                      <option v-for="item in gradeOptions" :key="item" :value="item">{{ item }} класс</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="fields-row">
+                  <label class="ds-field">
+                    <span class="ds-label">Школа</span>
+                    <input v-model="form.school" placeholder="Название школы" class="ds-input" />
+                  </label>
+                  <label class="ds-field">
+                    <span class="ds-label">Город</span>
+                    <input v-model="form.city" list="kz-cities-subject" placeholder="Город" class="ds-input" />
+                    <datalist id="kz-cities-subject">
+                      <option v-for="c in KZ_CITIES" :key="c" :value="c" />
+                    </datalist>
+                  </label>
+                </div>
+
+                <!-- Язык пока выбирается автоматически (поле скрыто), значение уходит в заявку -->
+                <select v-model="form.language" class="visually-hidden-select" tabindex="-1" aria-hidden="true">
+                  <option value="ru">Русский</option>
+                  <option value="kk">Қазақша</option>
+                  <option value="en">English</option>
                 </select>
+              </fieldset>
+
+              <fieldset class="form-card">
+                <legend class="form-section-label">
+                  <span class="form-section-label__icon tone-parent" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+                  </span>
+                  Данные родителя
+                </legend>
+
+                <div class="fields-row">
+                  <label class="ds-field">
+                    <span class="ds-label">ФИО родителя</span>
+                    <input v-model="form.parent_name" placeholder="Полное имя" class="ds-input" autocomplete="name" />
+                  </label>
+                  <label class="ds-field">
+                    <span class="ds-label">Телефон</span>
+                    <input v-model="form.parent_phone" type="tel" inputmode="tel" placeholder="+7 (777) 777-77-77" class="ds-input" autocomplete="tel" />
+                  </label>
+                </div>
+
+                <label class="ds-field">
+                  <span class="ds-label">Email</span>
+                  <input v-model="form.parent_email" type="email" inputmode="email" placeholder="email@mail.ru" class="ds-input" autocomplete="email" />
+                </label>
+              </fieldset>
+
+              <div class="single-action">
+                <button type="button" :disabled="!canProceed || submitting" class="ds-btn ds-btn-primary ds-btn-lg start-btn" @click="startOlympiad">
+                  <span v-if="submitting" class="ds-spinner" aria-hidden="true"></span>
+                  {{ submitting ? 'Сохраняем...' : (isFree ? 'Записаться и начать' : 'Сохранить и перейти к оплате') }}
+                </button>
+                <p v-if="submitError" class="ds-msg error submit-error" role="alert">{{ submitError }}</p>
               </div>
-            </div>
-
-            <div class="fields-row">
-              <div class="field">
-                <label>Школа</label>
-                <input v-model="form.school" placeholder="Название школы" class="step-input" />
-              </div>
-              <div class="field">
-                <label>Город</label>
-                <input v-model="form.city" list="kz-cities-subject" placeholder="Город" class="step-input" />
-                <datalist id="kz-cities-subject">
-                  <option v-for="c in KZ_CITIES" :key="c" :value="c" />
-                </datalist>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Язык олимпиады</label>
-              <select v-model="form.language" class="step-input" style="display: none;">
-                <option value="ru">Русский</option>
-                <option value="kk">Қазақша</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-
-            <div class="divider"><span>Данные родителя</span></div>
-
-            <div class="fields-row">
-              <div class="field">
-                <label>ФИО родителя</label>
-                <input v-model="form.parent_name" placeholder="Полное имя" class="step-input" />
-              </div>
-              <div class="field">
-                <label>Телефон</label>
-                <input v-model="form.parent_phone" placeholder="+7 (777) 777-77-77" class="step-input" />
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Email</label>
-              <input v-model="form.parent_email" placeholder="email@mail.ru" class="step-input" />
-            </div>
-
-            <div class="single-action">
-              <button :disabled="!canProceed || submitting" class="start-btn" @click="startOlympiad">
-                {{ submitting ? 'Сохраняем...' : (isFree ? 'Записаться и начать' : 'Сохранить и перейти к оплате') }}
-              </button>
-              <p v-if="submitError" class="submit-error">{{ submitError }}</p>
-            </div>
-            </template><!-- end v-if="!canStartOlympiad" -->
+            </template>
 
             <StatePanel
               v-if="requestStatus"
@@ -288,10 +329,6 @@
                   mobile-cta="Оплатить через Kaspi"
                   desktop-cta="Открыть ссылку оплаты"
                 />
-                <div v-if="showKaspiButton" class="payment-action">
-                  <a :href="paymentUrl" target="_blank" rel="noopener" class="step-link">Оплатить через Kaspi</a>
-                  <span class="payment-action__hint">Оплата открывается в Kaspi</span>
-                </div>
               </template>
             </StatePanel>
 
@@ -299,37 +336,38 @@
               v-if="requestStatus && (paymentReference || paymentComment || showReportPaymentButton || paymentReportMessage)"
               class="payment-followup"
             >
-              <div v-if="paymentReference || paymentComment" class="payment-meta">
+              <dl v-if="paymentReference || paymentComment" class="payment-meta">
                 <div class="payment-meta__item">
-                  <span>Request ID</span>
-                  <strong>{{ paymentReference || '—' }}</strong>
+                  <dt>Request ID</dt>
+                  <dd>{{ paymentReference || '—' }}</dd>
                 </div>
                 <div class="payment-meta__item">
-                  <span>Комментарий к оплате</span>
-                  <strong>{{ paymentComment || paymentReference || '—' }}</strong>
+                  <dt>Комментарий к оплате</dt>
+                  <dd>{{ paymentComment || paymentReference || '—' }}</dd>
                 </div>
                 <div class="payment-meta__item">
-                  <span>Автосверка</span>
-                  <strong>{{ reconciliationDescription }}</strong>
+                  <dt>Автосверка</dt>
+                  <dd>{{ reconciliationDescription }}</dd>
                 </div>
-              </div>
+              </dl>
 
               <div v-if="showReportPaymentButton" class="payment-followup__actions">
                 <button
                   type="button"
-                  class="step-link secondary"
+                  class="ds-btn ds-btn-secondary ds-btn-lg"
                   :disabled="reportingPayment"
                   @click="reportPayment"
                 >
+                  <span v-if="reportingPayment" class="ds-spinner" aria-hidden="true"></span>
                   {{ reportingPayment ? 'Отмечаем оплату...' : 'Я оплатил' }}
                 </button>
                 <span class="payment-action__hint">{{ reconciliationDescription }}</span>
               </div>
 
-              <p v-if="paymentReportMessage" class="payment-feedback">{{ paymentReportMessage }}</p>
+              <p v-if="paymentReportMessage" class="ds-msg info" role="status">{{ paymentReportMessage }}</p>
             </div>
           </template>
-        </div>
+        </section>
       </template>
     </div>
   </div>
@@ -859,154 +897,567 @@ watch(selectedChildId, async () => {
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
+.subject-page {
+  min-height: 100dvh;
+  padding: calc(var(--header-h) + 28px) 0 96px;
+  background:
+    radial-gradient(800px 400px at 100% 0%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 70%),
+    var(--bg);
+}
 
-.subject-page { min-height: 100dvh; background: var(--bg); padding: 100px 28px 70px; }
-.container { max-width: 1100px; margin: 0 auto; display: grid; gap: 28px; }
+.container {
+  display: grid;
+  gap: 24px;
+}
 
-/* Left-aligned header — not centered (DESIGN_VARIANCE=8) */
-.page-header { display: grid; gap: 12px; justify-items: start; }
-.breadcrumbs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; font-size: 13px; color: var(--text-secondary); }
-.breadcrumbs a { color: var(--info); text-decoration: none; font-weight: 700; }
-.breadcrumbs a:hover { text-decoration: underline; }
+/* ---- Шапка ---- */
+.page-header {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  max-width: 760px;
+}
 
-.page-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #92660a; background: var(--accent-soft); padding: 5px 13px; border-radius: 999px; border: 1px solid rgba(245,200,66,0.3); margin-bottom: 6px; }
-.page-badge.soft { margin-bottom: 6px; }
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
 
-.page-title { font-size: clamp(26px, 3.5vw, 36px); font-weight: 800; color: var(--text); margin: 0; letter-spacing: -0.025em; line-height: 1.15; max-width: 680px; }
-.page-subtitle { font-size: 15px; color: var(--text-secondary); margin: 0; line-height: 1.7; max-width: 620px; }
+.breadcrumbs a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
 
-.funnel-progress { width: min(100%, 480px); padding: 14px 18px; border-radius: 18px; border: 1.5px solid var(--border); background: var(--card); box-shadow: var(--shadow-card); }
-.funnel-progress__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.funnel-progress__top strong { color: var(--text); font-size: 14px; font-weight: 700; }
-.funnel-progress__top span { color: var(--text-secondary); font-size: 13px; }
-.funnel-progress__track { width: 100%; height: 7px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; }
-.funnel-progress__fill { height: 100%; border-radius: inherit; background: var(--green); transition: width 0.4s ease; }
+.breadcrumbs a:hover { color: var(--brand-ink); }
+.breadcrumbs [aria-current] { color: var(--text); font-weight: 500; }
 
-/* Subject cards */
-.subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
-.subject-card { background: var(--card); padding: 22px; border-radius: 22px; cursor: pointer; border: 1.5px solid var(--border); transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.22s ease, box-shadow 0.22s ease; text-align: center; box-shadow: var(--shadow-card); display: grid; gap: 12px; justify-items: center; }
-.subject-card:hover { transform: translateY(-3px); border-color: rgba(245,200,66,0.45); box-shadow: 0 12px 32px rgba(0,0,0,0.09); }
-.subject-card.selected { border-color: rgba(245,200,66,0.6); box-shadow: 0 0 0 3px rgba(245,200,66,0.15), 0 12px 32px rgba(0,0,0,0.09); transform: translateY(-3px); }
-.subject-card:active { transform: scale(0.98) translateY(0); transition-duration: 0.08s; }
-.subject-card__img-wrap { width: 76px; height: 76px; background: var(--surface-soft); border-radius: 18px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.subject-card__img-wrap img { width: 56px; height: 56px; object-fit: contain; }
-.subject-card__name { font-size: 17px; font-weight: 700; color: var(--text-on-surface); margin: 0; letter-spacing: -0.01em; }
-.subject-card__desc { font-size: 13px; color: var(--text-muted-on-surface); line-height: 1.55; margin: 0; }
-.subject-card__price { margin: 0; padding: 6px 13px; border-radius: 999px; background: var(--green-soft); color: var(--green-strong); font-size: 12px; font-weight: 800; letter-spacing: 0.02em; border: 1px solid rgba(22,163,74,0.2); }
-.subject-card__link { color: var(--accent-strong); font-weight: 700; font-size: 13px; text-decoration: none; }
-.subject-card__link:hover { text-decoration: underline; }
+.page-title { font-size: clamp(26px, 3.6vw, 42px); }
 
-/* Registration form box */
-.step-box { background: var(--surface); padding: 36px; border-radius: 28px; border: 1px solid var(--surface-border); display: grid; gap: 18px; }
-.step-box__header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
-.step-box__header h2 { color: var(--text-on-surface); margin: 0 0 4px; font-size: 22px; letter-spacing: -0.02em; }
-.deadline-copy { margin: 8px 0 0; color: var(--text-secondary); font-size: 14px; }
-.deadline-copy strong { color: var(--accent-strong); }
-.deadline-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 16px; background: var(--accent-soft); border: 1.5px solid rgba(245,200,66,0.35); color: var(--text); }
-.deadline-banner__eyebrow { margin: 0 0 3px; font-size: 10px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: #92660a; }
-.deadline-banner strong { display: block; font-size: 17px; font-weight: 700; }
-.deadline-banner span { display: inline-flex; align-items: center; justify-content: center; min-width: 96px; padding: 9px 14px; border-radius: 999px; background: var(--card); color: #92660a; font-weight: 800; border: 1px solid rgba(245,200,66,0.3); font-size: 14px; }
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 18px;
+}
 
-.rules-card { border: 1px solid var(--surface-border); border-radius: 20px; background: rgba(255,252,244,.86); overflow: hidden; }
-.rules-card__toggle { width: 100%; border: 0; background: transparent; padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; cursor: pointer; transition: background 0.18s ease; }
-.rules-card__toggle:hover { background: rgba(245,200,66,0.05); }
-.rules-card__toggle h3 { margin: 4px 0 5px; color: var(--text-on-surface); font-size: 18px; letter-spacing: -0.01em; }
-.rules-card__eyebrow { margin: 0; font-size: 10px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent-strong); }
-.rules-card__summary { margin: 0; color: var(--text-secondary); line-height: 1.55; font-size: 14px; }
-.rules-card__action { display: inline-flex; align-items: center; justify-content: center; min-width: 88px; padding: 9px 14px; border-radius: 999px; background: rgba(201,171,99,.16); color: var(--accent-strong); font-size: 12px; font-weight: 800; flex-shrink: 0; }
-.rules-card__body { padding: 0 22px 22px; display: grid; gap: 14px; }
-.rules-card__notice { padding: 13px 15px; border-radius: 14px; background: var(--warning-bg); border: 1px solid rgba(245,158,11,0.25); color: #92400e; line-height: 1.6; font-size: 13px; font-weight: 500; }
-.rules-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.rule-item { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 16px; border: 1px solid var(--surface-border); background: rgba(255,255,255,.7); }
-.rule-item__index { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 11px; background: var(--accent-soft); color: #92660a; font-size: 12px; font-weight: 800; border: 1px solid rgba(245,200,66,0.28); flex-shrink: 0; }
-.rule-item h4 { margin: 0 0 5px; color: var(--text-on-surface); font-size: 14px; font-weight: 700; }
-.rule-item p { margin: 0; color: var(--text-secondary); line-height: 1.55; font-size: 13px; }
+/* ---- Карточки предметов ---- */
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
 
-.chosen { color: var(--text-secondary); margin: 0; font-size: 14px; }
-.chosen strong { color: var(--text-on-surface); }
+.subject-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 14px 18px;
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease, border-color var(--dur) ease;
+}
 
-/* Flow steps — asymmetric: first step wider */
-.flow-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
-.flow-step { padding: 16px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--bg-alt); display: grid; gap: 8px; }
-.flow-step__index { width: 32px; height: 32px; border-radius: 10px; background: var(--accent-soft); color: #92660a; display:flex; align-items:center; justify-content:center; font-weight:800; font-size: 13px; border: 1px solid rgba(245,200,66,0.3); }
-.flow-step h3 { margin: 0 0 4px; font-size: 15px; letter-spacing: -0.01em; }
-.flow-step p { margin: 0; color: var(--text-secondary); line-height: 1.55; font-size: 13px; }
+@media (hover: hover) and (pointer: fine) {
+  .subject-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+  }
+  .subject-card:hover .subject-card__img-wrap img { transform: scale(1.05) rotate(-1deg); }
+}
 
-.form-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-secondary); }
-.divider span { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
-.helper { font-size: 12px; color: var(--text-secondary); }
+.subject-card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 
-.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.date-selects { display: flex; gap: 6px; }
-.date-select { flex: 1; min-width: 0; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
-.step-input { padding: 12px 15px; border-radius: 11px; border: 1.5px solid var(--border); font-size: 15px; color: var(--text); width: 100%; background: var(--card); transition: border-color 0.18s ease, box-shadow 0.18s ease; }
-.step-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,200,66,0.14); }
+.subject-card.selected {
+  border-color: var(--brand);
+  box-shadow: 0 12px 30px rgba(43, 91, 245, 0.18);
+}
 
-.divider { display: flex; align-items: center; gap: 12px; margin: 2px 0; }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--surface-border); }
+.subject-card__picked {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #ffffff;
+  box-shadow: var(--shadow-brand);
+}
 
-.single-action { display: grid; }
-.start-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 15px 24px; border: none; border-radius: 14px; color: #ffffff; font-size: 15px; font-weight: 700; cursor: pointer; background: var(--green); box-shadow: 0 8px 24px rgba(22,163,74,0.28); transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; }
-.start-btn:hover:not(:disabled) { background: var(--green-hover); transform: translateY(-2px); box-shadow: 0 14px 32px rgba(22,163,74,0.34); }
-.start-btn:active:not(:disabled) { transform: scale(0.98); box-shadow: 0 4px 14px rgba(22,163,74,0.2); transition-duration: 0.08s; }
-.start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.submit-error { margin: 8px 0 0; color: #8f3b3b; font-weight: 600; font-size: 14px; }
+.subject-card__img-wrap {
+  height: 168px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--brand-soft);
+}
 
-.payment-followup { display: grid; gap: 12px; padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); background: var(--bg-alt); }
-.payment-followup__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.payment-meta { display: grid; gap: 9px; }
-.payment-meta__item { padding: 13px 15px; border-radius: 14px; border: 1px solid var(--surface-border); background: rgba(255,255,255,.78); }
-.payment-meta__item span { display: block; margin-bottom: 5px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-secondary); }
-.payment-meta__item strong { color: var(--text-on-surface); word-break: break-word; font-size: 14px; }
-.payment-feedback { margin: 0; font-size: 14px; color: var(--text-secondary); }
-.payment-action { display: none; }
-.payment-action__hint { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.tone-1 .subject-card__img-wrap { background: var(--sun-soft); }
+.tone-2 .subject-card__img-wrap { background: var(--tone-violet-soft); }
+.tone-3 .subject-card__img-wrap { background: var(--tone-teal-soft); }
 
-.step-link { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:11px 20px; border-radius:13px; text-decoration:none; border:none; font-weight:700; font-size: 14px; cursor:pointer; background: var(--green); color:#ffffff; box-shadow: 0 6px 18px rgba(22,163,74,0.24); transition: background 0.2s, transform 0.18s; }
-.step-link:hover:not(:disabled) { background: var(--green-hover); transform: translateY(-1px); }
-.step-link:active:not(:disabled) { transform: scale(0.98); transition-duration: 0.08s; }
-.step-link.secondary { background: var(--card); color: var(--text-secondary); border: 1.5px solid var(--border); box-shadow: none; }
-.step-link.secondary:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); color: #92660a; transform: none; }
+.subject-card__img-wrap img {
+  max-width: 78%;
+  max-height: 140px;
+  object-fit: contain;
+  transition: transform 500ms var(--ease-out);
+}
 
-/* Prominent start hero — shown when access is already open */
-.start-hero { display: grid; gap: 14px; padding: 28px; border-radius: 22px; background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%); border: 2px solid rgba(22,163,74,0.3); text-align: center; justify-items: center; }
-.start-hero__badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: #166534; background: rgba(22,163,74,0.12); padding: 5px 13px; border-radius: 999px; border: 1px solid rgba(22,163,74,0.25); }
-.start-hero__title { margin: 0; font-size: clamp(20px, 3vw, 26px); font-weight: 800; color: #14532d; letter-spacing: -0.02em; }
-.start-hero__hint { margin: 0; font-size: 14px; color: #166534; line-height: 1.6; }
-.start-hero__btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 16px 36px; border: none; border-radius: 16px; color: #ffffff; font-size: 17px; font-weight: 800; cursor: pointer; background: var(--green); box-shadow: 0 10px 30px rgba(22,163,74,0.35); transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; letter-spacing: -0.01em; }
-.start-hero__btn:hover { background: var(--green-hover); transform: translateY(-3px); box-shadow: 0 16px 40px rgba(22,163,74,0.42); }
-.start-hero__btn:active { transform: scale(0.98); transition-duration: 0.08s; }
+.subject-card__body {
+  display: grid;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.subject-card__name {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.subject-card__desc {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.subject-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding: 0 6px;
+}
+
+.subject-card__price {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.subject-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin: 0 6px;
+  color: var(--brand-ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.subject-card__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Блок оформления ---- */
+.step-box {
+  display: grid;
+  gap: 18px;
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+.step-box__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.step-pill {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.step-box__header h2 { font-size: clamp(22px, 2.6vw, 30px); }
+
+.chosen,
+.deadline-copy {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.chosen strong { color: var(--text); }
+
+.deadline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--sun-soft);
+}
+
+.deadline-banner__eyebrow {
+  color: var(--sun-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.deadline-banner strong { font-size: 16px; }
+
+.deadline-banner__value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- Правила ---- */
+.rules-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.rules-card__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 0;
+  background: var(--bg);
+  text-align: left;
+}
+
+.rules-card__toggle:hover { background: var(--brand-softer); }
+
+.rules-card__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 13px;
+  background: var(--card);
+  color: var(--brand);
+}
+
+.rules-card__text {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+
+.rules-card__eyebrow {
+  color: var(--brand-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rules-card__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rules-card__summary {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.rules-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rules-card__action svg { transition: transform var(--dur) var(--ease-out); }
+.rules-card__action svg.is-open { transform: rotate(180deg); }
+
+.rules-card__body {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.rules-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+}
+
+.rule-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.rule-item__index {
+  font-family: var(--font-display);
+  color: var(--brand);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rule-item h4 {
+  margin-bottom: 4px;
+  font-size: 15.5px;
+}
+
+.rule-item p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* ---- Доступ открыт ---- */
+.start-hero {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(24px, 4vw, 40px);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(400px 220px at 50% 0%, rgba(255, 255, 255, 0.2), transparent 70%),
+    linear-gradient(160deg, #18b874 0%, #0f9a5f 100%);
+  color: #ffffff;
+  text-align: center;
+}
+
+.start-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.start-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.start-hero__hint {
+  max-width: 44ch;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 16px;
+}
+
+.start-hero__btn {
+  margin-top: 8px;
+  min-height: 58px;
+  padding: 14px 32px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: #0a6e44;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: 0 12px 28px rgba(5, 60, 35, 0.3);
+}
+
+.start-hero__btn:hover { transform: translateY(-2px); }
+
+/* ---- Шаги ---- */
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+  counter-reset: step;
+}
+
+.flow-step {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.flow-step__index {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: var(--brand);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.flow-step:nth-child(2) .flow-step__index { background: var(--sun); color: #1f1600; }
+.flow-step:nth-child(3) .flow-step__index { background: var(--success); }
+
+.flow-step h3 {
+  margin-bottom: 4px;
+  font-size: 15.5px;
+}
+
+.flow-step p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* ---- Форма ---- */
+.form-card {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+
+.form-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px;
+  margin-left: -6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form-section-label__icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+}
+
+.tone-child { background: var(--brand-soft); color: var(--brand); }
+.tone-parent { background: var(--sun-soft); color: #c98a00; }
+
+.fields-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.date-selects {
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr 1fr;
+  gap: 8px;
+}
+
+.date-selects .ds-input { padding-left: 12px; padding-right: 32px; background-position: right 12px center; }
+
+.visually-hidden-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.single-action {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+
+.start-btn { min-width: 280px; }
+
+/* ---- Оплата ---- */
+.payment-followup {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.payment-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 10px;
+  margin: 0;
+}
+
+.payment-meta__item {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.payment-meta__item dt {
+  margin-bottom: 2px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.payment-meta__item dd {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.payment-followup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-action__hint {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
 
 @media (max-width: 900px) {
   .flow-grid { grid-template-columns: 1fr; }
-  .step-box__header { flex-direction: column; }
   .rules-list { grid-template-columns: 1fr; }
-  .deadline-banner { flex-direction: column; align-items: flex-start; }
-}
-@media (max-width: 768px) {
-  .subject-page { padding: 88px 16px 56px; }
-  .breadcrumbs { font-size: 12px; gap: 6px; }
-  .funnel-progress__top { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .fields-row { grid-template-columns: 1fr; }
-  .step-box { padding: 22px 18px; }
-  .rules-card__toggle { padding: 16px 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
-  .rules-card__body { padding: 0 18px 18px; }
-  .page-title { font-size: 26px; }
+  .payment-meta { grid-template-columns: 1fr; }
 }
 
-:global(.dark) .rules-card { background: var(--surface); }
-:global(.dark) .rule-item { background: var(--surface-soft); }
-:global(.dark) .payment-meta__item { background: var(--surface-soft); }
-:global(.dark) .deadline-banner__eyebrow { color: var(--accent-strong); }
-:global(.dark) .deadline-banner span { color: var(--accent-strong); }
-:global(.dark) .rules-card__notice { color: #fcd34d; }
-:global(.dark) .page-badge { color: var(--accent-strong); }
-:global(.dark) .flow-step__index { color: var(--accent-strong); }
-:global(.dark) .rule-item__index { color: var(--accent-strong); }
-:global(.dark) .rules-card__action { color: var(--accent-strong); }
-:global(.dark) .rules-card__eyebrow { color: var(--accent-strong); }
-:global(.dark) .submit-error { color: var(--danger-soft); }
+@media (max-width: 640px) {
+  .subject-page { padding-top: calc(var(--header-h) + 16px); }
+  .fields-row { grid-template-columns: 1fr; }
+  .form-card { padding: 16px; }
+  .rules-card__toggle { flex-wrap: wrap; }
+  .rules-card__action { margin-left: 56px; }
+  .single-action { justify-items: stretch; }
+  .start-btn { min-width: 0; width: 100%; }
+  .deadline-banner { flex-direction: column; align-items: flex-start; }
+}
 </style>
