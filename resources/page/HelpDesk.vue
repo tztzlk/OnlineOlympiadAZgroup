@@ -1,9 +1,12 @@
 <template>
   <div class="help-page">
     <div class="help-shell">
-      <section class="help-side">
-        <p class="eyebrow">Support</p>
-        <h1>Поддержка по заявкам, оплатам и входу</h1>
+      <section class="help-side" aria-labelledby="help-title">
+        <span class="help-side__icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
+        </span>
+        <p class="eyebrow eyebrow--light">Support</p>
+        <h1 id="help-title">Поддержка по заявкам, оплатам и входу</h1>
         <p class="lead">
           Напишите нам, если нужна помощь с регистрацией, оплатой, доступом к олимпиаде
           или прохождением теста.
@@ -11,12 +14,22 @@
 
         <div class="contact-list">
           <a class="contact-card" :href="`mailto:${supportEmail}`">
-            <strong>Email поддержки</strong>
-            <span>{{ supportEmail }}</span>
+            <span class="contact-card__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M22 7l-10 6L2 7"/></svg>
+            </span>
+            <span>
+              <strong>Email поддержки</strong>
+              <span>{{ supportEmail }}</span>
+            </span>
           </a>
           <a v-if="supportPhone" class="contact-card" :href="supportPhoneHref">
-            <strong>Телефон</strong>
-            <span>{{ supportPhone }}</span>
+            <span class="contact-card__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+            </span>
+            <span>
+              <strong>Телефон</strong>
+              <span>{{ supportPhone }}</span>
+            </span>
           </a>
         </div>
 
@@ -26,42 +39,49 @@
         </div>
       </section>
 
-      <section class="help-card">
+      <section class="help-card" aria-labelledby="help-form-title">
         <div class="help-head">
           <p class="eyebrow">Обратная связь</p>
-          <h2>Опишите вопрос в свободной форме</h2>
+          <h2 id="help-form-title">Опишите вопрос в свободной форме</h2>
           <p>Чем точнее описание, тем быстрее команда сможет помочь.</p>
         </div>
 
         <form @submit.prevent="submit" class="help-form">
           <div class="grid">
-            <label class="field">
-              <span>Имя</span>
-              <input v-model="form.name" type="text" placeholder="Ваше имя" required />
+            <label class="ds-field">
+              <span class="ds-label">Имя</span>
+              <input v-model="form.name" class="ds-input" type="text" placeholder="Ваше имя" autocomplete="name" required />
             </label>
-            <label class="field">
-              <span>Email</span>
-              <input v-model="form.email" type="email" placeholder="Email" required />
+            <label class="ds-field">
+              <span class="ds-label">Email</span>
+              <input v-model="form.email" class="ds-input" type="email" inputmode="email" placeholder="Email" autocomplete="email" required />
             </label>
-            <label class="field">
-              <span>Телефон</span>
-              <input v-model="form.phone" type="text" placeholder="Телефон" />
+            <label class="ds-field">
+              <span class="ds-label">Телефон</span>
+              <input v-model="form.phone" class="ds-input" type="tel" inputmode="tel" placeholder="Телефон" autocomplete="tel" />
             </label>
-            <label class="field">
-              <span>Тема</span>
-              <input v-model="form.topic" type="text" placeholder="Например: оплата или вход" required />
+            <label class="ds-field">
+              <span class="ds-label">Тема</span>
+              <input v-model="form.topic" class="ds-input" type="text" placeholder="Например: оплата или вход" list="help-topics" required />
+              <datalist id="help-topics">
+                <option value="Оплата" />
+                <option value="Вход в аккаунт" />
+                <option value="Доступ к олимпиаде" />
+                <option value="Апелляция" />
+              </datalist>
             </label>
           </div>
 
-          <label class="field">
-            <span>Сообщение</span>
-            <textarea v-model="form.message" rows="6" placeholder="Опишите проблему или вопрос" required></textarea>
+          <label class="ds-field">
+            <span class="ds-label">Сообщение</span>
+            <textarea v-model="form.message" class="ds-input" rows="6" placeholder="Опишите проблему или вопрос" required></textarea>
           </label>
 
-          <p v-if="message" class="message success">{{ message }}</p>
-          <p v-if="error" class="message error">{{ error }}</p>
+          <p v-if="message" class="ds-msg success" role="status">{{ message }}</p>
+          <p v-if="error" class="ds-msg error" role="alert">{{ error }}</p>
 
-          <button class="submit-btn" :disabled="loading">
+          <button class="ds-btn ds-btn-primary ds-btn-lg submit-btn" :disabled="loading">
+            <span v-if="loading" class="ds-spinner" aria-hidden="true"></span>
             {{ loading ? 'Отправляем...' : 'Отправить обращение' }}
           </button>
         </form>
@@ -110,9 +130,12 @@ const submit = async () => {
     form.topic = ''
     form.message = ''
   } catch (err) {
-    error.value = err.response?.status >= 400
-      ? (err.response?.data?.message || 'Не удалось отправить обращение.')
-      : 'Не удалось отправить обращение.'
+    const errors = err.response?.data?.errors
+    error.value = errors
+      ? Object.values(errors)[0][0]
+      : (err.response?.status >= 400
+        ? (err.response?.data?.message || 'Не удалось отправить обращение.')
+        : 'Не удалось отправить обращение.')
   } finally {
     loading.value = false
   }
@@ -120,86 +143,138 @@ const submit = async () => {
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
 .help-page {
-  min-height: 100vh;
-  padding: 110px 20px 48px;
-  background:
-    radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%),
-    var(--bg);
+  min-height: 100dvh;
+  padding: calc(var(--header-h) + 28px) 20px 80px;
+  background: var(--bg);
 }
 
 .help-shell {
-  width: min(1120px, 100%);
+  max-width: 1160px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
-  gap: 22px;
-}
-
-.help-side,
-.help-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  align-items: start;
 }
 
 .help-side {
-  padding: 30px;
   display: grid;
-  gap: 20px;
+  gap: 16px;
+  padding: clamp(24px, 3vw, 36px);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(400px 240px at 100% 0%, rgba(255, 255, 255, 0.16), transparent 70%),
+    linear-gradient(155deg, #3d6cff 0%, #2b5bf5 50%, #2046d4 100%);
+  color: #ffffff;
+  box-shadow: var(--shadow-brand);
 }
 
-.help-card {
-  padding: 30px;
+.help-side__icon {
+  width: 58px;
+  height: 58px;
   display: grid;
-  gap: 20px;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--sun);
+  color: #1f1600;
+  transform: rotate(-5deg);
 }
 
 .eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--accent-strong);
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.lead,
-.help-head p:last-child,
-.trust-box p,
-.contact-card span {
-  color: var(--text-secondary);
+.eyebrow--light { color: var(--sun); }
+
+.help-side h1 { font-size: clamp(24px, 3vw, 34px); }
+
+.lead {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .contact-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .contact-card {
-  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(201, 171, 99, 0.18);
-  background: rgba(255, 251, 243, 0.82);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
   text-decoration: none;
+  transition: background-color var(--dur) ease;
+}
+
+.contact-card:hover { background: rgba(255, 255, 255, 0.2); }
+
+.contact-card__icon {
+  width: 40px;
+  height: 40px;
   display: grid;
-  gap: 4px;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--brand);
+}
+
+.contact-card strong {
+  display: block;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.contact-card span span {
+  font-size: 15.5px;
+  font-weight: 600;
+  word-break: break-word;
 }
 
 .trust-box {
-  padding: 18px;
-  border-radius: var(--radius-md);
-  background: rgba(79, 167, 116, 0.08);
-  border: 1px solid rgba(79, 167, 116, 0.16);
   display: grid;
-  gap: 8px;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.trust-box p {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14.5px;
+}
+
+.help-card {
+  display: grid;
+  gap: 20px;
+  padding: clamp(22px, 3vw, 34px);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.help-head h2 {
+  margin-top: 4px;
+  font-size: clamp(20px, 2.4vw, 26px);
+}
+
+.help-head p:last-child {
+  margin-top: 6px;
+  color: var(--text-secondary);
 }
 
 .help-form {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .grid {
@@ -208,74 +283,21 @@ const submit = async () => {
   gap: 14px;
 }
 
-.field {
-  display: grid;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
+textarea.ds-input {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.5;
 }
 
-.field input,
-.field textarea {
-  width: 100%;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
-  padding: 14px 16px;
-  color: var(--text);
-}
-
-.message {
-  margin: 0;
-  border-radius: var(--radius-sm);
-  padding: 13px 14px;
-  font-size: 14px;
-}
-
-.message.success {
-  background: var(--success-bg);
-  color: #2f6f4b;
-}
-
-.message.error {
-  background: var(--danger-bg);
-  color: #8f3b3b;
-}
-
-.submit-btn {
-  justify-self: start;
-  min-width: 220px;
-  min-height: 52px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  color: var(--text);
-  box-shadow: 0 14px 28px rgba(201, 171, 99, 0.22);
-  cursor: pointer;
-}
+.submit-btn { justify-self: start; min-width: 240px; }
 
 @media (max-width: 860px) {
-  .help-shell {
-    grid-template-columns: 1fr;
-  }
+  .help-shell { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 640px) {
-  .help-page {
-    padding: 96px 14px 30px;
-  }
-
-  .help-side,
-  .help-card {
-    padding: 22px 18px;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .submit-btn {
-    width: 100%;
-  }
+@media (max-width: 600px) {
+  .help-page { padding: calc(var(--header-h) + 14px) 12px 96px; }
+  .grid { grid-template-columns: 1fr; }
+  .submit-btn { width: 100%; min-width: 0; }
 }
 </style>

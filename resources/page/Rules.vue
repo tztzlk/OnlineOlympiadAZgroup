@@ -1,49 +1,39 @@
 <template>
   <div class="rules-page">
-    <div class="bg-orbs">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-    </div>
-
     <div class="rules-container">
-
-      <!-- Header -->
-      <div class="page-header">
-        <div class="page-badge">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      <header class="page-header">
+        <span class="ds-eyebrow sun">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
           </svg>
           Правила
-        </div>
+        </span>
         <h1 class="page-title">Правила проведения<br/>олимпиады</h1>
         <p class="page-subtitle">
           Пожалуйста, внимательно ознакомьтесь с правилами перед началом участия
         </p>
-      </div>
+      </header>
 
-      <!-- Important notice -->
-      <div class="notice">
-        <div class="notice__icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      <div class="notice" role="note">
+        <span class="notice__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>
           </svg>
-        </div>
+        </span>
         <p>Нарушение правил может привести к аннулированию результатов. Участие в олимпиаде означает согласие со всеми условиями.</p>
       </div>
 
-      <!-- Rules grid -->
-      <div class="rules-list">
-        <div
-          class="rule-card"
+      <ol class="rules-list">
+        <li
           v-for="(rule, index) in rules"
           :key="index"
-          :style="{ '--delay': index * 0.07 + 's' }"
+          v-reveal="index"
+          class="rule-card"
+          :class="`tone-${index % 6}`"
         >
           <div class="rule-card__top">
-            <div class="rule-number">{{ String(index + 1).padStart(2, '0') }}</div>
-            <div class="rule-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <span class="rule-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <template v-for="(segment, segmentIndex) in icons[index]" :key="`${index}-${segmentIndex}`">
                   <path v-if="segment.type === 'path'" :d="segment.d" />
                   <circle v-else-if="segment.type === 'circle'" :cx="segment.cx" :cy="segment.cy" :r="segment.r" />
@@ -51,29 +41,24 @@
                   <line v-else-if="segment.type === 'line'" :x1="segment.x1" :y1="segment.y1" :x2="segment.x2" :y2="segment.y2" />
                 </template>
               </svg>
-            </div>
+            </span>
+            <span class="rule-number">{{ String(index + 1).padStart(2, '0') }}</span>
           </div>
           <h2 class="rule-title">{{ rule.title }}</h2>
           <p class="rule-desc">{{ rule.desc }}</p>
-        </div>
-      </div>
+        </li>
+      </ol>
 
-      <!-- CTA -->
       <div class="rules-cta">
-        <div class="cta-check">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-        <span>Я ознакомлен(а) с правилами и готов(а) участвовать</span>
-        <router-link to="/subject" class="cta-btn">
+        <span class="cta-check" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </span>
+        <span class="rules-cta__text">Я ознакомлен(а) с правилами и готов(а) участвовать</span>
+        <router-link to="/subject" class="ds-btn ds-btn-sun ds-btn-lg cta-btn">
           Выбрать олимпиаду
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-          </svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </router-link>
       </div>
-
     </div>
   </div>
 </template>
@@ -135,233 +120,178 @@ const icons = [
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
 .rules-page {
-  min-height: 100vh;
-  background: var(--bg);
-  padding: 80px 28px 100px;
-  position: relative;
-  overflow: hidden;
+  min-height: 100dvh;
+  padding: calc(var(--header-h) + 36px) 20px 96px;
+  background:
+    radial-gradient(700px 360px at 50% 0%, color-mix(in srgb, var(--sun) 16%, transparent), transparent 70%),
+    var(--bg);
 }
-
-/* Orbs */
-.bg-orbs { display: none; }
 
 .rules-container {
-  max-width: 1100px;
+  max-width: 1160px;
   margin: 0 auto;
-  position: relative;
-  z-index: 1;
+  display: grid;
+  gap: 24px;
 }
 
-/* Header */
-.page-header { text-align: center; margin-bottom: 40px; }
-.page-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #8b6c11;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
-  margin-bottom: 18px;
+.page-header {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
 }
-.page-title {
-  font-size: clamp(32px, 4.4vw, 52px);
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 14px;
-  line-height: 1.06;
-}
-.page-subtitle { font-size: 16px; font-weight: 400; color: var(--text-secondary); margin: 0; line-height: 1.6; }
 
-/* Notice */
+.page-title { font-size: clamp(30px, 4.6vw, 52px); }
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 18px;
+}
+
 .notice {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 16px;
-  padding: 16px 22px;
-  margin-bottom: 48px;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--warning-soft);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
 }
+
 .notice__icon {
-  width: 42px; height: 42px;
-  background: #fef3c7;
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  color: #d97706;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--card);
+  color: #c27800;
 }
+
 .notice p {
-  font-size: 14px;
-  color: #92400e;
-  line-height: 1.6;
-  margin: 0;
+  color: var(--warning-ink);
+  font-size: 15px;
   font-weight: 500;
 }
 
-/* Rules grid */
 .rules-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 48px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  list-style: none;
 }
 
-/* Rule card */
 .rule-card {
-  position: relative;
-  background: var(--surface);
+  display: grid;
+  align-content: start;
+  gap: 10px;
   padding: 24px;
-  border-radius: 24px;
-  border: 1px solid var(--surface-border);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  animation: fadeUp 0.5s ease both;
-  animation-delay: var(--delay);
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease, opacity 560ms var(--ease-out);
 }
 
-.rule-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.3s;
+@media (hover: hover) and (pointer: fine) {
+  .rule-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .rule-card:hover .rule-icon { transform: rotate(-8deg) scale(1.05); }
 }
-.rule-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--surface-border));
-}
-.rule-card:hover::before { opacity: 1; }
 
 .rule-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
-}
-
-.rule-number {
-  font-size: 28px;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--text-on-surface) 20%, transparent);
-  line-height: 1;
-  letter-spacing: -1px;
+  margin-bottom: 6px;
 }
 
 .rule-icon {
-  width: 42px; height: 42px;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  color: #8b6c11;
-  transition: all 0.3s;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  transition: transform var(--dur-slow) var(--ease-out);
 }
-.rule-card:hover .rule-icon {
-  background: var(--green);
-  color: white;
-  box-shadow: 0 8px 18px rgba(73, 168, 107, 0.22);
+
+.tone-0 .rule-icon { background: var(--brand-soft); color: var(--brand); }
+.tone-1 .rule-icon { background: var(--sun-soft); color: #c98a00; }
+.tone-2 .rule-icon { background: var(--success-soft); color: var(--success); }
+.tone-3 .rule-icon { background: var(--tone-violet-soft); color: var(--tone-violet); }
+.tone-4 .rule-icon { background: var(--tone-teal-soft); color: #0d8a7c; }
+.tone-5 .rule-icon { background: var(--danger-soft); color: var(--danger); }
+
+.rule-number {
+  font-family: var(--font-display);
+  color: var(--bg-alt);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  -webkit-text-stroke: 1.5px var(--border-strong);
 }
 
 .rule-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-on-surface);
-  margin: 0 0 10px;
-  line-height: 1.35;
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .rule-desc {
-  font-size: 14px;
-  color: var(--text-muted-on-surface);
-  line-height: 1.7;
-  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-/* CTA */
 .rules-cta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
   flex-wrap: wrap;
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: 28px;
-  padding: 28px 32px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  align-items: center;
+  gap: 16px;
+  padding: clamp(20px, 3vw, 28px) clamp(20px, 3vw, 32px);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(400px 220px at 0% 100%, rgba(255, 201, 51, 0.18), transparent 70%),
+    linear-gradient(155deg, #1d2a5c 0%, #111a33 100%);
+  color: #ffffff;
 }
+
 .cta-check {
-  width: 40px; height: 40px;
-  background: var(--green-soft);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--green);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--success);
 }
-.rules-cta span {
+
+.rules-cta__text {
+  flex: 1;
+  min-width: 240px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-on-surface);
-  flex: 1;
-  min-width: 260px;
 }
-.cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-  min-height: 60px;
-  padding: 14px 26px;
-  border-radius: 18px;
-  background: var(--accent);
-  color: #1a1408;
-  font-size: 16px;
-  font-weight: 700;
-  text-decoration: none;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.cta-btn svg { transition: transform 0.2s; }
-.cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
-.cta-btn:hover svg { transform: translateX(4px); }
 
-/* Responsive */
+.cta-btn svg { transition: transform var(--dur) var(--ease-out); }
+
+@media (hover: hover) and (pointer: fine) {
+  .cta-btn:hover svg { transform: translateX(4px); }
+}
+
 @media (max-width: 1024px) {
-  .rules-list { grid-template-columns: repeat(2, 1fr); }
+  .rules-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 768px) {
-  .rules-page { padding: 60px 16px 80px; }
-  .page-title { font-size: 30px; }
-  .rules-list { grid-template-columns: 1fr 1fr; gap: 14px; }
-  .notice { flex-direction: column; text-align: center; }
-  .rules-cta { padding: 24px 20px; }
-  .rules-cta span { font-size: 16px; min-width: 0; }
-}
-@media (max-width: 520px) {
+
+@media (max-width: 600px) {
+  .rules-page { padding: calc(var(--header-h) + 18px) 12px 96px; }
   .rules-list { grid-template-columns: 1fr; }
-  .rules-cta { flex-direction: column; text-align: center; }
-  .rules-cta span { min-width: unset; text-align: center; }
-  .cta-btn { width: 100%; justify-content: center; }
+  .notice { align-items: flex-start; }
+  .rules-cta__text { min-width: 0; }
+  .cta-btn { width: 100%; }
 }
 </style>
