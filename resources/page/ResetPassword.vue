@@ -1,38 +1,52 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card">
-      <p class="eyebrow">Новый пароль</p>
-      <h1>Обновите пароль от аккаунта</h1>
-      <p class="subtext">Укажите новый пароль для аккаунта {{ email || 'пользователя' }} и затем вернитесь ко входу.</p>
+  <AuthShell>
+    <div>
+      <header class="auth-head">
+        <p class="auth-eyebrow">Новый пароль</p>
+        <h1>Обновите пароль от аккаунта</h1>
+        <p class="auth-sub">Укажите новый пароль для аккаунта {{ email || 'пользователя' }} и затем вернитесь ко входу.</p>
+      </header>
 
       <form @submit.prevent="submit" class="auth-form">
-        <label class="field">
+        <label class="ds-field">
           <span>Новый пароль</span>
-          <input v-model="password" type="password" placeholder="Новый пароль" required />
+          <input v-model="password" class="ds-input" type="password" autocomplete="new-password" placeholder="Новый пароль" required />
         </label>
-        <label class="field">
+        <label class="ds-field">
           <span>Повторите пароль</span>
-          <input v-model="passwordConfirmation" type="password" placeholder="Повторите пароль" required />
+          <input v-model="passwordConfirmation" class="ds-input" :class="{ 'is-error': mismatch }" type="password" autocomplete="new-password" placeholder="Повторите пароль" required />
         </label>
-        <p v-if="message" class="message success">{{ message }}</p>
-        <p v-if="error" class="message error">{{ error }}</p>
-        <button class="submit-btn" :disabled="loading">
+
+        <ul class="password-rules" aria-label="Требования к паролю">
+          <li :class="{ 'is-ok': checks.length }">Минимум 12 символов</li>
+          <li :class="{ 'is-ok': checks.mixedCase }">Заглавные и строчные буквы</li>
+          <li :class="{ 'is-ok': checks.number }">Хотя бы одна цифра</li>
+          <li :class="{ 'is-ok': checks.symbol }">Хотя бы один спецсимвол</li>
+        </ul>
+
+        <p v-if="message" class="ds-msg success" role="status">{{ message }}</p>
+        <p v-if="error" class="ds-msg error" role="alert">{{ error }}</p>
+
+        <button class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block" :disabled="loading">
+          <span v-if="loading" class="ds-spinner" aria-hidden="true"></span>
           {{ loading ? 'Сохраняем...' : 'Обновить пароль' }}
         </button>
       </form>
 
-      <div class="links">
+      <div class="auth-foot auth-links">
         <RouterLink to="/login">Перейти ко входу</RouterLink>
         <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
       </div>
     </div>
-  </div>
+  </AuthShell>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../js/api'
+import AuthShell from '../components/AuthShell.vue'
+import '../css/auth.css'
 
 const route = useRoute()
 const router = useRouter()
@@ -45,6 +59,15 @@ const loading = ref(false)
 
 const token = computed(() => route.query.token || '')
 const email = computed(() => route.query.email || '')
+
+const checks = computed(() => ({
+  length: password.value.length >= 12,
+  mixedCase: /[A-ZА-Я]/.test(password.value) && /[a-zа-я]/.test(password.value),
+  number: /[0-9]/.test(password.value),
+  symbol: /[^A-Za-zА-Яа-я0-9]/.test(password.value),
+}))
+
+const mismatch = computed(() => !!passwordConfirmation.value && passwordConfirmation.value !== password.value)
 
 const submit = async () => {
   loading.value = true
@@ -62,7 +85,8 @@ const submit = async () => {
     message.value = data.message
     setTimeout(() => router.push('/login'), 1200)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Не удалось обновить пароль.'
+    const errors = err.response?.data?.errors
+    error.value = errors ? Object.values(errors)[0][0] : (err.response?.data?.message || 'Не удалось обновить пароль.')
   } finally {
     loading.value = false
   }
@@ -70,19 +94,43 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.auth-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg); }
-.auth-card { width: min(500px, 100%); padding: 32px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--surface-border); box-shadow: var(--shadow-card); }
-.eyebrow { margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-strong); font-size: 12px; font-weight: 700; }
-h1 { margin: 0; color: var(--text-on-surface); }
-.subtext { color: var(--text-muted-on-surface); line-height: 1.6; margin: 12px 0 24px; }
-.auth-form { display: grid; gap: 14px; }
-.field { display: grid; gap: 8px; font-size: 14px; font-weight: 600; }
-input { width: 100%; padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); background: rgba(255,252,245,.95); color: var(--text-on-surface); }
-.message { margin: 0; font-size: 14px; border-radius: var(--radius-sm); padding: 12px 14px; }
-.success { color: #2f6f4b; background: var(--success-bg); }
-.error { color: #8f3b3b; background: var(--danger-bg); }
-.submit-btn { border: 0; border-radius: var(--radius-sm); padding: 14px 18px; background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%); color: var(--text); font-weight: 700; cursor: pointer; box-shadow: 0 12px 26px rgba(201,171,99,.2); }
-.links { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; }
-.links a { color: var(--accent-strong); text-decoration: none; font-weight: 700; }
-@media (max-width: 560px) { .auth-card { padding: 24px 18px; } .links { flex-direction: column; } }
+.password-rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  list-style: none;
+}
+
+.password-rules li {
+  position: relative;
+  padding-left: 24px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.password-rules li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  transform: translateY(-50%);
+}
+
+.password-rules li.is-ok { color: var(--success-ink); }
+
+.password-rules li.is-ok::before {
+  border-color: var(--success);
+  background: var(--success) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat;
+}
+
+@media (max-width: 480px) {
+  .password-rules { grid-template-columns: 1fr; }
+}
 </style>

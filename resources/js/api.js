@@ -32,14 +32,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // 401 на форме входа — это «неверный пароль», а не истёкшая сессия: его показывает сама форма.
+    const isAuthAttempt = /\/auth\/(admin\/)?login$/.test(error.config?.url || '')
+
+    if (error.response?.status === 401 && !isAuthAttempt) {
+      let hadSession = false
+
       try {
         const userStore = useUserStore()
+        hadSession = !!userStore.token
         userStore.logout?.()
       } catch {}
 
       const isAdminPath = window.location.pathname.startsWith('/admin')
-      window.location.href = isAdminPath ? '/admin-login' : '/login'
+      const target = isAdminPath ? '/admin-login' : '/login'
+
+      if (hadSession && window.location.pathname !== target) {
+        window.location.href = target
+      }
     }
 
     return Promise.reject(error)

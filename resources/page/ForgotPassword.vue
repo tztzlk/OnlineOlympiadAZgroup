@@ -1,58 +1,58 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-shell">
-      <section class="auth-side">
-        <p class="eyebrow">Восстановление доступа</p>
+  <AuthShell>
+    <div>
+      <header class="auth-head">
+        <p class="auth-eyebrow">Восстановление доступа</p>
         <h1>Вернём вас в кабинет без обращения в поддержку</h1>
-        <p class="lead">
+        <p class="auth-sub">
           Достаточно указать email, и мы отправим ссылку для смены пароля. После обновления пароля вы снова попадёте в личный кабинет участника.
         </p>
+      </header>
 
-        <div class="hint-list">
-          <article class="hint-card">
-            <strong>Что понадобится</strong>
-            <p>Email, который использовался при регистрации на платформе.</p>
-          </article>
-          <article class="hint-card">
-            <strong>Что будет дальше</strong>
-            <p>Вы получите письмо со ссылкой, после чего сможете задать новый пароль и снова войти в кабинет.</p>
-          </article>
+      <form @submit.prevent="submit" class="auth-form">
+        <h2 class="form-title">Получить ссылку для восстановления</h2>
+        <p class="auth-sub form-copy">Введите адрес электронной почты, и мы отправим инструкцию для восстановления доступа к кабинету.</p>
+
+        <label class="ds-field">
+          <span>Email</span>
+          <input v-model="email" class="ds-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required />
+        </label>
+
+        <p class="ds-msg info">Если аккаунт существует, письмо придёт на указанный адрес. Проверьте также папку “Спам”.</p>
+
+        <p v-if="message" class="ds-msg success" role="status">{{ message }}</p>
+        <p v-if="error" class="ds-msg error" role="alert">{{ error }}</p>
+
+        <button class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block" :disabled="loading">
+          <span v-if="loading" class="ds-spinner" aria-hidden="true"></span>
+          {{ loading ? 'Отправляем...' : 'Отправить ссылку' }}
+        </button>
+      </form>
+
+      <dl class="hint-list">
+        <div class="hint-card">
+          <dt>Что понадобится</dt>
+          <dd>Email, который использовался при регистрации на платформе.</dd>
         </div>
-      </section>
-
-      <section class="auth-card">
-        <p class="eyebrow">Сброс пароля</p>
-        <h2>Получить ссылку для восстановления</h2>
-        <p class="subtext">Введите адрес электронной почты, и мы отправим инструкцию для восстановления доступа к кабинету.</p>
-
-        <form @submit.prevent="submit" class="auth-form">
-          <label class="field">
-            <span>Email</span>
-            <input v-model="email" type="email" placeholder="you@example.com" required />
-          </label>
-
-          <p class="notice-box">Если аккаунт существует, письмо придёт на указанный адрес. Проверьте также папку “Спам”.</p>
-
-          <p v-if="message" class="message success">{{ message }}</p>
-          <p v-if="error" class="message error">{{ error }}</p>
-
-          <button class="submit-btn" :disabled="loading">
-            {{ loading ? 'Отправляем...' : 'Отправить ссылку' }}
-          </button>
-        </form>
-
-        <div class="links">
-          <RouterLink to="/login">Вернуться ко входу</RouterLink>
-          <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
+        <div class="hint-card">
+          <dt>Что будет дальше</dt>
+          <dd>Вы получите письмо со ссылкой, после чего сможете задать новый пароль и снова войти в кабинет.</dd>
         </div>
-      </section>
+      </dl>
+
+      <div class="auth-foot auth-links">
+        <RouterLink to="/login">Вернуться ко входу</RouterLink>
+        <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
+      </div>
     </div>
-  </div>
+  </AuthShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import api from '../js/api'
+import AuthShell from '../components/AuthShell.vue'
+import '../css/auth.css'
 
 const email = ref('')
 const message = ref('')
@@ -81,6 +81,10 @@ const submit = async () => {
       error.value = 'Не удалось связаться с сервером. Проверьте, что локальный сервер запущен.'
       return
     }
+    if (err.response.status === 429) {
+      error.value = 'Слишком много запросов. Подождите минуту и попробуйте снова.'
+      return
+    }
     error.value = err.response?.data?.message || 'Не удалось отправить ссылку.'
   } finally {
     loading.value = false
@@ -89,177 +93,47 @@ const submit = async () => {
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
+.auth-head h1 { font-size: clamp(24px, 2.8vw, 30px); }
 
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 20px;
-  background:
-    radial-gradient(circle at top left, rgba(201, 171, 99, 0.16), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(79, 167, 116, 0.14), transparent 24%),
-    var(--bg);
+.form-title {
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.auth-shell {
-  width: min(1040px, 100%);
-  display: grid;
-  grid-template-columns: 1fr 0.95fr;
-  gap: 24px;
-}
-
-.auth-side,
-.auth-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-}
-
-.auth-side,
-.auth-card {
-  padding: 30px;
-}
-
-.auth-side {
-  display: grid;
-  gap: 18px;
-  background: linear-gradient(160deg, rgba(255, 249, 238, 0.95), rgba(240, 232, 214, 0.82)), var(--surface);
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--accent-strong);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.lead,
-.subtext,
-.hint-card p,
-.notice-box {
-  color: var(--text-secondary);
+.form-copy {
+  margin-top: -8px;
+  font-size: 15px;
 }
 
 .hint-list {
   display: grid;
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 24px 0 0;
 }
 
 .hint-card {
-  padding: 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(141, 111, 49, 0.14);
-  background: rgba(255, 252, 244, 0.76);
-}
-
-.hint-card strong {
-  display: block;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-
-.auth-card h2 {
-  margin: 0;
-  color: var(--text);
-}
-
-.subtext {
-  margin: 10px 0 22px;
-  line-height: 1.6;
-}
-
-.auth-form {
-  display: grid;
-  gap: 14px;
-}
-
-.field {
-  display: grid;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-input {
-  width: 100%;
   padding: 14px 16px;
-  min-height: 54px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
-  color: var(--text);
+  border-radius: var(--radius-md);
+  background: var(--bg);
 }
 
-.notice-box,
-.message {
+.hint-card dt {
+  margin-bottom: 4px;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.hint-card dd {
   margin: 0;
+  color: var(--text-secondary);
   font-size: 14px;
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-}
-
-.notice-box {
-  background: rgba(201, 171, 99, 0.12);
-  border: 1px solid rgba(201, 171, 99, 0.16);
-}
-
-.success {
-  color: #2f6f4b;
-  background: var(--success-bg);
-}
-
-.error {
-  color: #8f3b3b;
-  background: var(--danger-bg);
-}
-
-.submit-btn {
-  border: 0;
-  border-radius: var(--radius-sm);
-  padding: 14px 18px;
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  color: var(--text);
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 12px 26px rgba(201,171,99,.2);
-}
-
-.links {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.links a {
-  color: var(--accent-strong);
-  text-decoration: none;
-  font-weight: 700;
-}
-
-@media (max-width: 760px) {
-  .auth-shell {
-    grid-template-columns: 1fr;
-  }
+  line-height: 1.5;
 }
 
 @media (max-width: 560px) {
-  .auth-page {
-    padding: 20px 14px;
-  }
-
-  .auth-side,
-  .auth-card {
-    padding: 24px 18px;
-  }
-
-  .links {
-    flex-direction: column;
-  }
+  .hint-list { grid-template-columns: 1fr; }
 }
 </style>

@@ -1,58 +1,70 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card">
-      <div class="form-header">
-        <p class="eyebrow">Вход</p>
-        <h2>Войдите в аккаунт</h2>
-        <p class="form-sub">Введите email и пароль, чтобы открыть кабинет.</p>
-      </div>
+  <AuthShell>
+    <div>
+      <header class="auth-head">
+        <p class="auth-eyebrow">Вход</p>
+        <h1>Войдите в аккаунт</h1>
+        <p class="auth-sub">Введите email и пароль, чтобы открыть кабинет.</p>
+      </header>
 
       <form @submit.prevent="handleLogin" class="auth-form" novalidate>
-        <label class="field">
+        <label class="ds-field">
           <span>Email</span>
           <input
             v-model="email"
+            class="ds-input"
+            :class="{ 'is-error': !!error }"
             type="email"
+            inputmode="email"
             placeholder="you@example.com"
             autocomplete="email"
             required
           />
         </label>
 
-        <label class="field">
+        <label class="ds-field">
           <span>Пароль</span>
           <div class="password-wrap">
             <input
               v-model="password"
+              class="ds-input"
+              :class="{ 'is-error': !!error }"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Введите пароль"
               autocomplete="current-password"
               required
             />
-            <button type="button" class="toggle-btn" @click="showPassword = !showPassword">
-              {{ showPassword ? 'Скрыть' : 'Показать' }}
+            <button
+              type="button"
+              class="password-toggle"
+              :aria-label="showPassword ? 'Скрыть' : 'Показать'"
+              :aria-pressed="showPassword ? 'true' : 'false'"
+              @click="showPassword = !showPassword"
+            >
+              <svg v-if="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/></svg>
+              <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </label>
 
-        <div class="helper-row">
+        <div class="auth-links">
           <RouterLink to="/forgot-password">Забыли пароль?</RouterLink>
           <RouterLink to="/help-desk">Нужна помощь?</RouterLink>
         </div>
 
-        <div v-if="error" class="message error">{{ error }}</div>
+        <p v-if="error" class="ds-msg error" role="alert">{{ error }}</p>
 
-        <button type="submit" class="submit-btn" :disabled="loading">
+        <button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block" :disabled="loading">
+          <span v-if="loading" class="ds-spinner" aria-hidden="true"></span>
           {{ loading ? 'Входим...' : 'Войти в аккаунт' }}
         </button>
       </form>
 
-      <div class="form-footer">
+      <div class="auth-foot">
         <p>Нет аккаунта? <RouterLink to="/register">Зарегистрироваться</RouterLink></p>
-        <p>Для сотрудников: <RouterLink to="/admin-login">перейти в админ-панель</RouterLink></p>
       </div>
     </div>
-  </div>
+  </AuthShell>
 </template>
 
 <script setup>
@@ -60,6 +72,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../js/api'
 import { useUserStore } from '../stores/user'
+import AuthShell from '../components/AuthShell.vue'
+import '../css/auth.css'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -86,6 +100,8 @@ async function handleLogin() {
   } catch (err) {
     if (err.response?.status === 401) {
       error.value = 'Неверный email или пароль.'
+    } else if (err.response?.status === 429) {
+      error.value = 'Слишком много попыток входа. Подождите несколько минут и попробуйте снова.'
     } else if (err.response?.data?.errors) {
       error.value = Object.values(err.response.data.errors)[0][0]
     } else {
@@ -96,152 +112,3 @@ async function handleLogin() {
   }
 }
 </script>
-
-<style scoped>
-* { box-sizing: border-box; }
-
-.auth-page {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 20px;
-  padding-top: 100px;
-  background: var(--bg);
-}
-
-.auth-card {
-  width: min(440px, 100%);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  padding: 36px 32px;
-  display: grid;
-  gap: 22px;
-}
-
-.form-header { display: grid; gap: 6px; }
-
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--green);
-  margin: 0;
-}
-
-.form-header h2 { margin: 0; }
-
-.form-sub {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-.auth-form { display: grid; gap: 16px; }
-
-.field {
-  display: grid;
-  gap: 7px;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.field input {
-  width: 100%;
-  min-height: 52px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  padding: 13px 16px;
-  color: var(--text);
-  font-size: 15px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-.field input:focus {
-  outline: none;
-  border-color: rgba(22, 163, 74, 0.34);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
-}
-
-.password-wrap { position: relative; }
-.password-wrap input { padding-right: 96px; }
-
-.toggle-btn {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  border: 0;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.helper-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-size: 13px;
-}
-.helper-row a, .form-footer a {
-  color: var(--green);
-  font-weight: 700;
-  text-decoration: none;
-}
-.helper-row a:hover, .form-footer a:hover { text-decoration: underline; }
-
-.message {
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-size: 14px;
-}
-.message.error {
-  background: var(--danger-bg);
-  color: #b91c1c;
-  border: 1px solid rgba(220, 38, 38, 0.15);
-}
-
-.submit-btn {
-  width: 100%;
-  min-height: 52px;
-  border: none;
-  border-radius: 13px;
-  background: var(--green);
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.28);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-.submit-btn:hover:not(:disabled) {
-  background: var(--green-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(22, 163, 74, 0.34);
-}
-.submit-btn:active:not(:disabled) {
-  transform: scale(0.98);
-  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);
-  transition-duration: 0.08s;
-}
-.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-.form-footer {
-  display: grid;
-  gap: 6px;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-@media (max-width: 480px) {
-  .auth-page { padding: 16px 14px; }
-  .auth-card { padding: 24px 18px; }
-}
-</style>

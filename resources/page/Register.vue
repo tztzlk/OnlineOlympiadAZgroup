@@ -1,76 +1,44 @@
 <template>
-  <div class="register-page">
-    <div class="register-shell">
-      <section class="register-card">
-        <header class="register-header">
-          <p class="eyebrow">Регистрация</p>
-          <h2>Создайте аккаунт</h2>
+  <AuthShell wide>
+    <div>
+      <div v-if="success" class="success-screen" role="status">
+        <div class="success-icon" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <p class="auth-eyebrow">Готово!</p>
+        <h1>Вы успешно зарегистрировались</h1>
+        <p class="auth-sub">Переходим в личный кабинет...</p>
+        <span class="success-bar" aria-hidden="true"><span></span></span>
+      </div>
+
+      <template v-else>
+        <header class="auth-head">
+          <p class="auth-eyebrow">Регистрация</p>
+          <h1>Создайте аккаунт</h1>
         </header>
 
-        <div v-if="success" class="success-screen">
-          <div class="success-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div class="success-body">
-            <p class="eyebrow">Готово!</p>
-            <h2>Вы успешно зарегистрировались</h2>
-            <p class="success-hint">Переходим в личный кабинет...</p>
-          </div>
-        </div>
-
-        <form v-if="!success" @submit.prevent="handleRegister" class="register-form" novalidate>
+        <form @submit.prevent="handleRegister" class="auth-form" novalidate>
           <div class="form-grid">
-            <label class="field field-wide" :class="fieldState(emailTouched, emailError)">
-              <span>Email</span>
-              <input v-model="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-              <small v-if="emailTouched && emailError" class="field-error">{{ emailError }}</small>
-            </label>
-
-            <label class="field" :class="fieldState(passwordTouched, passwordError)">
-              <span>Пароль</span>
-              <div class="password-wrap">
-                <input
-                  v-model="password"
-                  :type="showPassword ? 'text' : 'password'"
-                  placeholder="Минимум 12 символов"
-                  autocomplete="new-password"
-                  required
-                />
-                <button type="button" class="toggle-btn" @click="showPassword = !showPassword">
-                  {{ showPassword ? 'Скрыть' : 'Показать' }}
-                </button>
-              </div>
-              <small v-if="passwordTouched && passwordError" class="field-error">{{ passwordError }}</small>
-            </label>
-
-            <label class="field" :class="fieldState(confirmPasswordTouched, confirmPasswordError)">
-              <span>Повторите пароль</span>
-              <div class="password-wrap">
-                <input
-                  v-model="confirmPassword"
-                  :type="showConfirm ? 'text' : 'password'"
-                  placeholder="Повторите пароль"
-                  autocomplete="new-password"
-                  required
-                />
-                <button type="button" class="toggle-btn" @click="showConfirm = !showConfirm">
-                  {{ showConfirm ? 'Скрыть' : 'Показать' }}
-                </button>
-              </div>
-              <small v-if="confirmPasswordTouched && confirmPasswordError" class="field-error">{{ confirmPasswordError }}</small>
-            </label>
-
-            <label class="field field-wide" :class="fieldState(nameTouched, nameError)">
+            <label class="ds-field field-wide">
               <span>Имя и фамилия</span>
-              <input v-model="name" type="text" placeholder="Алия Ержанова" autocomplete="name" required />
-              <small v-if="nameTouched && nameError" class="field-error">{{ nameError }}</small>
+              <input v-model="name" class="ds-input" :class="fieldState(nameTouched, nameError)" type="text" placeholder="Алия Ержанова" autocomplete="name" required />
+              <small v-if="nameTouched && nameError" class="ds-error-text">{{ nameError }}</small>
             </label>
 
-            <label class="field" :class="fieldState(phoneTouched, phoneError)">
+            <label class="ds-field field-wide">
+              <span>Email</span>
+              <input v-model="email" class="ds-input" :class="fieldState(emailTouched, emailError)" type="email" inputmode="email" placeholder="you@example.com" autocomplete="email" required />
+              <small v-if="emailTouched && emailError" class="ds-error-text">{{ emailError }}</small>
+            </label>
+
+            <label class="ds-field">
               <span>Телефон</span>
               <input
                 v-model="phone"
+                class="ds-input"
+                :class="fieldState(phoneTouched, phoneError)"
                 type="tel"
+                inputmode="tel"
                 maxlength="18"
                 placeholder="+7 (777) 000-00-00"
                 autocomplete="tel"
@@ -78,51 +46,96 @@
                 @input="formatPhone"
                 required
               />
-              <small v-if="phoneTouched && phoneError" class="field-error">{{ phoneError }}</small>
+              <small v-if="phoneTouched && phoneError" class="ds-error-text">{{ phoneError }}</small>
             </label>
 
-            <label class="field" :class="fieldState(cityTouched, cityError)">
+            <label class="ds-field">
               <span>Город</span>
-              <input v-model="city" type="text" list="kz-cities-register" placeholder="Астана" autocomplete="address-level2" required />
+              <input v-model="city" class="ds-input" :class="fieldState(cityTouched, cityError)" type="text" list="kz-cities-register" placeholder="Астана" autocomplete="address-level2" required />
               <datalist id="kz-cities-register">
                 <option v-for="c in KZ_CITIES" :key="c" :value="c" />
               </datalist>
-              <small v-if="cityTouched && cityError" class="field-error">{{ cityError }}</small>
+              <small v-if="cityTouched && cityError" class="ds-error-text">{{ cityError }}</small>
             </label>
 
-            <label class="field field-wide" :class="fieldState(schoolTouched, schoolError)">
+            <label class="ds-field field-wide">
               <span>Школа</span>
-              <input v-model="school" type="text" placeholder="Лицей №12" autocomplete="organization" required />
-              <small v-if="schoolTouched && schoolError" class="field-error">{{ schoolError }}</small>
+              <input v-model="school" class="ds-input" :class="fieldState(schoolTouched, schoolError)" type="text" placeholder="Лицей №12" autocomplete="organization" required />
+              <small v-if="schoolTouched && schoolError" class="ds-error-text">{{ schoolError }}</small>
             </label>
+
+            <label class="ds-field">
+              <span>Пароль</span>
+              <div class="password-wrap">
+                <input
+                  v-model="password"
+                  class="ds-input"
+                  :class="fieldState(passwordTouched, passwordError)"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Минимум 12 символов"
+                  autocomplete="new-password"
+                  aria-describedby="password-rules"
+                  required
+                />
+                <button type="button" class="password-toggle" :aria-label="showPassword ? 'Скрыть' : 'Показать'" @click="showPassword = !showPassword">
+                  <svg v-if="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/></svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+
+            <label class="ds-field">
+              <span>Повторите пароль</span>
+              <div class="password-wrap">
+                <input
+                  v-model="confirmPassword"
+                  class="ds-input"
+                  :class="fieldState(confirmPasswordTouched, confirmPasswordError)"
+                  :type="showConfirm ? 'text' : 'password'"
+                  placeholder="Повторите пароль"
+                  autocomplete="new-password"
+                  required
+                />
+                <button type="button" class="password-toggle" :aria-label="showConfirm ? 'Скрыть' : 'Показать'" @click="showConfirm = !showConfirm">
+                  <svg v-if="showConfirm" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/></svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <small v-if="confirmPasswordTouched && confirmPasswordError" class="ds-error-text">{{ confirmPasswordError }}</small>
+            </label>
+
+            <ul id="password-rules" class="password-rules field-wide" aria-label="Требования к паролю">
+              <li :class="{ 'is-ok': passwordChecks.length }">Минимум 12 символов</li>
+              <li :class="{ 'is-ok': passwordChecks.mixedCase }">Заглавные и строчные буквы</li>
+              <li :class="{ 'is-ok': passwordChecks.number }">Хотя бы одна цифра</li>
+              <li :class="{ 'is-ok': passwordChecks.symbol }">Хотя бы один спецсимвол</li>
+            </ul>
           </div>
 
-          <label class="agreement-box" :class="{ 'is-error': rulesTouched && !rulesAccepted }">
-            <input v-model="rulesAccepted" type="checkbox" />
-            <span>Подтверждаю правила участия и условия платформы.</span>
+          <label class="agreement-box" :class="{ 'is-error': rulesTouched && !rulesAccepted, 'is-checked': rulesAccepted }">
+            <input v-model="rulesAccepted" class="agreement-box__input" type="checkbox" />
+            <span class="agreement-box__check" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </span>
+            <span>Подтверждаю <RouterLink to="/rules" target="_blank" rel="noopener">правила участия</RouterLink> и условия платформы.</span>
           </label>
 
-          <div v-if="error" class="message error">
-            <span class="message__icon" aria-hidden="true">!</span>
-            <div>
-              <p style="margin:0"><strong>Проверьте форму:</strong> {{ error }}</p>
-            </div>
+          <div v-if="error" class="ds-msg error" role="alert">
+            <p><strong>Проверьте форму:</strong> {{ error }}</p>
           </div>
 
-          <div class="form-actions">
-            <button type="submit" class="submit-btn" :disabled="loading || success">
-              <span v-if="loading" class="button-loader" aria-hidden="true"></span>
-              {{ loading ? 'Создаём аккаунт...' : 'Создать аккаунт' }}
-            </button>
-          </div>
+          <button type="submit" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block" :disabled="loading || success">
+            <span v-if="loading" class="ds-spinner" aria-hidden="true"></span>
+            {{ loading ? 'Создаём аккаунт...' : 'Создать аккаунт' }}
+          </button>
         </form>
 
-        <footer class="form-footer">
+        <footer class="auth-foot">
           <p>Уже есть аккаунт? <RouterLink to="/login">Войти</RouterLink></p>
         </footer>
-      </section>
+      </template>
     </div>
-  </div>
+  </AuthShell>
 </template>
 
 <script setup>
@@ -132,6 +145,8 @@ import api from '../js/api'
 import { solveProofOfWork } from '../js/pow'
 import { useUserStore } from '../stores/user'
 import { KZ_CITIES } from '../js/kazakhstanData'
+import AuthShell from '../components/AuthShell.vue'
+import '../css/auth.css'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -323,312 +338,163 @@ watch(rulesAccepted, () => { rulesTouched.value = true; error.value = '' })
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
-.register-page {
-  min-height: 100dvh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 32px 20px;
-  padding-top: 100px;
-  background: var(--bg);
-}
-
-.register-shell {
-  width: min(560px, 100%);
-}
-
-.eyebrow {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--green);
-}
-
-.register-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  padding: 32px;
-  display: grid;
-  gap: 20px;
-}
-
-.register-header {
-  display: grid;
-  gap: 4px;
-}
-
-.register-form {
-  display: grid;
-  gap: 16px;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
-.field {
+.field-wide { grid-column: 1 / -1; }
+
+.ds-input.is-active:not(:focus) {
+  border-color: color-mix(in srgb, var(--success) 55%, var(--border-strong));
+}
+
+/* Живой чек-лист требований к паролю */
+.password-rules {
   display: grid;
-  gap: 6px;
-  padding: 14px 16px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  margin: -2px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  list-style: none;
 }
 
-.field:hover {
-  border-color: rgba(17, 24, 39, 0.16);
-}
-
-.field.is-active {
-  border-color: rgba(22, 163, 74, 0.35);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
-}
-
-.field.is-error {
-  border-color: rgba(220, 38, 38, 0.4);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.07);
-}
-
-.field-wide {
-  grid-column: 1 / -1;
-}
-
-.field span {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.field input {
-  width: 100%;
-  min-height: 44px;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-alt);
-  padding: 0 14px;
-  color: var(--text);
-  font-size: 15px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.field input:focus {
-  outline: none;
-  border-color: rgba(22, 163, 74, 0.34);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
-}
-
-.field-error {
-  font-size: 12px;
-  color: #b45309;
-  line-height: 1.4;
-}
-
-.password-wrap {
+.password-rules li {
   position: relative;
+  padding-left: 24px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  transition: color var(--dur) ease;
 }
 
-.password-wrap input {
-  padding-right: 96px;
-}
-
-.toggle-btn {
+.password-rules li::before {
+  content: '';
   position: absolute;
+  left: 0;
   top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  border: 0;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.agreement-box {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  background: var(--card);
-  color: var(--text-secondary);
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.agreement-box.is-error {
-  border-color: rgba(198, 90, 90, 0.34);
-}
-
-.agreement-box input {
-  margin-top: 2px;
   width: 16px;
   height: 16px;
-  flex-shrink: 0;
-  accent-color: var(--green);
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  transform: translateY(-50%);
+  transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
 
-.success-screen {
+.password-rules li.is-ok { color: var(--success-ink); }
+
+.password-rules li.is-ok::before {
+  border-color: var(--success);
+  background: var(--success) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E") center / 10px no-repeat;
+}
+
+/* Согласие */
+.agreement-box {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-strong);
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: border-color var(--dur) ease, background-color var(--dur) ease;
+}
+
+.agreement-box a {
+  color: var(--brand-ink);
+  font-weight: 600;
+}
+
+.agreement-box.is-checked { border-color: var(--brand); background: var(--brand-softer); }
+.agreement-box.is-error { border-color: var(--danger); }
+.agreement-box:has(.agreement-box__input:focus-visible) { box-shadow: var(--focus-ring); }
+
+.agreement-box__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.agreement-box__check {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 7px;
+  border: 2px solid var(--border-strong);
+  background: var(--card);
+  color: transparent;
+  transition: background-color var(--dur) ease, border-color var(--dur) ease, color var(--dur) ease;
+}
+
+.agreement-box.is-checked .agreement-box__check {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #ffffff;
+}
+
+/* Экран успеха */
+.success-screen {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px 0;
   text-align: center;
-  gap: 20px;
-  padding: 20px 0 8px;
 }
 
 .success-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: #dcfce7;
-  border: 2px solid rgba(34, 197, 94, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #15803d;
-  animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  border-radius: 26px;
+  background: var(--success);
+  color: #ffffff;
+  box-shadow: 0 16px 36px rgba(18, 160, 101, 0.32);
+  animation: pop-in 520ms var(--ease-out) both;
 }
 
-.success-body h2 {
-  margin: 8px 0 0;
+.success-bar {
+  width: 180px;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-alt);
+  overflow: hidden;
 }
 
-.success-hint {
-  margin: 8px 0 0;
-  color: var(--text-secondary);
-  font-size: 15px;
+.success-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  animation: fill-bar 2s linear forwards;
 }
 
 @keyframes pop-in {
-  from { transform: scale(0.5); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
+  from { transform: scale(0.6) rotate(-12deg); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
 
-.message {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  border-radius: 8px;
-}
-
-.message__icon {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-.message.error {
-  background: #fff7ed;
-  color: #9a3412;
-  border: 1px solid rgba(249, 115, 22, 0.18);
-}
-
-.message.error .message__icon {
-  background: rgba(249, 115, 22, 0.12);
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.submit-btn {
-  min-height: 52px;
-  min-width: 180px;
-  border-radius: 8px;
-  padding: 0 24px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  background: var(--green);
-  color: #ffffff;
-  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.22);
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.submit-btn:hover:not(:disabled) {
-  background: var(--green-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.28);
-}
-
-.submit-btn:active:not(:disabled) {
-  transform: scale(0.98);
-  transition-duration: 0.08s;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.button-loader {
-  width: 16px;
-  height: 16px;
-  display: inline-block;
-  margin-right: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  vertical-align: -3px;
-}
-
-.form-footer {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.form-footer a {
-  color: var(--green);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes fill-bar {
+  from { width: 0; }
+  to   { width: 100%; }
 }
 
 @media (max-width: 560px) {
-  .register-page {
-    padding: 16px 12px 28px;
-    padding-top: 88px;
-  }
-
-  .register-card {
-    padding: 22px 18px;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .field-wide {
-    grid-column: auto;
-  }
-
-  .submit-btn {
-    width: 100%;
-  }
+  .form-grid { grid-template-columns: 1fr; }
+  .field-wide { grid-column: auto; }
+  .password-rules { grid-template-columns: 1fr; }
 }
 </style>

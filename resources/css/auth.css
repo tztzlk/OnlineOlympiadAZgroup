@@ -1,0 +1,92 @@
+/* Общие стили форм входа, регистрации и восстановления пароля */
+
+.auth-head {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 28px;
+}
+
+.auth-eyebrow {
+    color: var(--brand-ink);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.auth-head h1,
+.auth-head h2 {
+    font-size: clamp(26px, 3.2vw, 34px);
+}
+
+.auth-sub {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.auth-form {
+    display: grid;
+    gap: 16px;
+}
+
+.auth-form .ds-field > span:first-child {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.password-wrap {
+    position: relative;
+}
+
+.password-wrap .ds-input {
+    padding-right: 52px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-tertiary);
+}
+
+.password-toggle:hover {
+    color: var(--brand-ink);
+    background: var(--brand-softer);
+}
+
+.auth-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 16px;
+    font-size: 14.5px;
+}
+
+.auth-links a,
+.auth-foot a {
+    color: var(--brand-ink);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-links a:hover,
+.auth-foot a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.auth-foot {
+    display: grid;
+    gap: 6px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 15px;
+}
