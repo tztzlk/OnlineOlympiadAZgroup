@@ -13,7 +13,8 @@
           <button class="profile-btn primary" @click="startCreateChild">Добавить участника</button>
         </div>
 
-        <div v-if="saveSuccess" class="child-save-banner">Участник успешно добавлен и появился в списке</div>
+        <p v-if="saveSuccess" class="ds-msg success" role="status">Участник успешно добавлен и появился в списке</p>
+        <p v-if="listError" class="ds-msg error" role="alert">{{ listError }}</p>
 
         <div v-if="children.length" class="profile-card-grid">
           <article
@@ -97,6 +98,8 @@
             </label>
           </div>
 
+          <p v-if="formError" class="ds-msg error" role="alert">{{ formError }}</p>
+
           <div class="profile-form-actions">
             <button class="profile-btn primary" :disabled="savingChild">{{ savingChild ? 'Сохраняем...' : 'Сохранить данные' }}</button>
             <button v-if="editingChildId" type="button" class="profile-btn outline" @click="resetChildForm">Отмена</button>
@@ -122,6 +125,13 @@ const editingChildId = ref(null)
 const savingChild = ref(false)
 const deletingChildId = ref(null)
 const saveSuccess = ref(false)
+const formError = ref('')
+const listError = ref('')
+
+const errorText = (error, fallback) => {
+  const errors = error?.response?.data?.errors
+  return errors ? Object.values(errors)[0][0] : (error?.response?.data?.message || fallback)
+}
 const gradeOptions = [3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -200,6 +210,7 @@ const startCreateChild = () => {
 const deleteChild = async (child) => {
   if (!confirm(`Удалить участника «${child.full_name}»? Это действие нельзя отменить.`)) return
   deletingChildId.value = child.id
+  listError.value = ''
 
   try {
     await api.delete(`/profile/children/${child.id}`)
@@ -218,6 +229,8 @@ const deleteChild = async (child) => {
     if (editingChildId.value === child.id) {
       resetChildForm()
     }
+  } catch (error) {
+    listError.value = errorText(error, 'Не удалось удалить участника. Попробуйте ещё раз.')
   } finally {
     deletingChildId.value = null
   }
@@ -238,6 +251,7 @@ const startEditChild = (child) => {
 
 const saveChild = async () => {
   savingChild.value = true
+  formError.value = ''
 
   try {
     const payload = {
@@ -263,6 +277,8 @@ const saveChild = async () => {
     saveSuccess.value = true
     window.scrollTo({ top: 0, behavior: 'smooth' })
     setTimeout(() => { saveSuccess.value = false }, 3500)
+  } catch (error) {
+    formError.value = errorText(error, 'Не удалось сохранить данные участника.')
   } finally {
     savingChild.value = false
   }
@@ -280,23 +296,16 @@ onMounted(async () => {
 <style src="../../css/profile-hub.css"></style>
 
 <style scoped>
-.child-save-banner {
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  background: rgba(44, 122, 75, 0.1);
-  border: 1px solid rgba(44, 122, 75, 0.28);
-  color: #2c7a4b;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
 .date-selects {
-  display: flex;
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr 1fr;
   gap: 8px;
 }
 
 .date-select {
-  flex: 1;
   min-width: 0;
+  padding-left: 10px !important;
+  padding-right: 28px !important;
+  background-position: right 10px center !important;
 }
 </style>

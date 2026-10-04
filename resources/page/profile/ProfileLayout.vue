@@ -2,6 +2,7 @@
   <div class="profile-shell">
     <StatePanel
       v-if="loading"
+      class="profile-shell__container"
       tone="neutral" loading
       eyebrow="Кабинет"
       title="Загружаем кабинет"
@@ -10,22 +11,31 @@
 
     <StatePanel
       v-else-if="!userStore.user"
+      class="profile-shell__container"
       tone="warning"
       eyebrow="Кабинет"
       title="Нужен вход в аккаунт"
       description="Войдите, чтобы видеть участников, заявки, оплаты, уведомления и результаты."
-    />
+    >
+      <template #actions>
+        <RouterLink to="/login" class="ds-btn ds-btn-primary">Войти</RouterLink>
+        <RouterLink to="/register" class="ds-btn ds-btn-ghost">Регистрация</RouterLink>
+      </template>
+    </StatePanel>
 
     <template v-else>
       <section class="profile-hero profile-shell__container">
-        <div>
-          <p class="profile-eyebrow">Родительский кабинет</p>
-          <h1>{{ userStore.user.name }}</h1>
-          <p class="profile-hero__copy">Один обзор для первого визита и отдельные разделы для работы без перегруза.</p>
-          <div class="profile-hero__meta">
-            <span>{{ userStore.user.email }}</span>
-            <span>{{ userStore.user.phone || 'Телефон не указан' }}</span>
-            <span>{{ userStore.user.city || 'Город не указан' }}</span>
+        <div class="profile-hero__main">
+          <span class="profile-hero__avatar" aria-hidden="true">{{ avatarLetter }}</span>
+          <div>
+            <p class="profile-eyebrow">Родительский кабинет</p>
+            <h1>{{ userStore.user.name }}</h1>
+            <p class="profile-hero__copy">Один обзор для первого визита и отдельные разделы для работы без перегруза.</p>
+            <div class="profile-hero__meta">
+              <span>{{ userStore.user.email }}</span>
+              <span>{{ userStore.user.phone || 'Телефон не указан' }}</span>
+              <span>{{ userStore.user.city || 'Город не указан' }}</span>
+            </div>
           </div>
         </div>
 
@@ -61,10 +71,10 @@
         </div>
 
         <div class="profile-toolbar__meta">
-          <span>Детей: {{ userStore.stats.children || userStore.children.length }}</span>
-          <span>Активных заявок: {{ userStore.stats.olympiads || 0 }}</span>
-          <span>Готово к старту: {{ userStore.stats.ready_to_start || 0 }}</span>
-          <span>Непрочитанных уведомлений: {{ userStore.notificationsUnread }}</span>
+          <span>Детей: <strong>{{ userStore.stats.children || userStore.children.length }}</strong></span>
+          <span>Активных заявок: <strong>{{ userStore.stats.olympiads || 0 }}</strong></span>
+          <span>Готово к старту: <strong>{{ userStore.stats.ready_to_start || 0 }}</strong></span>
+          <span>Непрочитанных уведомлений: <strong>{{ userStore.notificationsUnread }}</strong></span>
         </div>
 
         <nav class="profile-nav" aria-label="Разделы кабинета">
@@ -73,8 +83,12 @@
             :key="section.name"
             :to="section.to"
             class="profile-nav__link"
+            active-class=""
+            exact-active-class="is-active"
           >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path :d="section.icon"/></svg>
             {{ section.label }}
+            <span v-if="section.name === 'ProfileNotifications' && userStore.notificationsUnread" class="profile-nav__badge">{{ userStore.notificationsUnread }}</span>
           </RouterLink>
         </nav>
       </section>
@@ -97,6 +111,7 @@ const loading = ref(true)
 
 const canReturnToAdminPanel = computed(() => Boolean(hasAdminAccess(userStore.user) && userStore.sessionType === 'admin'))
 const selectedChild = computed(() => userStore.selectedChild)
+const avatarLetter = computed(() => (userStore.user?.name || '?').charAt(0).toUpperCase())
 
 const selectedChildId = computed({
   get: () => userStore.selectedChildId || '',

@@ -12,7 +12,7 @@
           <RouterLink
             v-if="userStore.currentTask?.action_url"
             class="profile-btn primary"
-            :to="userStore.currentTask.action_url"
+            :to="toInternalPath(userStore.currentTask.action_url)"
           >
             {{ userStore.currentTask.action_label || 'Открыть' }}
           </RouterLink>
@@ -182,6 +182,7 @@ import api from '../../js/api'
 import StatePanel from '../../components/StatePanel.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import { useUserStore } from '../../stores/user'
+import { toInternalPath } from '../../js/internalLink'
 
 const userStore = useUserStore()
 const olympiads = ref([])

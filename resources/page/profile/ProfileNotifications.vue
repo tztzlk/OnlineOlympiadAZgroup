@@ -23,7 +23,7 @@
             <div class="profile-notification__meta">
               <span>{{ item.date }}</span>
               <div class="profile-actions-row">
-                <RouterLink v-if="item.action_url" class="profile-btn outline compact" :to="item.action_url">Открыть</RouterLink>
+                <RouterLink v-if="item.action_url" class="profile-btn outline compact" :to="toInternalPath(item.action_url)">Открыть</RouterLink>
                 <button v-if="!item.read_at" class="profile-link-btn" @click="markRead(item.id)">Прочитано</button>
               </div>
             </div>
@@ -39,6 +39,7 @@
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useUserStore } from '../../stores/user'
+import { toInternalPath } from '../../js/internalLink'
 
 const userStore = useUserStore()
 const notifications = ref([])
