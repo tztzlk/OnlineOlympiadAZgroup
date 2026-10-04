@@ -135,11 +135,12 @@ class QuizController extends Controller
             'questions_count' => $category->questions->count(),
             'attempt_started_at' => optional($requestRecord->attempt_started_at)->toISOString(),
             'remaining_seconds' => $this->remainingSeconds($requestRecord->attempt_started_at, $quiz->time_limit),
+            // Только то, что нужно для прохождения: без пояснений к решению и признака
+            // правильного ответа — разбор отдаётся после сдачи (см. ProfileController::mistakes).
             'questions' => $category->questions->values()->map(function ($question) {
                 return [
                     'id' => $question->id,
                     'question' => $question->question,
-                    'explanation' => $question->explanation,
                     'image' => $question->image,
                     'image_source' => $question->image_source,
                     'position' => $question->position,
