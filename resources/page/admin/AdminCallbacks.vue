@@ -76,151 +76,21 @@ onMounted(load)
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
-.admin-page {
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at top right, rgba(201, 171, 99, 0.12), transparent 24%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
-  padding: 28px;
-  color: var(--text);
-  display: grid;
-  gap: 18px;
-  align-content: start;
-}
-
-.header,
-.table-card,
-.state-card {
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-}
-
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 22px;
-}
-
-.eyebrow {
-  margin: 0 0 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent-strong);
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(26px, 4vw, 38px);
-  color: var(--text);
-}
-
-.subtext {
-  margin: 8px 0 0;
-  color: var(--text-secondary);
-}
-
-.primary-btn {
-  flex-shrink: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  padding: 12px 18px;
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  color: var(--text);
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(201, 171, 99, 0.2);
-}
-
-.state-card {
-  padding: 28px;
-  color: var(--text-secondary);
-}
-
-.state-card.empty {
-  text-align: center;
-  padding: 48px 28px;
-}
-
-.table-card {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 680px;
-}
-
-thead th {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 14px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--surface-border);
-  white-space: nowrap;
-}
-
-tbody td {
-  padding: 14px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--surface-border);
-  vertical-align: middle;
-  color: var(--text);
-}
-
-tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-tbody tr:hover td {
-  background: rgba(201, 171, 99, 0.04);
-}
-
-.type-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  background: rgba(201, 171, 99, 0.14);
-  color: var(--accent-strong);
-}
-
-.type-badge.helpdesk {
-  background: rgba(79, 167, 116, 0.12);
-  color: #316a49;
-}
+.type-badge.helpdesk { background: var(--brand-soft); color: var(--brand-ink); }
+.type-badge:not(.helpdesk) { background: var(--sun-soft); color: var(--sun-ink); }
 
 .message-cell {
-  max-width: 280px;
-  white-space: nowrap;
+  max-width: 360px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   color: var(--text-secondary);
-  cursor: default;
 }
 
 .date-cell {
+  color: var(--text-tertiary);
   white-space: nowrap;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-@media (max-width: 760px) {
-  .admin-page { padding: 16px; }
-  .header { flex-direction: column; align-items: stretch; }
+  font-variant-numeric: tabular-nums;
 }
 </style>

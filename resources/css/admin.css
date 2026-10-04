@@ -1,0 +1,318 @@
+/* ==========================================================
+   Админ-панель — общая основа экранов (подключается в AdminLayout)
+   Всё ограничено .admin-page, чтобы не влиять на сайт.
+   ========================================================== */
+
+.admin-page {
+    min-height: 100dvh;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding: 28px clamp(16px, 3vw, 32px) 48px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* ---- Шапка страницы ---- */
+.admin-page .header,
+.admin-page .page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px;
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.admin-page .eyebrow {
+    margin: 0 0 4px;
+    color: var(--brand-ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.admin-page h1 {
+    font-family: var(--font-sans);
+    font-size: clamp(22px, 2.6vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.admin-page h2 {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.admin-page .subtext {
+    margin-top: 6px;
+    max-width: 72ch;
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.admin-page .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ---- Карточки и панели ---- */
+.admin-page .panel,
+.admin-page .table-card,
+.admin-page .stat-card,
+.admin-page .state-card,
+.admin-page .empty-card,
+.admin-page .loading-card,
+.admin-page .error-card {
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.admin-page .panel,
+.admin-page .table-card { padding: 20px; }
+
+.admin-page .state-card,
+.admin-page .empty-card,
+.admin-page .loading-card,
+.admin-page .error-card {
+    padding: 28px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.admin-page .empty-card,
+.admin-page .empty { border-style: dashed; border-color: var(--border-strong); }
+.admin-page .error-card { background: var(--danger-soft); color: var(--danger-ink); border-color: transparent; }
+
+.admin-page .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 18px;
+}
+
+.admin-page .stats-grid,
+.admin-page .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+/* ---- Кнопки ---- */
+.admin-page :is(.primary-btn, .secondary-btn, .ghost-btn, .danger-btn, .success-btn, .warning-btn, .export-btn, .upload-btn, .reset-btn, .small-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 42px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid transparent;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--dur) ease, border-color var(--dur) ease, color var(--dur) ease, transform var(--dur-fast) var(--ease-out);
+}
+
+.admin-page :is(.primary-btn, .secondary-btn, .ghost-btn, .danger-btn, .success-btn, .warning-btn, .export-btn, .upload-btn, .reset-btn, .small-btn):active:not(:disabled) { transform: scale(0.97); }
+.admin-page :is(.primary-btn, .secondary-btn, .ghost-btn, .danger-btn, .success-btn, .warning-btn, .export-btn, .upload-btn, .reset-btn, .small-btn):disabled { opacity: 0.5; cursor: not-allowed; }
+
+.admin-page .primary-btn { background: var(--brand); color: var(--on-brand); }
+.admin-page .primary-btn:hover:not(:disabled) { background: var(--brand-hover); }
+
+.admin-page .secondary-btn,
+.admin-page .export-btn,
+.admin-page .upload-btn { background: var(--brand-soft); color: var(--brand-ink); }
+.admin-page .secondary-btn:hover:not(:disabled),
+.admin-page .export-btn:hover:not(:disabled),
+.admin-page .upload-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 20%, var(--card)); }
+
+.admin-page .ghost-btn,
+.admin-page .reset-btn,
+.admin-page .small-btn { background: var(--card); color: var(--text); border-color: var(--border-strong); }
+.admin-page .ghost-btn:hover:not(:disabled),
+.admin-page .reset-btn:hover:not(:disabled),
+.admin-page .small-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-ink); }
+
+.admin-page .small-btn { min-height: 34px; padding: 5px 10px; font-size: 13.5px; }
+
+.admin-page .danger-btn { background: transparent; color: var(--danger-ink); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+.admin-page .danger-btn:hover:not(:disabled) { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+.admin-page .success-btn { background: var(--success); color: #fff; }
+.admin-page .success-btn:hover:not(:disabled) { background: var(--success-hover); }
+
+.admin-page .warning-btn { background: var(--warning-soft); color: var(--warning-ink); }
+.admin-page .warning-btn:hover:not(:disabled) { background: var(--warning); color: #1f1600; }
+
+.admin-page .link-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--brand-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.admin-page .icon-btn,
+.admin-page .close-btn {
+    width: 38px;
+    height: 38px;
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.admin-page .icon-btn:hover,
+.admin-page .close-btn:hover { color: var(--danger-ink); border-color: var(--danger); }
+
+/* ---- Поля ---- */
+/* :where — нулевая специфичность, чтобы локальные стили страниц (иконки в поле и т.п.) побеждали */
+.admin-page :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 15px;
+}
+
+.admin-page :where(textarea) { min-height: 80px; line-height: 1.5; resize: vertical; }
+
+.admin-page :where(select) {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235b6585' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.admin-page input[type="checkbox"],
+.admin-page input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--brand);
+}
+
+.admin-page label > span:first-child:not([class]) {
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+/* ---- Таблицы ---- */
+.admin-page .table-wrap,
+.admin-page .table-card { overflow-x: auto; }
+
+.admin-page table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14.5px;
+}
+
+.admin-page th {
+    position: sticky;
+    top: 0;
+    padding: 10px 12px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-page th:first-child { border-top-left-radius: var(--radius-sm); }
+.admin-page th:last-child { border-top-right-radius: var(--radius-sm); }
+
+.admin-page td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.admin-page tbody tr:hover td { background: var(--brand-softer); }
+
+/* ---- Статусы ---- */
+.admin-page :is(.pill, .status-pill, .payment-pill, .reconciliation-pill, .status-chip, .type-badge, .review-chip, .subject-chip) {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: var(--radius-xs);
+    background: var(--bg-alt);
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.admin-page :is(.pending, .pill--pending, .pill--awaiting_payment, .pill--reported, .draft, .warning) { background: var(--warning-soft); color: var(--warning-ink); }
+.admin-page :is(.approved, .paid, .success, .published, .pill--paid, .pill--matched) { background: var(--success-soft); color: var(--success-ink); }
+.admin-page :is(.rejected, .failed, .pill--failed, .pill--needs_review, .flagged) { background: var(--danger-soft); color: var(--danger-ink); }
+
+/* ---- Модальные окна ---- */
+.admin-page .modal-backdrop,
+.import-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: var(--overlay);
+    backdrop-filter: blur(4px);
+}
+
+.admin-page .modal-card {
+    width: min(760px, 100%);
+    max-height: calc(100dvh - 32px);
+    display: grid;
+    gap: 16px;
+    padding: 24px;
+    overflow-y: auto;
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    box-shadow: var(--shadow-lg);
+}
+
+.admin-page .modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-page .modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+@media (max-width: 640px) {
+    .admin-page { padding: 16px 12px 40px; }
+    .admin-page .header,
+    .admin-page .page-head { padding: 18px; }
+}
