@@ -11,7 +11,7 @@
 
     <StatePanel
       v-if="loading"
-      tone="neutral"
+      tone="neutral" loading
       eyebrow="Аналитика"
       title="Загружаем метрики"
       description="Собираем очереди заявок, платежные статусы и weekly summary."

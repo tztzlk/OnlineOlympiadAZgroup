@@ -25,7 +25,7 @@
 
     <StatePanel
       v-if="loading"
-      tone="neutral"
+      tone="neutral" loading
       eyebrow="Certificate check"
       title="Проверяем результат"
       description="Сейчас сверим ID с системой Online Olympiad и покажем сведения по сертификату."

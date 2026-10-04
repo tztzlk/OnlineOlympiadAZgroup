@@ -206,6 +206,9 @@ const showStickyOlympiadCta = computed(() => {
   if (route.path === '/admin-login') return false
   if (route.path.startsWith('/admin')) return false
   if (route.path.startsWith('/quiz/')) return false
+  // На экранах с собственной нижней панелью действий кнопка перекрывала бы её.
+  if (route.path.startsWith('/training/')) return false
+  if (route.path.startsWith('/profile/results/')) return false
   return true
 })
 

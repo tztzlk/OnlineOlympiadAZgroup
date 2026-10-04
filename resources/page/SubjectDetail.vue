@@ -2,7 +2,7 @@
   <div class="subject-detail-page">
     <StatePanel
       v-if="loading"
-      tone="neutral"
+      tone="neutral" loading
       eyebrow="Предмет"
       title="Загружаем страницу олимпиады"
       description="Подготавливаем описание предмета, классы, формат участия и ответы на частые вопросы."

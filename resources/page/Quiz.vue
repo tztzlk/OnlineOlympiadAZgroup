@@ -2,7 +2,7 @@
   <div class="quiz-page">
     <StatePanel
       v-if="loading"
-      tone="neutral"
+      tone="neutral" loading
       eyebrow="Олимпиада"
       title="Загружаем олимпиаду"
       description="Подготавливаем вопросы, правила и данные участника перед стартом."

@@ -16,7 +16,7 @@
 
     <StatePanel
       v-if="loading"
-      tone="neutral"
+      tone="neutral" loading
       eyebrow="Leaderboard"
       title="Собираем лучшие результаты"
       description="Загружаем актуальный рейтинг, чтобы показать самые сильные выступления участников."

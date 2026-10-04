@@ -2,7 +2,7 @@
   <div class="profile-shell">
     <StatePanel
       v-if="loading"
-      tone="neutral"
+      tone="neutral" loading
       eyebrow="Кабинет"
       title="Загружаем кабинет"
       description="Подготавливаем профиль, участников и быстрые действия."

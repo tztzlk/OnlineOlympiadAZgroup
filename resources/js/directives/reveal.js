@@ -30,6 +30,12 @@ export default {
       return
     }
 
+    // То, что уже на первом экране, показываем сразу: контент не должен «ждать» анимацию.
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight * 0.92) {
+      return
+    }
+
     el.setAttribute('data-reveal', '')
 
     if (Number.isFinite(binding.value)) {

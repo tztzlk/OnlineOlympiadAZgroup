@@ -1,7 +1,7 @@
 <template>
   <div class="certificate-page">
     <div v-if="loading" class="certificate-shell">
-      <StatePanel tone="neutral" eyebrow="Сертификат" title="Подготавливаем превью" description="Сейчас загрузим данные участника и проверим, доступен ли сертификат." />
+      <StatePanel tone="neutral" loading eyebrow="Сертификат" title="Подготавливаем превью" description="Сейчас загрузим данные участника и проверим, доступен ли сертификат." />
     </div>
 
     <div v-else-if="!certificate" class="certificate-shell">

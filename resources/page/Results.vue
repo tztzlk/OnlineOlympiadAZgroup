@@ -1,90 +1,85 @@
 <template>
   <div class="results-page">
-    <header class="header-card">
-      <div>
-        <p class="eyebrow">Результаты</p>
-        <h1>Итоги участия детей</h1>
-        <p class="header-copy">Здесь собраны завершённые олимпиады, баллы, статусы и доступ к сертификатам каждого участника.</p>
+    <div class="results-wrap">
+      <header class="page-head">
+        <div class="page-head__text">
+          <p class="eyebrow">Результаты</p>
+          <h1>Итоги участия детей</h1>
+          <p class="page-head__copy">Здесь собраны завершённые олимпиады, баллы, статусы и доступ к сертификатам каждого участника.</p>
+        </div>
+
+        <label class="ds-field filter-box">
+          <span class="ds-label">Показывать результаты</span>
+          <select v-model="selectedChildId" class="ds-input" @change="loadResults">
+            <option value="">Все дети</option>
+            <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
+              {{ child.full_name }}
+            </option>
+          </select>
+        </label>
+      </header>
+
+      <p v-if="downloadError" class="ds-msg error" role="alert">{{ downloadError }}</p>
+
+      <StatePanel
+        v-if="loading"
+        tone="neutral" loading
+        eyebrow="Результаты"
+        title="Загружаем результаты"
+        description="Собираем баллы, статусы и сертификаты по выбранному участнику."
+      />
+
+      <StatePanel
+        v-else-if="!results.length"
+        tone="empty"
+        eyebrow="Результаты"
+        title="Пока нет завершённых олимпиад"
+        description="Когда участник пройдёт первую олимпиаду, здесь появятся баллы, статус и сертификат."
+      >
+        <template #actions>
+          <RouterLink class="ds-btn ds-btn-primary" to="/subject">Выбрать олимпиаду</RouterLink>
+        </template>
+      </StatePanel>
+
+      <div v-else class="results-grid">
+        <article v-for="(result, index) in results" :key="result.id" v-reveal="index" class="result-card" :class="result.status === 'passed' ? 'is-win' : 'is-participant'">
+          <div class="result-card__top">
+            <div class="ring" :style="{ '--p': result.percent }" role="img" :aria-label="`${result.percent}%`">
+              <span>{{ result.percent }}%</span>
+            </div>
+            <div class="result-card__title">
+              <p class="child">{{ result.child_name }}</p>
+              <h2>{{ result.subject }}</h2>
+              <p class="quiz-title">{{ result.quiz_title }}</p>
+            </div>
+            <StatusBadge :label="result.status_meta?.label || result.status" :tone="result.status_meta?.tone || 'neutral'" />
+          </div>
+
+          <div class="score-panel">
+            <span class="score-panel__label">Баллы</span>
+            <strong>{{ result.score }}/{{ result.total }}</strong>
+          </div>
+
+          <dl class="detail-grid">
+            <div class="detail-item"><dt>Категория</dt><dd>{{ result.category_label }}</dd></div>
+            <div class="detail-item"><dt>Дата</dt><dd>{{ result.date }}</dd></div>
+            <div class="detail-item"><dt>Школа</dt><dd>{{ result.school }}</dd></div>
+            <div class="detail-item"><dt>Город</dt><dd>{{ result.city }}</dd></div>
+          </dl>
+
+          <div class="meta-row">
+            <p>Откройте превью сертификата, чтобы проверить данные перед скачиванием.</p>
+            <div class="meta-actions">
+              <RouterLink class="ds-btn ds-btn-ghost" :to="`/profile/results/${result.id}/certificate-preview`">Превью</RouterLink>
+              <button type="button" class="ds-btn ds-btn-sun" :disabled="downloadingId === result.id" @click="downloadCertificate(result)">
+                <span v-if="downloadingId === result.id" class="ds-spinner" aria-hidden="true"></span>
+                <svg v-else width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Скачать сертификат
+              </button>
+            </div>
+          </div>
+        </article>
       </div>
-
-      <label class="filter-box">
-        <span>Показывать результаты</span>
-        <select v-model="selectedChildId" @change="loadResults">
-          <option value="">Все дети</option>
-          <option v-for="child in userStore.children" :key="child.id" :value="String(child.id)">
-            {{ child.full_name }}
-          </option>
-        </select>
-      </label>
-    </header>
-
-    <StatePanel
-      v-if="loading"
-      tone="neutral"
-      eyebrow="Результаты"
-      title="Загружаем результаты"
-      description="Собираем баллы, статусы и сертификаты по выбранному участнику."
-    />
-
-    <StatePanel
-      v-else-if="!results.length"
-      tone="empty"
-      eyebrow="Результаты"
-      title="Пока нет завершённых олимпиад"
-      description="Когда участник пройдёт первую олимпиаду, здесь появятся баллы, статус и сертификат."
-    />
-
-    <div v-else class="results-grid">
-      <article v-for="result in results" :key="result.id" class="result-card">
-        <div class="result-head">
-          <div>
-            <p class="child">{{ result.child_name }}</p>
-            <h2>{{ result.subject }}</h2>
-            <p class="quiz-title">{{ result.quiz_title }}</p>
-          </div>
-          <StatusBadge :label="result.status_meta?.label || result.status" :tone="result.status_meta?.tone || 'neutral'" />
-        </div>
-
-        <div class="score-panel">
-          <strong>{{ result.score }}/{{ result.total }}</strong>
-          <span>{{ result.percent }}%</span>
-        </div>
-
-        <div class="progress-track">
-          <div
-            class="progress-fill"
-            :class="result.status === 'passed' ? 'win' : 'participant'"
-            :style="{ width: `${result.percent}%` }"
-          ></div>
-        </div>
-
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span>Категория</span>
-            <strong>{{ result.category_label }}</strong>
-          </div>
-          <div class="detail-item">
-            <span>Дата</span>
-            <strong>{{ result.date }}</strong>
-          </div>
-          <div class="detail-item">
-            <span>Школа</span>
-            <strong>{{ result.school }}</strong>
-          </div>
-          <div class="detail-item">
-            <span>Город</span>
-            <strong>{{ result.city }}</strong>
-          </div>
-        </div>
-
-        <div class="meta-row">
-          <span>Откройте превью сертификата, чтобы проверить данные перед скачиванием.</span>
-          <div class="meta-actions">
-            <RouterLink class="certificate-btn preview" :to="`/profile/results/${result.id}/certificate-preview`">Превью</RouterLink>
-            <button class="certificate-btn" @click="downloadCertificate(result)">Скачать сертификат</button>
-          </div>
-        </div>
-      </article>
     </div>
   </div>
 </template>
@@ -100,6 +95,8 @@ const userStore = useUserStore()
 const loading = ref(true)
 const results = ref([])
 const selectedChildId = ref('')
+const downloadingId = ref(null)
+const downloadError = ref('')
 
 const loadResults = async () => {
   loading.value = true
@@ -109,218 +106,210 @@ const loadResults = async () => {
       params: selectedChildId.value ? { child_profile_id: selectedChildId.value } : {},
     })
     results.value = data
+  } catch {
+    results.value = []
   } finally {
     loading.value = false
   }
 }
 
 const downloadCertificate = async (result) => {
-  const { data, headers } = await api.get(result.certificate_url.replace('/api', ''), {
-    responseType: 'blob',
-  })
+  downloadError.value = ''
+  downloadingId.value = result.id
 
-  const blob = new Blob([data], { type: headers['content-type'] || 'application/pdf' })
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `certificate-result-${result.id}.pdf`
-  link.click()
-  window.URL.revokeObjectURL(url)
+  try {
+    const { data, headers } = await api.get(result.certificate_url.replace('/api', ''), {
+      responseType: 'blob',
+    })
+
+    const blob = new Blob([data], { type: headers['content-type'] || 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `certificate-result-${result.id}.pdf`
+    link.click()
+    window.URL.revokeObjectURL(url)
+  } catch {
+    downloadError.value = 'Не удалось скачать сертификат. Попробуйте ещё раз через минуту.'
+  } finally {
+    downloadingId.value = null
+  }
 }
 
 onMounted(loadResults)
 </script>
 
 <style scoped>
-* { box-sizing: border-box; }
-
 .results-page {
-  min-height: 100vh;
-  padding: 110px 20px 48px;
-  background: radial-gradient(circle at top left, rgba(201, 171, 99, 0.14), transparent 24%), var(--bg);
-  color: var(--text);
+  min-height: 100dvh;
+  padding: calc(var(--header-h) + 32px) 20px 72px;
+  background:
+    radial-gradient(700px 360px at 100% 0%, color-mix(in srgb, var(--sun) 16%, transparent), transparent 70%),
+    var(--bg);
 }
 
-.header-card,
-.result-card {
-  max-width: 1120px;
+.results-wrap {
+  max-width: 1160px;
   margin: 0 auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--surface-border);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 20px;
 }
 
-.header-card {
-  padding: 26px;
+.page-head {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 18px;
-  align-items: flex-start;
+  gap: 24px;
 }
+
+.page-head__text { max-width: 680px; }
+.page-head h1 { font-size: clamp(28px, 3.6vw, 42px); }
 
 .eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--accent-strong);
-}
-
-.header-copy,
-.quiz-title,
-.meta-row {
-  color: var(--text-secondary);
-}
-
-.filter-box {
-  min-width: 260px;
-  display: grid;
-  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--brand-ink);
   font-size: 14px;
   font-weight: 600;
 }
 
-.filter-box select {
-  min-height: 50px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 245, 0.95);
-  padding: 12px 14px;
-  color: var(--text);
+.page-head__copy {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 17px;
 }
 
+.filter-box { min-width: 260px; }
+
 .results-grid {
-  max-width: 1120px;
-  margin: 20px auto 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 16px;
 }
 
 .result-card {
-  padding: 22px;
   display: grid;
-  gap: 16px;
+  gap: 18px;
+  padding: 22px;
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
-.result-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
+.result-card__top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 16px;
+  align-items: start;
+}
+
+.result-card__top .ring { grid-row: span 2; }
+.result-card__top :deep(.status-badge) { grid-column: 2; justify-self: start; }
+
+.ring {
+  --p: 0;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, var(--card) 76%, transparent 78%),
+    conic-gradient(var(--ring-color, var(--success)) calc(var(--p) * 1%), var(--bg-alt) 0);
+}
+
+.is-participant .ring { --ring-color: var(--sun-hover); }
+
+.ring span {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .child {
-  margin-bottom: 8px;
-  color: var(--accent-strong);
+  margin-bottom: 2px;
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.result-card__title h2 {
+  font-family: var(--font-sans);
+  font-size: 20px;
   font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.quiz-title {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 14.5px;
 }
 
 .score-panel {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
-  gap: 12px;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.score-panel__label {
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 .score-panel strong {
-  font-size: 34px;
+  font-family: var(--font-display);
+  font-size: 28px;
   line-height: 1;
-}
-
-.score-panel span {
-  color: var(--text-secondary);
-  font-weight: 700;
-}
-
-.progress-track {
-  height: 10px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(100, 83, 41, 0.1);
-}
-
-.progress-fill {
-  height: 100%;
-}
-
-.progress-fill.win {
-  background: linear-gradient(90deg, var(--success-soft), #78c293);
-}
-
-.progress-fill.participant {
-  background: linear-gradient(90deg, var(--accent), #dfc27f);
+  font-variant-numeric: tabular-nums;
 }
 
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px 16px;
+  margin: 0;
 }
 
-.detail-item {
-  padding: 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--surface-border);
-  background: rgba(255, 252, 244, 0.82);
+.detail-item dt {
+  color: var(--text-tertiary);
+  font-size: 13px;
 }
 
-.detail-item span {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--text-secondary);
-  font-size: 12px;
+.detail-item dd {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .meta-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
   gap: 12px;
-  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.meta-row p {
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .meta-actions {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
-.certificate-btn {
-  border: 0;
-  background: rgba(201, 171, 99, 0.16);
-  color: var(--accent-strong);
-  border-radius: var(--radius-sm);
-  padding: 11px 14px;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.certificate-btn.preview {
-  background: rgba(79, 167, 116, 0.12);
-  color: #2f6f4b;
-}
+.meta-actions .ds-btn { flex: 1; }
 
 @media (max-width: 720px) {
-  .results-page {
-    padding: 98px 14px 30px;
-  }
-
-  .header-card,
-  .result-head,
-  .meta-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-box {
-    min-width: 0;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
+  .results-page { padding: calc(var(--header-h) + 16px) 14px 96px; }
+  .page-head { flex-direction: column; align-items: stretch; }
+  .filter-box { min-width: 0; }
+  .results-grid { grid-template-columns: 1fr; }
 }
 </style>
