@@ -1,0 +1,122 @@
+/* Общие стили экранов оплаты: «Заявка принята» и «Ожидание оплаты» */
+
+.pay-page {
+    min-height: 100dvh;
+    padding: calc(var(--header-h) + 28px) 20px 72px;
+    background:
+        radial-gradient(700px 360px at 0% 0%, color-mix(in srgb, var(--success) 10%, transparent), transparent 70%),
+        var(--bg);
+}
+
+.pay-card {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    gap: 22px;
+    padding: clamp(22px, 4vw, 40px);
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.pay-eyebrow {
+    color: var(--success-ink);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pay-card h1 {
+    margin-top: 4px;
+    font-size: clamp(26px, 3.6vw, 38px);
+}
+
+.pay-lead {
+    color: var(--text-secondary);
+    font-size: 17px;
+    line-height: 1.65;
+}
+
+.pay-lead strong { color: var(--text); }
+
+.pay-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    background: var(--brand-soft);
+}
+
+.pay-status__icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--brand);
+}
+
+.pay-status strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 17px;
+}
+
+.pay-status p {
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.pay-status.success { background: var(--success-soft); }
+.pay-status.success .pay-status__icon { background: var(--success); color: #ffffff; }
+.pay-status.warning { background: var(--warning-soft); }
+.pay-status.warning .pay-status__icon { color: #c27800; }
+.pay-status.pending .pay-status__icon svg { animation: pay-spin 2.4s linear infinite; }
+
+@keyframes pay-spin { to { transform: rotate(360deg); } }
+
+.pay-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 0;
+}
+
+.pay-meta__item {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.pay-meta__item dt {
+    margin-bottom: 2px;
+    color: var(--text-tertiary);
+    font-size: 13px;
+}
+
+.pay-meta__item dd {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.pay-actions {
+    display: grid;
+    gap: 14px;
+}
+
+.pay-actions__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 720px) {
+    .pay-page { padding: calc(var(--header-h) + 16px) 12px 96px; }
+    .pay-meta { grid-template-columns: 1fr; }
+    .pay-actions__row .ds-btn { flex: 1 1 100%; }
+}

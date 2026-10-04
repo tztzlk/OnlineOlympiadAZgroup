@@ -1,35 +1,51 @@
 <template>
-  <div class="waiting-page">
-    <div class="waiting-card">
-      <p class="eyebrow">Статус заявки</p>
-      <h1>{{ waitingTitle }}</h1>
+  <div class="pay-page">
+    <div class="pay-card">
+      <header>
+        <p class="pay-eyebrow">Статус заявки</p>
+        <h1>{{ waitingTitle }}</h1>
+      </header>
 
-      <p v-if="status === 'pending'" class="lead">
-        Заявка ещё проходит модерацию. Как только статус обновится, здесь появятся следующие действия.
-      </p>
+      <div v-if="status === 'pending'" class="pay-status pending" role="status">
+        <span class="pay-status__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>
+        </span>
+        <p class="pay-lead">
+          Заявка ещё проходит модерацию. Как только статус обновится, здесь появятся следующие действия.
+        </p>
+      </div>
 
       <template v-else-if="status === 'approved'">
-        <p class="lead"><strong>{{ mainStatusLabel }}</strong></p>
-        <p class="lead">{{ statusDescription }}</p>
-
-        <div v-if="paymentReference || paymentComment" class="payment-meta">
-          <div class="payment-meta__item">
-            <span>Request ID</span>
-            <strong>{{ paymentReference || '—' }}</strong>
-          </div>
-          <div class="payment-meta__item">
-            <span>Комментарий к оплате</span>
-            <strong>{{ paymentComment || paymentReference || '—' }}</strong>
-          </div>
-          <div class="payment-meta__item">
-            <span>Статус</span>
-            <strong>{{ paymentMetaLabel }}</strong>
+        <div class="pay-status" :class="statusTone" role="status">
+          <span class="pay-status__icon" aria-hidden="true">
+            <svg v-if="statusTone === 'success'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <svg v-else-if="statusTone === 'warning'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>
+            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>
+          </span>
+          <div>
+            <strong>{{ mainStatusLabel }}</strong>
+            <p>{{ statusDescription }}</p>
           </div>
         </div>
 
-        <p v-if="feedbackMessage" class="feedback">{{ feedbackMessage }}</p>
+        <dl v-if="paymentReference || paymentComment" class="pay-meta">
+          <div class="pay-meta__item">
+            <dt>Request ID</dt>
+            <dd>{{ paymentReference || '—' }}</dd>
+          </div>
+          <div class="pay-meta__item">
+            <dt>Комментарий к оплате</dt>
+            <dd>{{ paymentComment || paymentReference || '—' }}</dd>
+          </div>
+          <div class="pay-meta__item">
+            <dt>Статус</dt>
+            <dd>{{ paymentMetaLabel }}</dd>
+          </div>
+        </dl>
 
-        <div class="actions">
+        <p v-if="feedbackMessage" class="ds-msg info" role="status">{{ feedbackMessage }}</p>
+
+        <div class="pay-actions">
           <KaspiPaymentAssist
             v-if="showPayButton"
             :payment-url="paymentUrl"
@@ -37,22 +53,33 @@
             mobile-cta="Оплатить через Kaspi"
             desktop-cta="Открыть ссылку оплаты"
           />
-          <a v-if="showPayButton" :href="paymentUrl" target="_blank" rel="noopener" class="btn btn-primary">Оплатить через Kaspi</a>
-          <button
-            v-if="showReportButton"
-            type="button"
-            class="btn btn-secondary"
-            :disabled="reportingPayment"
-            @click="reportPayment"
-          >
-            {{ reportingPayment ? 'Отмечаем оплату...' : 'Я оплатил' }}
-          </button>
-          <button v-if="paymentStatus === 'paid'" type="button" class="btn btn-primary" @click="goToQuiz">Начать олимпиаду</button>
+          <div class="pay-actions__row">
+            <button
+              v-if="showReportButton"
+              type="button"
+              class="ds-btn ds-btn-primary ds-btn-lg"
+              :disabled="reportingPayment"
+              @click="reportPayment"
+            >
+              <span v-if="reportingPayment" class="ds-spinner" aria-hidden="true"></span>
+              {{ reportingPayment ? 'Отмечаем оплату...' : 'Я оплатил' }}
+            </button>
+            <button v-if="paymentStatus === 'paid'" type="button" class="ds-btn ds-btn-primary ds-btn-lg" @click="goToQuiz">Начать олимпиаду</button>
+          </div>
         </div>
       </template>
 
-      <p v-else-if="status === 'rejected'" class="lead">Заявка отклонена. Проверьте данные или свяжитесь с поддержкой.</p>
-      <p v-else class="lead">Вы ещё не оформили участие.</p>
+      <StatePanel v-else-if="status === 'rejected'" tone="danger" title="Заявка отклонена" description="Заявка отклонена. Проверьте данные или свяжитесь с поддержкой.">
+        <template #actions>
+          <RouterLink to="/help-desk" class="ds-btn ds-btn-ghost">Написать в поддержку</RouterLink>
+        </template>
+      </StatePanel>
+
+      <StatePanel v-else tone="empty" title="Участие не оформлено" description="Вы ещё не оформили участие.">
+        <template #actions>
+          <RouterLink to="/subject" class="ds-btn ds-btn-primary">Выбрать олимпиаду</RouterLink>
+        </template>
+      </StatePanel>
     </div>
   </div>
 </template>
@@ -62,6 +89,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../js/api'
 import KaspiPaymentAssist from '../components/KaspiPaymentAssist.vue'
+import StatePanel from '../components/StatePanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -79,14 +107,14 @@ const reportingPayment = ref(false)
 
 let pollTimer = null
 
-const waitingTitle = '\u041E\u043F\u043B\u0430\u0442\u0430 \u0438 \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u043E\u043B\u0438\u043C\u043F\u0438\u0430\u0434\u0435'
-const waitingForPaymentLabel = '\u041E\u0436\u0438\u0434\u0430\u0435\u043C \u043E\u043F\u043B\u0430\u0442\u0443'
-const paymentReportedLabel = '\u041F\u043B\u0430\u0442\u0451\u0436 \u043E\u0442\u043C\u0435\u0447\u0435\u043D, \u0438\u0434\u0451\u0442 \u0430\u0432\u0442\u043E\u0441\u0432\u0435\u0440\u043A\u0430'
-const paymentReviewLabel = '\u0410\u0432\u0442\u043E\u0441\u0432\u0435\u0440\u043A\u0430 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u043B\u0430\u0441\u044C, \u043D\u0443\u0436\u043D\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430'
-const paymentConfirmedLabel = '\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430, \u0434\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442'
-const paymentConfirmedShortLabel = '\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430'
-const needsReviewShortLabel = '\u041D\u0443\u0436\u043D\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430'
-const autoCheckShortLabel = '\u0418\u0434\u0451\u0442 \u0430\u0432\u0442\u043E\u0441\u0432\u0435\u0440\u043A\u0430'
+const waitingTitle = 'Оплата и доступ к олимпиаде'
+const waitingForPaymentLabel = 'Ожидаем оплату'
+const paymentReportedLabel = 'Платёж отмечен, идёт автосверка'
+const paymentReviewLabel = 'Автосверка не завершилась, нужна проверка'
+const paymentConfirmedLabel = 'Оплата подтверждена, доступ открыт'
+const paymentConfirmedShortLabel = 'Оплата подтверждена'
+const needsReviewShortLabel = 'Нужна проверка'
+const autoCheckShortLabel = 'Идёт автосверка'
 
 const mainStatusLabel = computed(() => {
   if (paymentStatus.value === 'paid') return paymentConfirmedLabel
@@ -116,6 +144,12 @@ const statusDescription = computed(() => {
   }
 
   return 'Оплатите участие и после этого нажмите «Я оплатил», чтобы запустить автосверку.'
+})
+
+const statusTone = computed(() => {
+  if (paymentStatus.value === 'paid') return 'success'
+  if (reconciliationStatus.value === 'needs_review' || paymentStatus.value === 'failed') return 'warning'
+  return 'pending'
 })
 
 const showPayButton = computed(() => Boolean(paymentUrl.value) && paymentStatus.value !== 'paid')
@@ -213,92 +247,4 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.waiting-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
-  padding: 40px 18px;
-}
-
-.waiting-card {
-  width: min(760px, 100%);
-  display: grid;
-  gap: 18px;
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: 28px;
-  box-shadow: var(--shadow-card);
-  padding: 28px;
-}
-
-.eyebrow {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--accent-strong);
-}
-
-h1 {
-  margin: 0;
-  color: var(--text);
-}
-
-.lead,
-.feedback {
-  margin: 0;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-.payment-meta {
-  display: grid;
-  gap: 12px;
-}
-
-.payment-meta__item {
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid var(--surface-border);
-  background: rgba(255,252,244,.82);
-}
-
-.payment-meta__item span {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.payment-meta__item strong {
-  color: var(--text);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.btn {
-  border: 1px solid transparent;
-  border-radius: 14px;
-  padding: 12px 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #e2c171 100%);
-  color: var(--text);
-}
-
-.btn-secondary {
-  background: rgba(255,252,244,.82);
-  color: var(--text);
-  border-color: var(--surface-border);
-}
-</style>
+<style src="../css/payment-flow.css"></style>
