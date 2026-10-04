@@ -40,7 +40,7 @@ Route::middleware([VerifyKaspiIp::class, 'throttle:60,1'])->prefix('kaspi')->gro
 
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/leaderboard', [LeaderboardController::class, 'index']);
-Route::get('/certificate-check/{result}', [ProfileController::class, 'publicCertificateLookup']);
+Route::get('/certificate-check/{result}', [ProfileController::class, 'publicCertificateLookup'])->middleware('throttle:30,1');
 Route::get('/subjects', [SubjectController::class, 'index']);
 Route::get('/subjects/{id}', [SubjectController::class, 'show']);
 Route::get('/security/pow-challenge', [SecurityController::class, 'powChallenge']);
