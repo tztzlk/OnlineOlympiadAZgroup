@@ -37,7 +37,9 @@ composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 npm ci --no-audit --no-fund
 npm run build
 
-php artisan deploy:check-db --connection=mysql
+# Подключение берётся из .env сервера: скрипт работает и с MySQL, и с PostgreSQL.
+DB_CONNECTION_NAME="$(grep -E '^DB_CONNECTION=' .env | tail -n1 | cut -d= -f2- | tr -d '"'"'"' \r')"
+php artisan deploy:check-db --connection="${DB_CONNECTION_NAME:-pgsql}"
 php artisan migrate --force
 php artisan storage:link || true
 

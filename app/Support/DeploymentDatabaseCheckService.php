@@ -62,8 +62,9 @@ class DeploymentDatabaseCheckService
             $issues[] = "Database connection [{$connection}] is not configured.";
         }
 
-        if ($requireMysql && $driver !== 'mysql') {
-            $issues[] = "Connection [{$connection}] must use the mysql driver for production deploys, but [{$driver}] is configured.";
+        // Для боевого деплоя допустимы серверные СУБД: MySQL (исторически) и PostgreSQL (основная).
+        if ($requireMysql && !in_array($driver, ['mysql', 'pgsql'], true)) {
+            $issues[] = "Connection [{$connection}] must use the mysql or pgsql driver for production deploys, but [{$driver}] is configured.";
         }
 
         if ($defaultConnection !== '' && $defaultConnection !== $connection) {
