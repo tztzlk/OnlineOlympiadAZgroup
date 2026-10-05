@@ -329,7 +329,8 @@ class QuizController extends Controller
             ], 422);
         }
 
-        $elapsedSeconds = max(0, $startedAt->diffInSeconds($submittedAt));
+        // Carbon 3 возвращает дробные секунды; столбец elapsed_seconds целочисленный (PostgreSQL не округляет сам).
+        $elapsedSeconds = max(0, (int) floor($startedAt->diffInSeconds($submittedAt)));
         $timeLimitSeconds = max(60, ((int) $quiz->time_limit) * 60);
 
         if ($elapsedSeconds > $timeLimitSeconds) {
@@ -551,7 +552,7 @@ class QuizController extends Controller
     protected function resolveSubjectId(string $subjectKey): int
     {
         return Subject::query()
-            ->where('public_id', $subjectKey)
+            ->wherePublicId($subjectKey)
             ->valueOrFail('id');
     }
 
@@ -560,7 +561,7 @@ class QuizController extends Controller
         $query = Quiz::query()->with($with);
 
         return $query
-            ->where('public_id', $quizKey)
+            ->wherePublicId($quizKey)
             ->firstOrFail();
     }
 
@@ -591,7 +592,7 @@ class QuizController extends Controller
             return $timeLimitSeconds;
         }
 
-        return max(0, $timeLimitSeconds - $startedAt->diffInSeconds(now()));
+        return max(0, $timeLimitSeconds - (int) ceil($startedAt->diffInSeconds(now())));
     }
 
     protected function buildReviewReasons(int $elapsedSeconds, int $answeredCount, int $totalQuestions, int $timeLimitSeconds): array

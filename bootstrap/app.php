@@ -46,6 +46,17 @@ return Application::configure(basePath: dirname(__DIR__))
             return null;
         });
 
+        // Страховка для PostgreSQL: некорректный идентификатор (не UUID) в запросе — это «не найдено», а не 500.
+        $exceptions->render(function (\Illuminate\Database\QueryException $exception, Request $request) {
+            if (($exception->errorInfo[0] ?? null) !== '22P02') {
+                return null;
+            }
+
+            return $request->is('api/*')
+                ? response()->json(['message' => 'Не найдено.'], 404)
+                : abort(404);
+        });
+
         $exceptions->report(function (\Throwable $throwable): void {
             if (!app()->bound('request')) {
                 return;

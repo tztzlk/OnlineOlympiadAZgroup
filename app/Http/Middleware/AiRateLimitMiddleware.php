@@ -22,7 +22,7 @@ class AiRateLimitMiddleware
             abort(429, 'Дневной лимит AI-запросов исчерпан для вашего тарифа.');
         }
 
-        $decaySeconds = max(60, now()->diffInSeconds(now()->copy()->endOfDay()));
+        $decaySeconds = max(60, (int) ceil(now()->diffInSeconds(now()->copy()->endOfDay())));
 
         RateLimiter::hit($key, $decaySeconds);
 

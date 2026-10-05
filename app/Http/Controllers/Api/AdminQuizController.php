@@ -203,7 +203,7 @@ class AdminQuizController extends Controller
     {
         if (!empty($data['subject_id'])) {
             $subject = Subject::query()
-                ->where('public_id', $data['subject_id'])
+                ->wherePublicId($data['subject_id'])
                 ->firstOrFail();
 
             if (!empty($data['subject'])) {

@@ -449,7 +449,7 @@ class OlympiadRequestController extends Controller
         if (!empty($data['child_profile_id'])) {
             $child = ChildProfile::query()
                 ->where('parent_id', $parentId)
-                ->where('public_id', $data['child_profile_id'])
+                ->wherePublicId($data['child_profile_id'])
                 ->firstOrFail();
 
             $child->update([
@@ -518,7 +518,7 @@ class OlympiadRequestController extends Controller
     protected function resolveSubjectId(string $subjectKey): int
     {
         return Subject::query()
-            ->where('public_id', $subjectKey)
+            ->wherePublicId($subjectKey)
             ->valueOrFail('id');
     }
 

@@ -155,7 +155,7 @@ class TrainingController extends Controller
 
         $child = ChildProfile::query()
             ->where('parent_id', $parentId)
-            ->when($childPublicId, fn ($query) => $query->where('public_id', (string) $childPublicId))
+            ->when($childPublicId, fn ($query) => $query->wherePublicId((string) $childPublicId))
             ->orderBy('id')
             ->first();
 
@@ -205,7 +205,7 @@ class TrainingController extends Controller
     protected function resolveSubjectId(string $subjectKey): int
     {
         return Subject::query()
-            ->where('public_id', $subjectKey)
+            ->wherePublicId($subjectKey)
             ->valueOrFail('id');
     }
 
@@ -213,7 +213,7 @@ class TrainingController extends Controller
     {
         return Quiz::query()
             ->with(['categories.questions.answers'])
-            ->where('public_id', $quizKey)
+            ->wherePublicId($quizKey)
             ->firstOrFail();
     }
 }

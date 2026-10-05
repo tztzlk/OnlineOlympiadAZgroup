@@ -14,7 +14,7 @@ trait ResolvesChildId
 
         return ChildProfile::query()
             ->where('parent_id', $userId)
-            ->where('public_id', (string) $childPublicId)
+            ->wherePublicId((string) $childPublicId)
             ->value('id');
     }
 }

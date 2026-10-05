@@ -126,7 +126,7 @@ class KaspiCallbackController extends Controller
 
         return OlympiadRequest::query()
             ->with(['paymentRecord'])
-            ->where('public_id', $account)
+            ->wherePublicId($account)
             ->first();
     }
 

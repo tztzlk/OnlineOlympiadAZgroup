@@ -137,7 +137,7 @@ class WebhookController extends Controller
 
         if ($requestPublicId) {
             return OlympiadRequest::query()
-                ->where('public_id', $requestPublicId)
+                ->wherePublicId($requestPublicId)
                 ->first();
         }
 
@@ -154,7 +154,7 @@ class WebhookController extends Controller
 
         if ($paymentPublicId) {
             return PaymentRecord::query()
-                ->where('public_id', $paymentPublicId)
+                ->wherePublicId($paymentPublicId)
                 ->first();
         }
 

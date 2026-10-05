@@ -34,7 +34,7 @@ class SubjectController extends Controller
     {
         try {
             $subject = Subject::query()
-                ->where('public_id', $id)
+                ->wherePublicId($id)
                 ->whereHas('quizzes', fn ($query) => $query->where('is_published', true))
                 ->with([
                     'quizzes' => fn ($query) => $query
