@@ -1,0 +1,89 @@
+# Локальный запуск Eurika в Docker:
+#   copy .env.docker.example .env.docker   (и вписать APP_KEY)
+#   docker compose up -d --build
+# Сайт: http://localhost:8080   Почта (Mailpit): http://localhost:8025
+
+name: eurika
+
+x-app-env: &app-env
+  env_file: .env.docker
+  environment:
+    DB_CONNECTION: pgsql
+    DB_HOST: db
+    DB_PORT: "5432"
+    DB_DATABASE: online_olympiad
+    DB_USERNAME: olympiad_app
+    DB_PASSWORD: ${DB_PASSWORD:-local_dev_password}
+    MAIL_MAILER: smtp
+    MAIL_HOST: mailpit
+    MAIL_PORT: "1025"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: online_olympiad
+      POSTGRES_USER: olympiad_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-local_dev_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --auth-host=scram-sha-256"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U olympiad_app -d online_olympiad"]
+      interval: 3s
+      retries: 20
+    # Порт наружу только на localhost — для отладки через psql/pgAdmin.
+    ports:
+      - "127.0.0.1:5434:5432"
+
+  app:
+    build: { context: ., target: app }
+    image: eurika-app
+    restart: unless-stopped
+    <<: *app-env
+    depends_on:
+      db: { condition: service_healthy }
+    volumes:
+      - storage:/var/www/html/storage
+
+  queue:
+    image: eurika-app
+    restart: unless-stopped
+    <<: *app-env
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    depends_on:
+      app: { condition: service_started }
+    volumes:
+      - storage:/var/www/html/storage
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_DATABASE: online_olympiad
+      DB_USERNAME: olympiad_app
+      DB_PASSWORD: ${DB_PASSWORD:-local_dev_password}
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      CONTAINER_ROLE: queue
+
+  web:
+    build: { context: ., target: web }
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - storage:/var/www/html/storage:ro
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  pgdata:
+  storage:
