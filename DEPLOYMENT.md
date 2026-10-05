@@ -1,5 +1,29 @@
 # Online Olympiad Deployment Guide
 
+## Быстрый запуск на новом сервере (≈15 минут)
+
+1. **Сервер.** Купите VPS в Казахстане (данные детей по закону РК должны храниться в РК):
+   Ubuntu **24.04**, от 2 ГБ RAM, 1–2 vCPU, 30 ГБ диска. Подойдут hoster.kz, ps.kz и аналоги.
+2. **Домен.** В панели hoster.kz (DNS домена `eurikaolympiads.com`) поменяйте A-записи
+   `@` и `www` на IP нового сервера. Изменение расходится от нескольких минут до пары часов.
+3. **Установка.** Подключитесь к серверу (`ssh root@IP`) и выполните:
+
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/tztzlk/OnlineOlympiadAZgroup/main/deploy/install-server.sh -o install.sh
+   sudo DOMAIN=eurikaolympiads.com ADMIN_EMAIL=ваш@email bash install.sh
+   ```
+
+   Скрипт установит всё сам и в конце покажет адрес сайта, логин и пароль администратора.
+   Если DNS ещё не обновился, сайт откроется по IP без HTTPS — запустите скрипт повторно
+   позже, и он получит сертификат. Повторный запуск безопасен.
+4. **Сохраните секреты** из `/root/eurika-credentials.txt` (особенно `APP_KEY`) в надёжное место.
+5. **Почта.** Заполните `MAIL_*` в `/var/www/eurika/.env`, затем `cd /var/www/eurika && php artisan config:cache`.
+6. **Обновления** после новых коммитов в `main`: `sudo bash /var/www/eurika/deploy/update.sh`.
+
+Олимпиады создаются в админке (`/admin-login` → «Олимпиады»), можно импортировать из JSON или DOCX/PDF.
+`php artisan db:seed` в продакшене **не запускать**: он создаёт администратора с паролем `password`.
+Новых администраторов создавайте командой `php artisan admin:create email@пример --role=admin`.
+
 This repository is intended to launch as one Laravel application serving both the Vue SPA and the API from the same domain.
 
 ## Production Architecture

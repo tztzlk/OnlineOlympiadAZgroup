@@ -1,16 +1,19 @@
 <?php
 
+use App\Models\User;
 use App\Support\DeploymentDatabaseCheckService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('deploy:check-db {--connection=mysql} {--json} {--allow-non-mysql}', function (DeploymentDatabaseCheckService $checker) {
+Artisan::command('deploy:check-db {--connection= : По умолчанию — подключение из DB_CONNECTION} {--json} {--allow-non-mysql}', function (DeploymentDatabaseCheckService $checker) {
     $result = $checker->inspect(
-        connection: (string) $this->option('connection'),
+        connection: (string) ($this->option('connection') ?: config('database.default')),
         requireMysql: !$this->option('allow-non-mysql'),
     );
 
@@ -70,3 +73,49 @@ Artisan::command('deploy:check-db {--connection=mysql} {--json} {--allow-non-mys
 
     return self::SUCCESS;
 })->purpose('Run a read-only production database predeploy check');
+
+// Создание администратора со случайным стойким паролем. Вместо DatabaseSeeder в продакшене:
+// сидер создаёт admin@example.com с паролем «password».
+Artisan::command('admin:create {email} {--name=Администратор} {--role=admin : admin | operator | content | analyst}', function () {
+    $email = mb_strtolower(trim((string) $this->argument('email')));
+    $role = (string) $this->option('role');
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $this->error('Некорректный email.');
+
+        return self::FAILURE;
+    }
+
+    if (!in_array($role, [User::ADMIN_ROLE_ADMIN, User::ADMIN_ROLE_OPERATOR, User::ADMIN_ROLE_CONTENT, User::ADMIN_ROLE_ANALYST], true)) {
+        $this->error('Роль должна быть одной из: admin, operator, content, analyst.');
+
+        return self::FAILURE;
+    }
+
+    if (User::where('email', $email)->exists()) {
+        $this->error("Пользователь {$email} уже существует.");
+
+        return self::FAILURE;
+    }
+
+    // 20 символов из букв, цифр и символов — проходит правила пароля приложения.
+    $password = Str::password(20);
+
+    User::create([
+        'name' => (string) $this->option('name'),
+        'email' => $email,
+        'phone' => 'admin-' . Str::lower(Str::random(10)),
+        'school' => '—',
+        'city' => '—',
+        'password' => Hash::make($password),
+        'is_admin' => true,
+        'admin_role' => $role,
+        'plan' => 'free',
+    ]);
+
+    $this->info("Администратор создан: {$email}");
+    $this->line("Пароль (показывается один раз, сохраните его): {$password}");
+    $this->line('Вход: /admin-login');
+
+    return self::SUCCESS;
+})->purpose('Create an admin user with a random strong password');

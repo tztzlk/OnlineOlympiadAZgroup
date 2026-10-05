@@ -1,0 +1,65 @@
+# Сайт Eurika. Плейсхолдеры __DOMAIN__ и __APP_DIR__ подставляет deploy/install-server.sh.
+# HTTPS-блок и редирект с http добавляет certbot (--nginx --redirect).
+# Заголовки безопасности (CSP, X-Frame-Options, HSTS) выставляет само приложение —
+# здесь их не дублируем, иначе браузер получит конфликтующие значения.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__ www.__DOMAIN__;
+
+    root __APP_DIR__/public;
+    index index.php;
+
+    charset utf-8;
+    server_tokens off;
+
+    # Импорт вопросов из DOCX/PDF — до 20 МБ.
+    client_max_body_size 25m;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; try_files $uri /index.php?$query_string; }
+
+    # Скрытые файлы (.env, .git и т.п.) никогда не отдаются.
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    location ~ \.php$ {
+        # Исполняем только фронт-контроллер Laravel.
+        location ~ ^/(?!index\.php$) { return 404; }
+
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_read_timeout 120s;
+        fastcgi_hide_header X-Powered-By;
+    }
+
+    # Собранные Vite-файлы имеют хэш в имени — их можно кэшировать надолго.
+    location /build/ {
+        expires 1y;
+        access_log off;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    location ~* \.(?:png|jpe?g|gif|svg|ico|webp|woff2?)$ {
+        expires 7d;
+        access_log off;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri /index.php?$query_string;
+    }
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    error_log /var/log/nginx/eurika-error.log;
+    access_log /var/log/nginx/eurika-access.log;
+}
