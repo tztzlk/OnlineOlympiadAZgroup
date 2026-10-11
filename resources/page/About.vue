@@ -3,7 +3,7 @@
     <div class="about-wrap">
       <header class="hero">
         <span class="ds-eyebrow">О платформе</span>
-        <h1>О платформе Online Olympiad</h1>
+        <h1 v-title>О платформе Online Olympiad</h1>
         <p class="lead">
           Мы создаем безопасную и удобную платформу для школьников, родителей и образовательных
           учреждений, где можно готовиться к олимпиадам, участвовать в тестированиях и отслеживать прогресс.
@@ -15,7 +15,7 @@
           <span class="card__icon" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
           </span>
-          <h2>Что уже доступно</h2>
+          <h2 v-title>Что уже доступно</h2>
           <ul>
             <li>Онлайн-олимпиады по школьным предметам</li>
             <li>Режим тренировки с мгновенной проверкой</li>
@@ -28,7 +28,7 @@
           <span class="card__icon card__icon--sun" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
           </span>
-          <h2>Для кого платформа</h2>
+          <h2 v-title>Для кого платформа</h2>
           <ul>
             <li>Для родителей, которые управляют участием детей</li>
             <li>Для школьников, которым нужен удобный тренировочный режим</li>
@@ -40,7 +40,7 @@
       <section class="callback-card" aria-labelledby="callback-title">
         <div class="callback-card__text">
           <p class="eyebrow">Callback</p>
-          <h2 id="callback-title">Оставить заявку на обратный звонок</h2>
+          <h2 v-title id="callback-title">Оставить заявку на обратный звонок</h2>
           <p>Мы свяжемся с вами, если нужна помощь по участию, оплате или подключению школы.</p>
         </div>
 

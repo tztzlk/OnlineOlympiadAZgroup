@@ -9,7 +9,7 @@
           Онлайн-олимпиада
         </span>
 
-        <h1 id="hero-title" class="hero__title">
+        <h1 id="hero-title" class="hero__title" v-title>
           Проверьте знания<br>
           <span class="hero__title-highlight">на Eurika!</span>
         </h1>
@@ -65,32 +65,25 @@
 
       <div class="hero__visual" aria-hidden="true">
         <div class="stage">
-          <svg class="stage__stars" viewBox="0 0 400 400" fill="none">
-            <circle cx="62" cy="70" r="5" fill="currentColor" opacity=".55"/>
-            <circle cx="338" cy="96" r="3.5" fill="currentColor" opacity=".45"/>
-            <circle cx="350" cy="300" r="6" fill="currentColor" opacity=".35"/>
-            <circle cx="46" cy="300" r="3" fill="currentColor" opacity=".5"/>
-            <path d="M318 46l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#ffc933"/>
-            <path d="M74 182l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#ffc933" opacity=".85"/>
-            <path d="M300 230l2.5 5.5 5.5 2.5-5.5 2.5-2.5 5.5-2.5-5.5-5.5-2.5 5.5-2.5z" fill="#fff" opacity=".7"/>
+          <div class="stage__blob"></div>
+          <div class="stage__ring"></div>
+          <svg class="stage__sparks" viewBox="0 0 400 400" fill="none">
+            <path d="M330 40l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" fill="#ffc933"/>
+            <path d="M58 150l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#2b5bf5"/>
+            <path d="M360 250l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#ff7a59"/>
+            <circle cx="80" cy="60" r="7" fill="#7c5cff" opacity=".8"/>
+            <circle cx="40" cy="300" r="5" fill="#14b8a6"/>
           </svg>
-          <div class="stage__sun"></div>
 
-          <svg class="trophy" viewBox="0 0 240 280" fill="none">
-            <defs>
-              <linearGradient id="cup-fill" x1="72" y1="36" x2="168" y2="214" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#ffe17a"/>
-                <stop offset="100%" stop-color="#ffb800"/>
-              </linearGradient>
-            </defs>
-            <path d="M72 62 C38 62 26 98 50 112 C60 118 72 108 72 108" stroke="#f0a800" stroke-width="9" stroke-linecap="round"/>
-            <path d="M168 62 C202 62 214 98 190 112 C180 118 168 108 168 108" stroke="#f0a800" stroke-width="9" stroke-linecap="round"/>
-            <path d="M72 36 H168 V138 C168 178 140 206 120 214 C100 206 72 178 72 138 V36Z" fill="url(#cup-fill)"/>
-            <rect x="106" y="212" width="28" height="34" rx="5" fill="#f0a800"/>
-            <rect x="80" y="244" width="80" height="18" rx="9" fill="#ffffff"/>
-            <path d="M120 84 L127 104 H148 L131 116 L138 136 L120 124 L102 136 L109 116 L92 104 H113Z" fill="#ffffff"/>
-            <ellipse cx="94" cy="74" rx="8" ry="20" fill="#ffffff" opacity=".35" transform="rotate(-18 94 74)"/>
-          </svg>
+          <img
+            class="stage__kids ds-character"
+            :src="'/images/characters/hero-duo.webp'"
+            width="884"
+            height="971"
+            alt=""
+            fetchpriority="high"
+            decoding="async"
+          >
 
           <div class="float-badge float-badge--1">
             <span class="float-badge__icon float-badge__icon--green">
@@ -165,16 +158,16 @@ export default { name: 'Hero' }
   align-items: flex-start;
 }
 
-.hero__content > * {
+/* Заголовок появляется по словам (v-title), остальное — каскадом снизу */
+.hero__content > :not(.hero__title) {
   animation: heroFadeUp 640ms var(--ease-out) both;
 }
 .hero__eyebrow       { animation-delay: 0ms; }
-.hero__title         { animation-delay: 70ms; }
-.hero__sub           { animation-delay: 140ms; }
-.hero__actions       { animation-delay: 210ms; }
-.hero__price         { animation-delay: 270ms; }
-.hero__chips         { animation-delay: 330ms; }
-.hero__coming-soon   { animation-delay: 400ms; }
+.hero__sub           { animation-delay: 300ms; }
+.hero__actions       { animation-delay: 380ms; }
+.hero__price         { animation-delay: 440ms; }
+.hero__chips         { animation-delay: 500ms; }
+.hero__coming-soon   { animation-delay: 560ms; }
 
 @keyframes heroFadeUp {
   from { opacity: 0; transform: translateY(16px); }
@@ -188,16 +181,14 @@ export default { name: 'Hero' }
   padding: 7px 14px 7px 10px;
   margin-bottom: 22px;
   border-radius: var(--radius-pill);
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
-  color: var(--text);
+  background: var(--sun-soft);
+  color: var(--sun-ink);
   font-size: 14px;
   font-weight: 600;
 }
 
 .hero__eyebrow svg {
-  color: var(--sun);
+  color: #f0a800;
   filter: drop-shadow(0 1px 0 rgba(122, 79, 0, 0.25));
 }
 
@@ -230,6 +221,13 @@ export default { name: 'Hero' }
   background: var(--sun);
   opacity: 0.55;
   transform: rotate(-1.2deg);
+  transform-origin: 0 50%;
+  animation: marker-in 700ms var(--ease-out) 650ms both;
+}
+
+@keyframes marker-in {
+  from { transform: rotate(-1.2deg) scaleX(0); }
+  to   { transform: rotate(-1.2deg) scaleX(1); }
 }
 
 .hero__sub {
@@ -300,10 +298,8 @@ export default { name: 'Hero' }
   align-items: center;
   gap: 12px;
   padding: 12px 18px;
-  border-radius: var(--radius-md);
-  background: var(--card);
-  border: 1px solid color-mix(in srgb, var(--danger) 26%, var(--border));
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-pill);
+  background: var(--danger-soft);
   color: var(--text);
   font-size: 15px;
   font-weight: 500;
@@ -347,45 +343,58 @@ export default { name: 'Hero' }
 
 .stage {
   position: relative;
-  width: min(100%, 460px);
+  width: min(100%, 520px);
   aspect-ratio: 1;
-  border-radius: 40% 60% 54% 46% / 48% 42% 58% 52%;
-  background:
-    radial-gradient(circle at 30% 25%, color-mix(in srgb, #ffffff 22%, transparent), transparent 55%),
-    linear-gradient(155deg, #3d6cff 0%, #2b5bf5 45%, #1f43c9 100%);
-  box-shadow: 0 30px 70px rgba(43, 91, 245, 0.35);
   display: grid;
-  place-items: center;
-  color: #ffffff;
+  place-items: end center;
 }
 
-.stage__stars {
+/* Солнечная «клякса» под персонажами, медленно меняет форму */
+.stage__blob {
+  position: absolute;
+  inset: 12% 6% 4%;
+  border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), transparent 50%),
+    linear-gradient(160deg, #ffe07a 0%, #ffc933 55%, #ffb21a 100%);
+  box-shadow: 0 40px 80px rgba(245, 170, 15, 0.32);
+  animation: blob-morph 14s ease-in-out infinite;
+}
+
+.stage__ring {
+  position: absolute;
+  inset: 4% 0 -4%;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--brand) 30%, transparent);
+  animation: ring-spin 60s linear infinite;
+}
+
+.stage__sparks {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  color: #ffffff;
+  animation: badge-float 7s ease-in-out infinite;
 }
 
-.stage__sun {
-  position: absolute;
-  width: 52%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 201, 51, 0.45) 0%, rgba(255, 201, 51, 0.12) 55%, transparent 72%);
-}
-
-.trophy {
+.stage__kids {
   position: relative;
-  width: 48%;
-  height: auto;
-  filter: drop-shadow(0 22px 26px rgba(10, 25, 90, 0.4));
-  animation: trophy-float 5s ease-in-out infinite;
+  width: 92%;
+  margin-bottom: -2%;
+  transform-origin: 50% 100%;
+  animation: kids-in 900ms cubic-bezier(0.2, 0.9, 0.25, 1.2) 200ms both;
 }
 
-@keyframes trophy-float {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-12px) rotate(2deg); }
+@keyframes blob-morph {
+  0%, 100% { border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%; }
+  50%      { border-radius: 56% 44% 42% 58% / 44% 56% 46% 54%; }
+}
+
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+
+@keyframes kids-in {
+  from { opacity: 0; transform: translateY(40px) scale(0.92); }
+  to   { opacity: 1; transform: none; }
 }
 
 .float-badge {
@@ -404,9 +413,10 @@ export default { name: 'Hero' }
   animation: badge-float 6s ease-in-out infinite;
 }
 
-.float-badge--1 { top: 12%; right: -4%; animation-delay: 0s; }
-.float-badge--2 { bottom: 20%; left: -8%; animation-delay: 1.4s; }
-.float-badge--3 { bottom: 4%; right: 8%; animation-delay: 0.7s; }
+.float-badge { z-index: 2; }
+.float-badge--1 { top: 18%; right: -2%; animation-delay: 0s; }
+.float-badge--2 { top: 46%; left: -6%; animation-delay: 1.4s; }
+.float-badge--3 { bottom: 8%; right: 2%; animation-delay: 0.7s; }
 
 .float-badge__icon {
   width: 28px;
@@ -431,15 +441,13 @@ export default { name: 'Hero' }
   margin: 56px auto 0;
 }
 
+/* Цифры — три цветных плашки без рамок */
 .hero__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
   margin: 0;
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  animation: heroFadeUp 640ms var(--ease-out) 480ms both;
+  animation: heroFadeUp 640ms var(--ease-out) 640ms both;
 }
 
 .stat {
@@ -447,9 +455,12 @@ export default { name: 'Hero' }
   flex-direction: column-reverse;
   gap: 4px;
   padding: 22px 28px;
+  border-radius: var(--radius-xl);
+  background: var(--brand-soft);
 }
 
-.stat + .stat { border-left: 1px solid var(--border); }
+.stat:nth-child(2) { background: var(--sun-soft); }
+.stat:nth-child(3) { background: var(--tone-teal-soft); }
 
 .stat dd {
   margin: 0;
@@ -475,9 +486,9 @@ export default { name: 'Hero' }
   .hero { padding-top: calc(var(--header-h) + 32px); }
   .hero__wrapper { grid-template-columns: 1fr; gap: 40px; }
   .hero__visual { order: -1; }
-  .stage { width: min(78vw, 360px); }
+  .stage { width: min(80vw, 400px); }
   .float-badge { font-size: 13px; }
-  .float-badge--2 { left: -4%; }
+  .float-badge--2 { left: -2%; }
 }
 
 @media (max-width: 600px) {
@@ -486,14 +497,13 @@ export default { name: 'Hero' }
   .hero__actions { width: 100%; }
   .hero__actions .ds-btn { flex: 1 1 100%; }
   .hero__coming-soon { width: 100%; font-size: 14px; }
-  .stage { width: min(56vw, 220px); }
+  .stage { width: min(86vw, 320px); }
   .float-badge { padding: 6px 10px 6px 6px; font-size: 12px; }
   .float-badge__icon { width: 24px; height: 24px; }
-  .float-badge--1 { right: -10%; }
-  .float-badge--2 { left: -12%; }
+  .float-badge--1 { right: -4%; }
+  .float-badge--2 { left: -4%; }
   .hero__stats-wrap { margin-top: 36px; }
-  .hero__stats { grid-template-columns: 1fr; }
-  .stat { flex-direction: row-reverse; justify-content: space-between; align-items: baseline; padding: 16px 20px; }
-  .stat + .stat { border-left: 0; border-top: 1px solid var(--border); }
+  .hero__stats { grid-template-columns: 1fr; gap: 10px; }
+  .stat { flex-direction: row-reverse; justify-content: space-between; align-items: baseline; padding: 16px 20px; border-radius: var(--radius-lg); }
 }
 </style>

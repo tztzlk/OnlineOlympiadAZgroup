@@ -7,11 +7,13 @@ import { useUserStore } from '../stores/user.js'
 import { i18n } from '../i18n.js'
 import { applySeo, getStaticSeoForPath } from './composables/useSeo.js'
 import reveal from './directives/reveal.js'
+import titleReveal from './directives/titleReveal.js'
 
 const app = createApp(App)
 const pinia = createPinia()
 
 app.directive('reveal', reveal)
+app.directive('title', titleReveal)
 
 app.use(pinia)
 app.use(router)

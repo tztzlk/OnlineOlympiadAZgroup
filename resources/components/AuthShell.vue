@@ -16,33 +16,26 @@
           <path d="M340 300l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="#fff" opacity=".7"/>
         </svg>
 
-        <div class="art-cards">
-          <div class="art-card art-card--q">
-            <span class="art-dot">A</span>
-            <span class="art-line"></span>
-          </div>
-          <div class="art-card art-card--q is-picked">
-            <span class="art-dot">B</span>
-            <span class="art-line"></span>
-            <span class="art-check">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-            </span>
-          </div>
-          <div class="art-card art-card--q">
-            <span class="art-dot">C</span>
-            <span class="art-line art-line--short"></span>
-          </div>
-        </div>
+        <div class="art-sun"></div>
 
-        <div class="art-medal">
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
+        <img
+          class="art-kid ds-character"
+          :src="'/images/characters/boy-jump.webp'"
+          width="385"
+          height="760"
+          alt=""
+          decoding="async"
+        >
+
+        <div class="art-badge">
+          <span class="art-badge__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          Сертификат сразу после теста
         </div>
 
         <div class="art-brand">
-          <span class="art-brand__mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
-          </span>
-          Eurika!
+          <EurikaLogo inverse :animated="false" />
         </div>
       </aside>
     </div>
@@ -50,6 +43,8 @@
 </template>
 
 <script setup>
+import EurikaLogo from './EurikaLogo.vue'
+
 defineProps({
   wide: { type: Boolean, default: false },
 })
@@ -70,18 +65,18 @@ defineProps({
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
-  border-radius: var(--radius-xl);
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  gap: 18px;
 }
 
+/* Форма и иллюстрация — два самостоятельных блока без общей рамки */
 .auth-shell__form {
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: clamp(28px, 5vw, 56px);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  box-shadow: 0 10px 40px rgba(17, 26, 51, 0.06);
 }
 
 .auth-shell__form > :deep(*) {
@@ -97,6 +92,7 @@ defineProps({
   overflow: hidden;
   display: grid;
   place-items: center;
+  border-radius: var(--radius-xl);
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18), transparent 50%),
     linear-gradient(160deg, #3d6cff 0%, #2b5bf5 45%, #1d3fc0 100%);
@@ -109,118 +105,67 @@ defineProps({
   height: 100%;
 }
 
-.art-cards {
-  position: relative;
-  width: min(78%, 300px);
-  display: grid;
-  gap: 12px;
-  transform: rotate(-4deg);
+.art-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -18%;
+  width: 92%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffe07a 0%, #ffc933 55%, #ffb21a 100%);
+  transform: translateX(-50%);
+  box-shadow: 0 -20px 60px rgba(255, 201, 51, 0.35);
 }
 
-.art-card {
-  display: flex;
+.art-kid {
+  position: relative;
+  align-self: end;
+  width: auto;
+  height: min(78%, 460px);
+  margin-top: 40px;
+  filter: drop-shadow(0 24px 30px rgba(10, 25, 90, 0.35));
+  animation: ds-float 5s ease-in-out infinite;
+}
+
+.art-badge {
+  position: absolute;
+  top: 12%;
+  right: 8%;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  height: 58px;
-  padding: 0 14px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  gap: 8px;
+  max-width: 60%;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: #111a33;
+  box-shadow: 0 18px 40px rgba(10, 25, 90, 0.3);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
   animation: artFloat 6s ease-in-out infinite;
 }
 
-.art-card:nth-child(2) { animation-delay: 0.6s; }
-.art-card:nth-child(3) { animation-delay: 1.2s; }
-
-.art-card.is-picked {
-  background: #ffffff;
-  border-color: #ffffff;
-  box-shadow: 0 18px 40px rgba(10, 25, 90, 0.35);
-  transform: translateX(14px);
-}
-
-.art-dot {
-  width: 32px;
-  height: 32px;
+.art-badge__icon {
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.is-picked .art-dot { background: #2b5bf5; }
-
-.art-line {
-  flex: 1;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.art-line--short { flex: 0.6; }
-.is-picked .art-line { background: #dfe6ff; }
-
-.art-check {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #12a065;
-  color: #ffffff;
-}
-
-.art-medal {
-  position: absolute;
-  top: 16%;
-  right: 14%;
-  width: 84px;
-  height: 84px;
-  display: grid;
-  place-items: center;
-  border-radius: 26px;
-  background: #ffc933;
-  color: #ffffff;
-  box-shadow: 0 18px 36px rgba(10, 25, 90, 0.3);
-  transform: rotate(10deg);
-  animation: medal 5s ease-in-out infinite;
+  border-radius: 9px;
+  background: #e2f6ec;
+  color: #12a065;
 }
 
 .art-brand {
   position: absolute;
   left: 28px;
-  bottom: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.art-brand__mark {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: #ffffff;
-  color: #2b5bf5;
+  top: 24px;
 }
 
 @keyframes artFloat {
   0%, 100% { translate: 0 0; }
   50%      { translate: 0 -6px; }
-}
-
-@keyframes medal {
-  0%, 100% { transform: rotate(10deg) translateY(0); }
-  50%      { transform: rotate(4deg) translateY(-10px); }
 }
 
 @media (max-width: 860px) {

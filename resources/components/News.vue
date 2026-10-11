@@ -2,7 +2,7 @@
   <section class="news" aria-labelledby="news-title">
     <header class="news__head" v-reveal>
       <span class="ds-eyebrow">Новости</span>
-      <h2 id="news-title" class="news__title">Новости платформы и рейтинг участников</h2>
+      <h2 v-title id="news-title" class="news__title">Новости платформы и рейтинг участников</h2>
       <p class="news__subtitle">
         Следите за обновлениями и просматривайте реальные результаты участников, быстрые проверки сертификатов.
       </p>
@@ -52,7 +52,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
             Leaderboard
           </p>
-          <h2 id="board-title" class="board__title">Рейтинг участников</h2>
+          <h2 v-title id="board-title" class="board__title">Рейтинг участников</h2>
           <p class="board__copy">
             Лучшие завершённые результаты, которые помогают родителям и школам убедиться в качестве платформы.
           </p>
@@ -182,7 +182,6 @@ onMounted(() => {
   overflow: hidden;
   border-radius: var(--radius-lg);
   background: var(--card);
-  border: 1px solid var(--border);
   box-shadow: var(--shadow-xs);
   transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease;
 }
@@ -253,7 +252,7 @@ onMounted(() => {
   padding: 48px 32px;
   border-radius: var(--radius-lg);
   background: var(--card);
-  border: 1.5px dashed var(--border-strong);
+  background: var(--tone-violet-soft);
   color: var(--text-secondary);
   text-align: center;
 }
@@ -279,7 +278,6 @@ onMounted(() => {
   padding: 24px;
   border-radius: var(--radius-xl);
   background: var(--card);
-  border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
 }
 

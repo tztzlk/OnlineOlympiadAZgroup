@@ -4,18 +4,29 @@
       <header class="reviews__head" v-reveal>
         <div class="reviews__intro">
           <span class="ds-eyebrow sun">Отзывы</span>
-          <h2 id="reviews-title">Что говорят родители и участники</h2>
+          <h2 id="reviews-title" v-title>Что говорят родители и участники</h2>
           <p class="reviews__lead">
             Впечатления тех, кто уже прошёл олимпиаду и получил результат с сертификатом.
           </p>
         </div>
 
-        <dl class="reviews__stats">
-          <div class="stat" v-for="stat in stats" :key="stat.label">
-            <dt>{{ stat.label }}</dt>
-            <dd>{{ stat.value }}</dd>
-          </div>
-        </dl>
+        <div class="reviews__aside">
+          <img
+            class="reviews__kid ds-character"
+            :src="'/images/characters/boy-jump.webp'"
+            width="385"
+            height="760"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          >
+          <dl class="reviews__stats">
+            <div class="stat" v-for="stat in stats" :key="stat.label">
+              <dt>{{ stat.label }}</dt>
+              <dd>{{ stat.value }}</dd>
+            </div>
+          </dl>
+        </div>
       </header>
 
       <div class="reviews__toolbar" v-reveal>
@@ -232,6 +243,21 @@ onUnmounted(() => {
   font-size: 18px;
 }
 
+.reviews__aside {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
+}
+
+.reviews__kid {
+  width: auto;
+  height: 230px;
+  margin-bottom: -6px;
+  animation: ds-float 5s ease-in-out infinite;
+}
+
 .reviews__stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -244,16 +270,16 @@ onUnmounted(() => {
   flex-direction: column-reverse;
   gap: 2px;
   padding: 16px 18px;
-  border-radius: var(--radius-md);
-  background: var(--card);
-  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--tone-violet-soft);
 }
 
-.stat:nth-child(1) { background: var(--brand); border-color: transparent; }
+.stat:nth-child(1) { background: var(--brand); }
 .stat:nth-child(1) dd,
 .stat:nth-child(1) dt { color: #ffffff; }
 .stat:nth-child(1) dt { opacity: 0.82; }
-.stat:nth-child(3) { background: var(--sun-soft); border-color: transparent; }
+.stat:nth-child(2) { background: var(--tone-teal-soft); }
+.stat:nth-child(3) { background: var(--sun-soft); }
 
 .stat dd {
   margin: 0;
@@ -349,11 +375,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 26px;
-  border-radius: var(--radius-lg);
+  padding: 28px;
+  border-radius: var(--radius-xl);
   background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 10px 30px rgba(17, 26, 51, 0.05);
   transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease;
 }
 
@@ -399,8 +424,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
 }
 
 .review__avatar {
@@ -446,6 +469,8 @@ onUnmounted(() => {
 @media (max-width: 960px) {
   .reviews__head { grid-template-columns: 1fr; gap: 28px; align-items: start; }
   .reviews__stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .reviews__aside { grid-template-columns: 1fr; }
+  .reviews__kid { display: none; }
   .reviews__track { grid-auto-columns: minmax(280px, calc((100% - 20px) / 2)); }
 }
 

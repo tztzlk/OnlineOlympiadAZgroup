@@ -1,7 +1,15 @@
 <template>
   <div class="subject-page">
     <div class="container">
-      <header class="page-header">
+      <header class="page-header ds-tile ds-tile--blue">
+        <img
+          class="page-header__kid ds-character"
+          :src="'/images/characters/boy-laptop.webp'"
+          width="586"
+          height="760"
+          alt=""
+          decoding="async"
+        >
         <nav class="breadcrumbs" aria-label="Хлебные крошки">
           <RouterLink to="/">Главная</RouterLink>
           <span aria-hidden="true">/</span>
@@ -10,7 +18,7 @@
           <span aria-current="page">Оформление участия</span>
         </nav>
         <span class="ds-eyebrow">Предметы</span>
-        <h1 class="page-title">Выберите олимпиаду и ознакомьтесь с условиями участия</h1>
+        <h1 v-title class="page-title">Выберите олимпиаду и ознакомьтесь с условиями участия</h1>
         <p class="page-subtitle">
           Выберите предмет, укажите участника и оформите участие.
         </p>
@@ -90,7 +98,7 @@
           <div class="step-box__header">
             <div>
               <p class="step-pill">Шаг 1 из 3</p>
-              <h2 id="step-box-title">Оформление участия</h2>
+              <h2 v-title id="step-box-title">Оформление участия</h2>
               <p class="chosen">Предмет: <strong>{{ selectedSubject.name }}</strong></p>
               <p v-if="registrationDeadlineLabel" class="deadline-copy">
                 До закрытия регистрации: <strong>{{ registrationDeadlineLabel }}</strong>
@@ -911,11 +919,42 @@ watch(selectedChildId, async () => {
 }
 
 /* ---- Шапка ---- */
+/* Шапка каталога — цветная плитка, справа персонаж выходит за её край */
 .page-header {
   display: grid;
   justify-items: start;
   gap: 12px;
-  max-width: 760px;
+  padding: clamp(28px, 4vw, 48px);
+  padding-right: clamp(28px, 34%, 420px);
+  overflow: visible;
+  margin-top: 24px;
+}
+
+.page-header > :not(.page-header__kid) { position: relative; max-width: 640px; }
+
+.page-header__kid {
+  position: absolute;
+  right: clamp(12px, 4vw, 56px);
+  bottom: 0;
+  width: auto;
+  height: calc(100% + 56px);
+  max-height: 340px;
+  animation: kid-in 900ms cubic-bezier(0.2, 0.9, 0.25, 1.2) 150ms both;
+}
+
+@keyframes kid-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+.page-header .page-subtitle { color: inherit; opacity: 0.78; }
+.page-header .breadcrumbs,
+.page-header .breadcrumbs a { color: inherit; opacity: 0.85; }
+.page-header .ds-eyebrow { background: #ffffff; color: var(--brand-ink); }
+
+@media (max-width: 720px) {
+  .page-header { padding-right: clamp(22px, 5vw, 48px); padding-bottom: 170px; }
+  .page-header__kid { height: 190px; right: 12px; }
 }
 
 .breadcrumbs {
@@ -957,16 +996,15 @@ watch(selectedChildId, async () => {
   padding: 14px 14px 18px;
   border-radius: var(--radius-xl);
   background: var(--card);
-  border: 2px solid var(--border);
+  box-shadow: 0 10px 30px rgba(17, 26, 51, 0.05);
   cursor: pointer;
-  transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease, border-color var(--dur) ease;
+  transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .subject-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+    box-shadow: var(--shadow-lg);
   }
   .subject-card:hover .subject-card__img-wrap img { transform: scale(1.05) rotate(-1deg); }
 }
@@ -977,8 +1015,7 @@ watch(selectedChildId, async () => {
 }
 
 .subject-card.selected {
-  border-color: var(--brand);
-  box-shadow: 0 12px 30px rgba(43, 91, 245, 0.18);
+  box-shadow: 0 0 0 3px var(--brand), 0 14px 34px rgba(43, 91, 245, 0.2);
 }
 
 .subject-card__picked {

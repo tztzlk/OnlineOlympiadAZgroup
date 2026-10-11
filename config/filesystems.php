@@ -38,7 +38,16 @@ return [
             'report' => false,
         ],
 
-        'public' => [
+        // PUBLIC_DISK_DRIVER=database — для хостингов без постоянного диска (Vercel):
+        // файлы хранятся в таблице stored_files и отдаются через /media/{path}.
+        'public' => env('PUBLIC_DISK_DRIVER', 'local') === 'database' ? [
+            'driver' => 'database',
+            'table' => 'stored_files',
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',

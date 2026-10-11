@@ -6,7 +6,7 @@
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
         </span>
         <p class="eyebrow eyebrow--light">Support</p>
-        <h1 id="help-title">Поддержка по заявкам, оплатам и входу</h1>
+        <h1 v-title id="help-title">Поддержка по заявкам, оплатам и входу</h1>
         <p class="lead">
           Напишите нам, если нужна помощь с регистрацией, оплатой, доступом к олимпиаде
           или прохождением теста.
@@ -42,7 +42,7 @@
       <section class="help-card" aria-labelledby="help-form-title">
         <div class="help-head">
           <p class="eyebrow">Обратная связь</p>
-          <h2 id="help-form-title">Опишите вопрос в свободной форме</h2>
+          <h2 v-title id="help-form-title">Опишите вопрос в свободной форме</h2>
           <p>Чем точнее описание, тем быстрее команда сможет помочь.</p>
         </div>
 

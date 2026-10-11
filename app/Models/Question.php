@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Question extends Model
 {
@@ -39,7 +40,7 @@ class Question extends Model
     public function getImageAttribute(): ?string
     {
         if ($this->image_source === 'upload' && $this->image_path) {
-            return asset('storage/' . ltrim($this->image_path, '/'));
+            return Storage::disk('public')->url(ltrim($this->image_path, '/'));
         }
 
         return $this->image_url;

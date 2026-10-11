@@ -4,7 +4,7 @@
       <header class="page-head">
         <div class="page-head__text">
           <p class="eyebrow">Результаты</p>
-          <h1>Итоги участия детей</h1>
+          <h1 v-title>Итоги участия детей</h1>
           <p class="page-head__copy">Здесь собраны завершённые олимпиады, баллы, статусы и доступ к сертификатам каждого участника.</p>
         </div>
 

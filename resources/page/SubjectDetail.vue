@@ -77,7 +77,7 @@
             <span class="content-card__icon tone-blue" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
             </span>
-            <h2>Для кого подходит олимпиада</h2>
+            <h2 v-title>Для кого подходит олимпиада</h2>
             <p>
               Онлайн-олимпиада по предмету {{ subject.name }} подходит для школьников из Казахстана,
               а родители могут оформить участие, оплатить олимпиаду и посмотреть результат в одном кабинете.
@@ -88,7 +88,7 @@
             <span class="content-card__icon tone-sun" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             </span>
-            <h2>Как проходит участие</h2>
+            <h2 v-title>Как проходит участие</h2>
             <p>
               Сначала родитель выбирает предмет, затем сохраняет данные участника и оплачивает участие через Kaspi.
               После подтверждения платежа ребёнок получает доступ к олимпиаде и проходит задания онлайн.
@@ -99,7 +99,7 @@
             <span class="content-card__icon tone-green" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg>
             </span>
-            <h2>Результаты и сертификаты</h2>
+            <h2 v-title>Результаты и сертификаты</h2>
             <p>
               После завершения олимпиады результат появляется в личном кабинете.
               Сертификат можно проверить публично по ID на странице проверки сертификатов.
@@ -114,7 +114,7 @@
         <section class="faq-card" aria-labelledby="faq-title">
           <div class="faq-head">
             <span class="ds-eyebrow">FAQ</span>
-            <h2 id="faq-title">Частые вопросы родителей</h2>
+            <h2 v-title id="faq-title">Частые вопросы родителей</h2>
           </div>
 
           <div class="faq-list">

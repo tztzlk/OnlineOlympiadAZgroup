@@ -8,6 +8,7 @@ use App\Models\QuizCategory;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AdminQuizController extends Controller
 {
@@ -110,7 +111,7 @@ class AdminQuizController extends Controller
 
         return response()->json([
             'path' => $path,
-            'url' => asset('storage/' . $path),
+            'url' => Storage::disk('public')->url($path),
         ]);
     }
 
@@ -124,7 +125,7 @@ class AdminQuizController extends Controller
 
         return response()->json([
             'path' => $path,
-            'url' => asset('storage/' . $path),
+            'url' => Storage::disk('public')->url($path),
         ]);
     }
 

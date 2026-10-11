@@ -22,6 +22,16 @@
         <slot name="actions" />
       </div>
     </div>
+    <img
+      v-if="tone === 'empty' && !loading"
+      class="state-panel__kid"
+      :src="'/images/characters/girl-idea.webp'"
+      width="335"
+      height="760"
+      alt=""
+      loading="lazy"
+      decoding="async"
+    >
   </div>
 </template>
 
@@ -41,11 +51,29 @@ defineProps({
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr);
   gap: 18px;
-  padding: 22px 24px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  padding: 24px 26px;
+  border-radius: var(--radius-xl);
+  border: 0;
   background: var(--card);
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 10px 30px rgba(17, 26, 51, 0.05);
+}
+
+/* Пустое состояние: персонаж справа вместо пунктирной рамки */
+.state-panel--empty {
+  position: relative;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  overflow: hidden;
+  padding-block: 28px;
+  background: var(--sun-soft);
+}
+
+.state-panel__kid {
+  align-self: end;
+  width: auto;
+  height: 150px;
+  margin: -12px 0 -28px;
+  filter: drop-shadow(0 12px 18px rgba(17, 26, 51, 0.15));
 }
 
 .state-panel__icon {
@@ -101,23 +129,23 @@ defineProps({
 }
 
 /* Мягкий фон панели в цвет тона: состояние считывается сразу */
-.state-panel--success { background: color-mix(in srgb, var(--success-soft) 45%, var(--card)); border-color: color-mix(in srgb, var(--success) 22%, var(--border)); }
+.state-panel--success { background: color-mix(in srgb, var(--success-soft) 70%, var(--card)); }
 .state-panel--success .state-panel__icon { background: var(--success); color: #ffffff; }
 .state-panel--success .state-panel__eyebrow { color: var(--success-ink); }
 
-.state-panel--warning { background: color-mix(in srgb, var(--warning-soft) 55%, var(--card)); border-color: color-mix(in srgb, var(--warning) 26%, var(--border)); }
+.state-panel--warning { background: color-mix(in srgb, var(--warning-soft) 80%, var(--card)); }
 .state-panel--warning .state-panel__icon { background: var(--warning-soft); color: #c27800; }
 .state-panel--warning .state-panel__eyebrow { color: var(--warning-ink); }
 
 .state-panel--danger,
-.state-panel--error { background: color-mix(in srgb, var(--danger-soft) 55%, var(--card)); border-color: color-mix(in srgb, var(--danger) 24%, var(--border)); }
+.state-panel--error { background: color-mix(in srgb, var(--danger-soft) 80%, var(--card)); }
 .state-panel--danger .state-panel__icon,
 .state-panel--error .state-panel__icon { background: var(--danger); color: #ffffff; }
 .state-panel--danger .state-panel__eyebrow,
 .state-panel--error .state-panel__eyebrow { color: var(--danger-ink); }
 
-.state-panel--empty .state-panel__icon { background: var(--bg-alt); color: var(--text-secondary); }
-.state-panel--empty { border-style: dashed; border-color: var(--border-strong); }
+.state-panel--empty .state-panel__icon { background: #ffffff; color: var(--sun-ink); }
+.dark .state-panel--empty .state-panel__icon { background: var(--card); }
 
 @media (max-width: 640px) {
   .state-panel {
@@ -125,6 +153,7 @@ defineProps({
     gap: 14px;
     padding: 20px;
   }
+  .state-panel__kid { justify-self: end; height: 120px; margin: -40px -8px -20px 0; }
   .state-panel__actions :deep(.ds-btn),
   .state-panel__actions :deep(a),
   .state-panel__actions :deep(button) { flex: 1 1 100%; }

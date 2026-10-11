@@ -6,7 +6,7 @@
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         </div>
         <p class="auth-eyebrow">Готово!</p>
-        <h1>Вы успешно зарегистрировались</h1>
+        <h1 v-title>Вы успешно зарегистрировались</h1>
         <p class="auth-sub">Переходим в личный кабинет...</p>
         <span class="success-bar" aria-hidden="true"><span></span></span>
       </div>
@@ -14,7 +14,7 @@
       <template v-else>
         <header class="auth-head">
           <p class="auth-eyebrow">Регистрация</p>
-          <h1>Создайте аккаунт</h1>
+          <h1 v-title>Создайте аккаунт</h1>
         </header>
 
         <form @submit.prevent="handleRegister" class="auth-form" novalidate>

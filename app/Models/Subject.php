@@ -6,6 +6,7 @@ use App\Models\Concerns\HasPublicId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Subject extends Model
 {
@@ -30,7 +31,7 @@ class Subject extends Model
             return $value;
         }
 
-        return asset('storage/' . ltrim($value, '/'));
+        return Storage::disk('public')->url(ltrim($value, '/'));
     }
 
     public function olympiadRequests()

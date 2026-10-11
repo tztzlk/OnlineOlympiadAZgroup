@@ -3,10 +3,7 @@
     <div class="footer__container">
       <div class="footer__brand">
         <router-link to="/" class="footer__logo" aria-label="Eurika — на главную">
-          <span class="footer__mark" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
-          </span>
-          <span>Eurika!</span>
+          <EurikaLogo :animated="false" />
         </router-link>
 
         <p class="footer__desc">
@@ -69,10 +66,14 @@
   </footer>
 </template>
 
+<script setup>
+import EurikaLogo from './EurikaLogo.vue'
+</script>
+
 <style scoped>
 .footer {
   background: var(--card);
-  border-top: 1px solid var(--border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .footer__container {
@@ -91,20 +92,6 @@
   margin-bottom: 16px;
   color: var(--text);
   text-decoration: none;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.footer__mark {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--brand);
-  color: var(--sun);
-  transform: rotate(-6deg);
 }
 
 .footer__desc {
@@ -203,7 +190,7 @@
   word-break: break-word;
 }
 
-.footer__bottom { border-top: 1px solid var(--border); }
+.footer__bottom { background: var(--bg-alt); }
 
 .footer__bottom-inner {
   max-width: 1200px;

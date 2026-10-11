@@ -2,13 +2,17 @@
   <div class="not-found">
     <div class="not-found__card">
       <div class="not-found__art" aria-hidden="true">
-        <span class="digit">4</span>
-        <span class="digit digit--zero">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
-        </span>
-        <span class="digit">4</span>
+        <span class="not-found__code">404</span>
+        <img
+          class="not-found__kid ds-character"
+          :src="'/images/characters/boy-map.webp'"
+          width="434"
+          height="760"
+          alt=""
+          decoding="async"
+        >
       </div>
-      <h1>Такой страницы нет</h1>
+      <h1 v-title>Такой страницы нет</h1>
       <p>Возможно, ссылка устарела или в адресе опечатка. Вернитесь на главную или выберите олимпиаду.</p>
       <div class="not-found__actions">
         <RouterLink to="/" class="ds-btn ds-btn-primary ds-btn-lg">На главную</RouterLink>
@@ -25,7 +29,7 @@
   place-items: center;
   padding: calc(var(--header-h) + 24px) 20px 80px;
   background:
-    radial-gradient(600px 320px at 50% 30%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
+    radial-gradient(600px 320px at 50% 30%, color-mix(in srgb, var(--sun) 22%, transparent), transparent 70%),
     var(--bg);
 }
 
@@ -38,32 +42,40 @@
 }
 
 .not-found__art {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  position: relative;
+  display: grid;
+  place-items: end center;
+  width: min(100%, 420px);
+  height: clamp(240px, 40vw, 320px);
+  margin-bottom: 4px;
 }
 
-.digit {
+/* Крупные цифры за персонажем */
+.not-found__code {
+  position: absolute;
+  inset: 0 0 auto;
   font-family: var(--font-display);
-  font-size: clamp(88px, 18vw, 140px);
+  font-size: clamp(110px, 24vw, 190px);
   font-weight: 700;
   line-height: 1;
-  color: var(--brand);
+  letter-spacing: -0.04em;
+  color: var(--brand-soft);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--brand) 30%, transparent);
+  user-select: none;
 }
 
-.digit--zero {
-  width: clamp(88px, 18vw, 130px);
-  height: clamp(88px, 18vw, 130px);
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--sun);
-  color: #ffffff;
-  animation: spin-slow 8s linear infinite;
+.not-found__kid {
+  position: relative;
+  width: auto;
+  height: clamp(240px, 40vw, 320px);
+  animation: kid-wobble 4s ease-in-out infinite;
+  transform-origin: 50% 100%;
 }
 
-@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes kid-wobble {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
 
 h1 { font-size: clamp(26px, 4vw, 36px); }
 

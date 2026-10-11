@@ -5,6 +5,10 @@ namespace App\Providers;
 use App\Support\DeploymentDatabaseInspector;
 use App\Support\LaravelDeploymentDatabaseInspector;
 use App\Support\DeploymentSafetyGuard;
+use App\Support\Storage\DatabaseFilesystemAdapter;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Storage;
+use League\Flysystem\Filesystem;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -33,6 +37,17 @@ class AppServiceProvider extends ServiceProvider
         if (config('security.enforce_https') && !app()->environment(['local', 'testing'])) {
             URL::forceScheme('https');
         }
+
+        // Диск «database»: файлы в таблице, для хостингов без постоянного диска.
+        Storage::extend('database', function ($app, array $config) {
+            $adapter = new DatabaseFilesystemAdapter(
+                $config['table'] ?? 'stored_files',
+                $config['connection'] ?? null,
+                $config['url'] ?? '/media',
+            );
+
+            return new FilesystemAdapter(new Filesystem($adapter, $config), $adapter, $config);
+        });
 
         // Per-IP limit stops one attacker; per-account limit stops distributed password guessing against one parent.
         RateLimiter::for('login', fn (Request $request) => [

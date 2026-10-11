@@ -17,7 +17,7 @@
         </span>
         <div>
           <p class="pay-eyebrow">Заявка принята</p>
-          <h1>Что дальше?</h1>
+          <h1 v-title>Что дальше?</h1>
         </div>
       </header>
 

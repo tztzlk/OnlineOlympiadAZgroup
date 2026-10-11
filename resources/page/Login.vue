@@ -3,7 +3,7 @@
     <div>
       <header class="auth-head">
         <p class="auth-eyebrow">Вход</p>
-        <h1>Войдите в аккаунт</h1>
+        <h1 v-title>Войдите в аккаунт</h1>
         <p class="auth-sub">Введите email и пароль, чтобы открыть кабинет.</p>
       </header>
 

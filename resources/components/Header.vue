@@ -4,12 +4,7 @@
 
       <!-- Логотип -->
       <router-link to="/" class="logo" aria-label="Eurika — на главную">
-        <span class="logo__mark" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/>
-          </svg>
-        </span>
-        <span class="logo__text">Eurika!</span>
+        <EurikaLogo />
       </router-link>
 
       <!-- Навигация -->
@@ -81,12 +76,7 @@
     <transition name="drawer">
       <aside v-if="menuOpen" id="mobile-menu" class="drawer" aria-label="Меню" @keydown.esc="closeMenu">
         <div class="drawer__head">
-          <span class="logo__mark logo__mark--sm" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/>
-            </svg>
-          </span>
-          <span class="drawer__title">Eurika!</span>
+          <span class="drawer__title"><EurikaLogo size="sm" :animated="false" /></span>
           <button ref="closeButton" type="button" class="icon-btn icon-btn--sm" aria-label="Закрыть меню" @click="closeMenu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12"/>
@@ -168,6 +158,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useTheme } from '../js/composables/useTheme'
 import api from '../js/api'
+import EurikaLogo from './EurikaLogo.vue'
 
 const router = useRouter()
 const { isDark, toggle: toggleTheme } = useTheme()
@@ -248,35 +239,29 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Шапка без рамки: прозрачная над первым экраном, при прокрутке — светлая подложка во всю ширину */
 .header {
   position: fixed;
   inset: 0 0 auto;
   z-index: var(--z-header);
-  padding: 10px 16px 0;
-  pointer-events: none;
+  transition: background-color var(--dur-slow) ease, box-shadow var(--dur-slow) ease;
+}
+
+.header.is-scrolled {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: 0 6px 24px rgba(17, 26, 51, 0.06);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
 }
 
 .header__bar {
-  pointer-events: auto;
-  max-width: 1200px;
-  height: 60px;
+  max-width: 1248px;
+  height: var(--header-h);
   margin: 0 auto;
-  padding: 0 10px 0 14px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: saturate(160%) blur(16px);
-  -webkit-backdrop-filter: saturate(160%) blur(16px);
-  transition: box-shadow var(--dur-slow) ease, background-color var(--dur-slow) ease;
-}
-
-.header.is-scrolled .header__bar {
-  background: color-mix(in srgb, var(--card) 96%, transparent);
-  box-shadow: var(--shadow-md);
+  gap: 28px;
 }
 
 /* ---- Логотип ---- */
@@ -288,37 +273,6 @@ onUnmounted(() => {
   color: var(--text);
   flex-shrink: 0;
   border-radius: var(--radius-sm);
-}
-
-.logo__mark {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: var(--brand);
-  color: var(--sun);
-  box-shadow: var(--shadow-brand);
-  transform: rotate(-6deg);
-  transition: transform var(--dur-slow) var(--ease-out);
-}
-
-.logo__mark--sm {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .logo:hover .logo__mark { transform: rotate(6deg) scale(1.04); }
-}
-
-.logo__text {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
 }
 
 /* ---- Навигация ---- */
@@ -364,16 +318,15 @@ onUnmounted(() => {
   height: 42px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--card);
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: var(--bg-alt);
   color: var(--text-secondary);
 }
 
 .icon-btn:hover {
   color: var(--brand-ink);
-  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
-  background: var(--brand-softer);
+  background: var(--brand-soft);
 }
 
 .icon-btn--sm {
@@ -389,17 +342,13 @@ onUnmounted(() => {
   max-width: 220px;
   padding: 4px 14px 4px 4px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--card);
+  background: var(--bg-alt);
   text-decoration: none;
   color: var(--text);
-  transition: border-color var(--dur) ease, background-color var(--dur) ease;
+  transition: background-color var(--dur) ease;
 }
 
-.profile-pill:hover {
-  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
-  background: var(--brand-softer);
-}
+.profile-pill:hover { background: var(--brand-soft); }
 
 .profile-pill__name {
   font-size: 14px;
@@ -464,9 +413,9 @@ onUnmounted(() => {
   height: 44px;
   padding: 0 12px;
   margin-left: auto;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--card);
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: var(--bg-alt);
 }
 
 .burger span {
@@ -502,7 +451,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: var(--card);
-  border-left: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   overflow-y: auto;
   pointer-events: auto;
@@ -516,11 +464,7 @@ onUnmounted(() => {
   padding: 16px 16px 16px 20px;
 }
 
-.drawer__title {
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 700;
-}
+.drawer__title { display: inline-flex; }
 
 .drawer__profile {
   display: flex;
@@ -612,14 +556,14 @@ onUnmounted(() => {
   gap: 8px;
   min-height: 48px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  border: 0;
   background: var(--bg-alt);
   color: var(--text);
   font-size: 15px;
   font-weight: 600;
 }
 
-.drawer__theme:hover { border-color: var(--brand); color: var(--brand-ink); }
+.drawer__theme:hover { background: var(--brand-soft); color: var(--brand-ink); }
 
 /* ---- Плавающая кнопка на мобильных ---- */
 .sticky-cta {
@@ -665,14 +609,11 @@ onUnmounted(() => {
 }
 
 @media (max-width: 767px) {
-  .header { padding: 8px 10px 0; }
-  .header__bar { height: 56px; padding: 0 6px 0 10px; border-radius: var(--radius-md); }
+  .header__bar { height: 64px; padding: 0 12px 0 16px; }
   .nav,
   .actions { display: none; }
   .burger { display: flex; }
   .sticky-cta { display: inline-flex; }
-  .logo__mark { width: 34px; height: 34px; }
-  .logo__text { font-size: 17px; }
 }
 
 @media (min-width: 768px) {

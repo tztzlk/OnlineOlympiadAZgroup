@@ -6,7 +6,7 @@
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/><path d="M9.5 8l1.8 1.8L14.5 6.5"/></svg>
         </span>
         <p class="eyebrow">Certificate check</p>
-        <h1 id="cc-title">Проверка сертификата по ID результата</h1>
+        <h1 v-title id="cc-title">Проверка сертификата по ID результата</h1>
         <p class="hero-copy">
           Введите идентификатор сертификата, чтобы подтвердить, что результат существует в системе и относится к завершённой олимпиаде.
         </p>

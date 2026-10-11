@@ -7,54 +7,58 @@
         <path d="M210 40l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#ffc933"/>
       </svg>
 
-      <div class="contact__icon" aria-hidden="true">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.64 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l.97-.97a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.18z"/>
-        </svg>
-      </div>
-
       <div class="contact__body">
         <span class="contact__eyebrow">Свяжитесь с нами</span>
-        <h2 id="contact-title" class="contact__title">Остались вопросы?</h2>
+        <h2 id="contact-title" class="contact__title" v-title>Остались вопросы?</h2>
         <p class="contact__text">
           Наши специалисты готовы ответить на любые вопросы об олимпиаде, регистрации и сертификатах.
         </p>
+
+        <div class="contact__info">
+          <a href="tel:87000330226" class="contact__phone">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.64 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l.97-.97a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.18z"/>
+            </svg>
+            8 (700) 033-02-26
+          </a>
+          <p class="contact__hours">Пн–Вс, с 9:00 до 21:00</p>
+        </div>
       </div>
 
-      <div class="contact__info">
-        <a href="tel:87000330226" class="contact__phone">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.64 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l.97-.97a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.18z"/>
-          </svg>
-          8 (700) 033-02-26
-        </a>
-        <p class="contact__hours">Пн–Вс, с 9:00 до 21:00</p>
-      </div>
+      <img
+        class="contact__kid ds-character"
+        :src="'/images/characters/girl-idea.webp'"
+        width="335"
+        height="760"
+        alt=""
+        loading="lazy"
+        decoding="async"
+      >
     </div>
   </section>
 </template>
 
 <style scoped>
 .contact {
-  padding: 0 24px clamp(72px, 10vw, 112px);
+  padding: 72px 24px clamp(72px, 10vw, 112px);
 }
 
 .contact__card {
   position: relative;
-  overflow: hidden;
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
   gap: 32px;
-  padding: clamp(28px, 4vw, 48px);
+  padding: clamp(32px, 5vw, 56px) clamp(28px, 5vw, 64px) 0;
   border-radius: var(--radius-xl);
   background:
-    radial-gradient(500px 300px at 0% 100%, rgba(255, 201, 51, 0.18), transparent 70%),
-    linear-gradient(155deg, #1d2a5c 0%, #111a33 100%);
+    radial-gradient(520px 320px at 0% 100%, rgba(255, 201, 51, 0.28), transparent 70%),
+    radial-gradient(420px 300px at 100% 0%, rgba(255, 255, 255, 0.16), transparent 70%),
+    linear-gradient(155deg, #3d6cff 0%, #2b5bf5 50%, #2046d4 100%);
   color: #ffffff;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 30px 70px rgba(43, 91, 245, 0.28);
 }
 
 .contact__decor {
@@ -65,48 +69,44 @@
   height: 320px;
   color: #ffffff;
   pointer-events: none;
+  border-top-right-radius: var(--radius-xl);
 }
 
-.contact__icon {
+.contact__body {
   position: relative;
-  width: 68px;
-  height: 68px;
-  display: grid;
-  place-items: center;
-  border-radius: 20px;
-  background: var(--sun);
-  color: #1f1600;
-  transform: rotate(-6deg);
+  padding-bottom: clamp(32px, 5vw, 56px);
 }
-
-.contact__body { position: relative; }
 
 .contact__eyebrow {
   display: inline-block;
-  margin-bottom: 8px;
-  color: var(--sun);
-  font-size: 14px;
-  font-weight: 600;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--sun);
+  color: #1f1600;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .contact__title {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: #ffffff;
-  font-size: clamp(24px, 2.8vw, 32px);
+  font-size: clamp(28px, 3.4vw, 42px);
 }
 
 .contact__text {
-  max-width: 52ch;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 16px;
+  max-width: 48ch;
+  margin-bottom: 26px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 17px;
   line-height: 1.6;
 }
 
 .contact__info {
-  position: relative;
-  display: grid;
-  justify-items: end;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
 }
 
 .contact__phone {
@@ -136,19 +136,28 @@
 .contact__phone:active { transform: scale(0.98); }
 
 .contact__hours {
-  color: rgba(255, 255, 255, 0.66);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 14px;
 }
 
-@media (max-width: 900px) {
-  .contact__card { grid-template-columns: 1fr; gap: 22px; }
-  .contact__info { justify-items: start; }
+/* Персонаж выходит за верхний край плитки */
+.contact__kid {
+  position: relative;
+  width: auto;
+  height: clamp(280px, 30vw, 380px);
+  margin-top: -90px;
+  filter: drop-shadow(0 24px 30px rgba(10, 25, 90, 0.35));
+}
+
+@media (max-width: 760px) {
+  .contact__card { grid-template-columns: 1fr; gap: 0; }
+  .contact__kid { justify-self: end; height: 220px; margin-top: -40px; }
+  .contact__body { padding-bottom: 0; }
 }
 
 @media (max-width: 540px) {
-  .contact { padding: 0 16px 96px; }
+  .contact { padding: 48px 16px 96px; }
   .contact__phone { width: 100%; justify-content: center; }
-  .contact__info { justify-items: stretch; }
-  .contact__hours { text-align: center; }
+  .contact__info { justify-content: center; }
 }
 </style>

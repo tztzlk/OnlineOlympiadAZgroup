@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PublicPageController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/media/{path}', [MediaController::class, 'show'])
+    ->where('path', '.*')
+    ->middleware('throttle:240,1');
 
 Route::get('/robots.txt', [PublicPageController::class, 'robots']);
 Route::get('/sitemap.xml', [PublicPageController::class, 'sitemap']);
