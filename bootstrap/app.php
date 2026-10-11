@@ -15,6 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // На Vercel запрос всегда приходит через его прокси, который сам выставляет
+        // X-Forwarded-For с реальным IP клиента. Без доверия к нему лимиты по IP
+        // считали бы всех посетителей одним адресом.
+        if (env('VERCEL')) {
+            $middleware->trustProxies(at: '*');
+        }
+
         $middleware->append([
             \App\Http\Middleware\EnforceHttpsMiddleware::class,
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
