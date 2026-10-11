@@ -24,7 +24,7 @@
     </div>
     <img
       v-if="tone === 'empty' && !loading"
-      class="state-panel__kid"
+      class="state-panel__kid ds-anim-sway"
       :src="'/images/characters/girl-idea.webp'"
       width="335"
       height="760"

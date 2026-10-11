@@ -19,13 +19,15 @@
         <div class="art-sun"></div>
 
         <img
-          class="art-kid ds-character"
+          class="art-kid ds-character ds-anim-hop"
           :src="'/images/characters/boy-jump.webp'"
           width="385"
           height="760"
           alt=""
           decoding="async"
         >
+
+        <div class="art-shadow ds-hop-shadow"></div>
 
         <div class="art-badge">
           <span class="art-badge__icon">
@@ -124,7 +126,13 @@ defineProps({
   height: min(78%, 460px);
   margin-top: 40px;
   filter: drop-shadow(0 24px 30px rgba(10, 25, 90, 0.35));
-  animation: ds-float 5s ease-in-out infinite;
+}
+
+.art-shadow {
+  position: absolute;
+  bottom: 10px;
+  left: calc(50% - 90px);
+  width: 180px;
 }
 
 .art-badge {

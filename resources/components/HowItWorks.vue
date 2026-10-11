@@ -23,7 +23,7 @@
             </ul>
           </div>
           <img
-            class="step__art ds-character"
+            class="step__art ds-character ds-anim-sway"
             :src="step.image"
             :width="step.width"
             :height="step.height"
@@ -129,7 +129,7 @@ const steps = [
 
 @media (hover: hover) and (pointer: fine) {
   .step:hover { transform: translateY(-4px); }
-  .step:hover .step__art { transform: translateY(-8px) rotate(-2deg); }
+
 }
 
 /* Крупный шаг: текст сверху во всю ширину, персонаж стоит внизу справа */
@@ -215,7 +215,8 @@ const steps = [
 .step--1 .step__text { padding-bottom: 0; }
 .step--1 .step__tags { max-width: 60%; }
 
-.step--2 .step__art { height: 210px; }
+.step--2 .step__art { height: 210px; animation-duration: 4.2s; animation-delay: -1.4s; }
+.step--3 .step__art { animation-duration: 5.6s; animation-delay: -2.6s; }
 
 .hiw__cta { display: flex; }
 

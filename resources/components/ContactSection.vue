@@ -26,7 +26,7 @@
       </div>
 
       <img
-        class="contact__kid ds-character"
+        class="contact__kid ds-character ds-anim-sway"
         :src="'/images/characters/girl-idea.webp'"
         width="335"
         height="760"

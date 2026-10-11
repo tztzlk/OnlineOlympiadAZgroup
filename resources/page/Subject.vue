@@ -939,7 +939,10 @@ watch(selectedChildId, async () => {
   width: auto;
   height: calc(100% + 56px);
   max-height: 340px;
-  animation: kid-in 900ms cubic-bezier(0.2, 0.9, 0.25, 1.2) 150ms both;
+  transform-origin: 50% 100%;
+  animation:
+    kid-in 900ms cubic-bezier(0.2, 0.9, 0.25, 1.2) 150ms both,
+    ds-breathe 3.8s ease-in-out 1.1s infinite;
 }
 
 @keyframes kid-in {

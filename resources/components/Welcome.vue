@@ -1,5 +1,25 @@
 <template>
-  <section class="hero" aria-labelledby="hero-title">
+  <!-- Заставка: сначала логотип, затем первый экран -->
+  <Teleport to="body">
+    <Transition name="intro">
+      <div v-if="showIntro" class="hero-intro" aria-hidden="true">
+        <div class="hero-intro__glow"></div>
+        <div class="hero-intro__logo">
+          <EurikaLogo size="lg" />
+        </div>
+        <p class="hero-intro__tagline">Онлайн-олимпиады для школьников</p>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <section
+    ref="heroRef"
+    class="hero"
+    :class="{ 'is-ready': ready }"
+    aria-labelledby="hero-title"
+    @pointermove="onPointerMove"
+    @pointerleave="resetPointer"
+  >
     <div class="hero__wrapper">
       <div class="hero__content">
         <span class="hero__eyebrow">
@@ -57,9 +77,10 @@
           </li>
         </ul>
 
-        <div class="hero__coming-soon" role="status">
+        <!-- Дата берётся из опубликованных предметов; если её нет — плашка не показывается -->
+        <div v-if="nextOlympiadLabel" class="hero__coming-soon" role="status">
           <span class="coming-soon__pulse" aria-hidden="true"></span>
-          <span>Ближайшая олимпиада — <strong>28 мая</strong> · Успейте зарегистрироваться!</span>
+          <span>Ближайшая олимпиада — <strong>{{ nextOlympiadLabel }}</strong> · Успейте зарегистрироваться!</span>
         </div>
       </div>
 
@@ -75,15 +96,35 @@
             <circle cx="40" cy="300" r="5" fill="#14b8a6"/>
           </svg>
 
-          <img
-            class="stage__kids ds-character"
-            :src="'/images/characters/hero-duo.webp'"
-            width="884"
-            height="971"
-            alt=""
-            fetchpriority="high"
-            decoding="async"
-          >
+          <!-- Двое детей двигаются независимо: обёртка — отклик на мышь, внутри — покачивание и «дыхание» -->
+          <div class="stage__duo">
+            <div class="kid kid--girl">
+              <span class="ds-anim-sway kid__sway">
+                <img
+                  class="ds-character ds-anim-breathe"
+                  :src="'/images/characters/hero-girl.webp'"
+                  width="489"
+                  height="971"
+                  alt=""
+                  fetchpriority="high"
+                  decoding="async"
+                >
+              </span>
+            </div>
+            <div class="kid kid--boy">
+              <span class="ds-anim-sway kid__sway">
+                <img
+                  class="ds-character ds-anim-breathe"
+                  :src="'/images/characters/hero-boy.webp'"
+                  width="433"
+                  height="943"
+                  alt=""
+                  fetchpriority="high"
+                  decoding="async"
+                >
+              </span>
+            </div>
+          </div>
 
           <div class="float-badge float-badge--1">
             <span class="float-badge__icon float-badge__icon--green">
@@ -95,39 +136,92 @@
             <span class="float-badge__icon float-badge__icon--sun">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z"/></svg>
             </span>
-            <span>1 место</span>
+            <span>Онлайн</span>
           </div>
           <div class="float-badge float-badge--3">
             <span class="float-badge__icon float-badge__icon--blue">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
             </span>
-            <span>8 мин</span>
+            <span>Разбор ошибок</span>
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="hero__stats-wrap">
-      <dl class="hero__stats">
-        <div class="stat">
-          <dt>участников</dt>
-          <dd>1 247+</dd>
-        </div>
-        <div class="stat">
-          <dt>рекомендуют</dt>
-          <dd>97.4%</dd>
-        </div>
-        <div class="stat">
-          <dt>результат</dt>
-          <dd>Мгновенный</dd>
-        </div>
-      </dl>
     </div>
   </section>
 </template>
 
 <script>
 export default { name: 'Hero' }
+</script>
+
+<script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import api from '../js/api'
+import EurikaLogo from './EurikaLogo.vue'
+
+const INTRO_KEY = 'eurika_intro_seen'
+const INTRO_MS = 1700
+
+// Заставка показывается один раз за сессию и не показывается при «уменьшить движение».
+const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+let introSeen = false
+try { introSeen = sessionStorage.getItem(INTRO_KEY) === '1' } catch {}
+
+const showIntro = ref(!reducedMotion && !introSeen)
+const ready = ref(!showIntro.value)
+const heroRef = ref(null)
+const timers = []
+
+// Отклик персонажей на мышь: координаты в CSS-переменных, обновление раз в кадр
+let frame = 0
+const setPointer = (x, y) => {
+  cancelAnimationFrame(frame)
+  frame = requestAnimationFrame(() => {
+    heroRef.value?.style.setProperty('--px', x.toFixed(3))
+    heroRef.value?.style.setProperty('--py', y.toFixed(3))
+  })
+}
+
+const onPointerMove = (event) => {
+  if (reducedMotion || event.pointerType !== 'mouse') return
+  const rect = heroRef.value.getBoundingClientRect()
+  setPointer((event.clientX - rect.left) / rect.width - 0.5, (event.clientY - rect.top) / rect.height - 0.5)
+}
+
+const resetPointer = () => setPointer(0, 0)
+
+onMounted(() => {
+  if (!showIntro.value) return
+  try { sessionStorage.setItem(INTRO_KEY, '1') } catch {}
+  timers.push(setTimeout(() => { showIntro.value = false }, INTRO_MS))
+  timers.push(setTimeout(() => { ready.value = true }, INTRO_MS + 150))
+})
+
+onBeforeUnmount(() => {
+  timers.forEach(clearTimeout)
+  cancelAnimationFrame(frame)
+})
+
+const nextOlympiadLabel = ref('')
+
+// Ближайшая дата старта среди опубликованных предметов (сегодня и позже).
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/subjects')
+    const today = new Date().toISOString().slice(0, 10)
+    const next = (Array.isArray(data) ? data : data?.data || [])
+      .map((subject) => subject.start_date)
+      .filter((date) => typeof date === 'string' && date.slice(0, 10) >= today)
+      .sort()[0]
+
+    if (next) {
+      nextOlympiadLabel.value = new Date(`${next.slice(0, 10)}T00:00:00`)
+        .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+    }
+  } catch {
+    // Без данных плашка просто не показывается.
+  }
+})
 </script>
 
 <style scoped>
@@ -377,13 +471,114 @@ export default { name: 'Hero' }
   animation: badge-float 7s ease-in-out infinite;
 }
 
-.stage__kids {
+/* Пара детей: пропорции исходной картинки 884×971, каждый ребёнок на своём месте */
+.stage__duo {
+  --px: 0;
+  --py: 0;
   position: relative;
   width: 92%;
+  aspect-ratio: 884 / 971;
   margin-bottom: -2%;
   transform-origin: 50% 100%;
   animation: kids-in 900ms cubic-bezier(0.2, 0.9, 0.25, 1.2) 200ms both;
 }
+
+.kid {
+  position: absolute;
+  bottom: 0;
+  transition: transform 600ms var(--ease-out);
+}
+
+.kid--girl {
+  left: 0;
+  width: 55.3%;
+  transform: translate(calc(var(--px, 0) * 22px), calc(var(--py, 0) * 12px));
+}
+
+.kid--boy {
+  left: 51%;
+  width: 49%;
+  transform: translate(calc(var(--px, 0) * 12px), calc(var(--py, 0) * 7px));
+}
+
+.kid__sway { display: block; }
+.kid img { width: 100%; height: auto; }
+
+/* Разные периоды и фазы — дети двигаются не синхронно */
+.kid--girl .kid__sway { animation-duration: 4.6s; }
+.kid--girl img { animation-duration: 3.4s; }
+.kid--boy .kid__sway { animation-duration: 5.4s; animation-delay: -1.8s; }
+.kid--boy img { animation-duration: 3.9s; animation-delay: -1.1s; }
+
+.stage__blob,
+.stage__sparks {
+  translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -10px);
+  transition: translate 700ms var(--ease-out);
+}
+
+/* Пока идёт заставка, анимации первого экрана стоят на старте */
+.hero:not(.is-ready),
+.hero:not(.is-ready) :deep(*) {
+  animation-play-state: paused !important;
+}
+
+.hero:not(.is-ready) :deep(.tr-word) {
+  transition: none;
+  transform: translateY(110%) rotate(4deg);
+  opacity: 0;
+}
+
+/* ---- Заставка ---- */
+.hero-intro {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-toast);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  background: var(--bg);
+}
+
+.hero-intro__glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(70vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 40%, transparent) 0%, transparent 65%);
+  transform: translate(-50%, -50%) scale(0.6);
+  animation: intro-glow 1600ms var(--ease-out) both;
+}
+
+.hero-intro__logo {
+  position: relative;
+  transform: scale(1.6);
+}
+
+.hero-intro__tagline {
+  position: relative;
+  margin-top: 34px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: 500;
+  animation: intro-tagline 600ms var(--ease-out) 800ms both;
+}
+
+@keyframes intro-glow {
+  to { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
+}
+
+@keyframes intro-tagline {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.intro-leave-active { transition: opacity 450ms ease, visibility 450ms; }
+.intro-leave-active .hero-intro__logo { transition: transform 450ms var(--ease-in-out); }
+.intro-leave-to { opacity: 0; }
+.intro-leave-to .hero-intro__logo { transform: scale(1.1) translateY(-24px); }
 
 @keyframes blob-morph {
   0%, 100% { border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%; }
@@ -434,53 +629,6 @@ export default { name: 'Hero' }
   50%      { transform: translateY(-7px); }
 }
 
-/* ---- Цифры ---- */
-.hero__stats-wrap {
-  position: relative;
-  max-width: 1200px;
-  margin: 56px auto 0;
-}
-
-/* Цифры — три цветных плашки без рамок */
-.hero__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin: 0;
-  animation: heroFadeUp 640ms var(--ease-out) 640ms both;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 4px;
-  padding: 22px 28px;
-  border-radius: var(--radius-xl);
-  background: var(--brand-soft);
-}
-
-.stat:nth-child(2) { background: var(--sun-soft); }
-.stat:nth-child(3) { background: var(--tone-teal-soft); }
-
-.stat dd {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(22px, 2.6vw, 30px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.stat:first-child dd { color: var(--brand); }
-
-.stat dt {
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 500;
-}
-
 /* ---- Адаптив ---- */
 @media (max-width: 960px) {
   .hero { padding-top: calc(var(--header-h) + 32px); }
@@ -502,8 +650,5 @@ export default { name: 'Hero' }
   .float-badge__icon { width: 24px; height: 24px; }
   .float-badge--1 { right: -4%; }
   .float-badge--2 { left: -4%; }
-  .hero__stats-wrap { margin-top: 36px; }
-  .hero__stats { grid-template-columns: 1fr; gap: 10px; }
-  .stat { flex-direction: row-reverse; justify-content: space-between; align-items: baseline; padding: 16px 20px; border-radius: var(--radius-lg); }
 }
 </style>
