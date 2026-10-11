@@ -594,39 +594,6 @@ select.ds-input {
     50%      { transform: translateY(-10px); }
 }
 
-/* Живые персонажи: «дыхание» и прыжок */
-.ds-anim-breathe {
-    transform-origin: 50% 100%;
-    animation: ds-breathe 3.8s ease-in-out infinite;
-}
-.ds-anim-hop {
-    transform-origin: 50% 100%;
-    animation: ds-hop 2.6s cubic-bezier(0.4, 0, 0.3, 1) infinite;
-}
-@keyframes ds-breathe {
-    0%, 100% { transform: scale(1, 1); }
-    50%      { transform: scale(1.012, 1.03) translateY(-2px); }
-}
-@keyframes ds-hop {
-    0%, 100% { transform: translateY(0) scale(1, 1); }
-    10%      { transform: translateY(0) scale(1.06, 0.94); }
-    40%      { transform: translateY(-38px) scale(0.97, 1.04); }
-    55%      { transform: translateY(-40px) scale(1, 1); }
-    82%      { transform: translateY(0) scale(1.04, 0.96); }
-    90%      { transform: translateY(0) scale(1, 1); }
-}
-/* Тень под прыгающим персонажем: сжимается, когда он в воздухе */
-.ds-hop-shadow {
-    height: 14px;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(17, 26, 51, 0.28), transparent);
-    animation: ds-hop-shadow 2.6s cubic-bezier(0.4, 0, 0.3, 1) infinite;
-}
-@keyframes ds-hop-shadow {
-    0%, 100%, 90% { transform: scaleX(1); opacity: 1; }
-    40%, 55%      { transform: scaleX(0.6); opacity: 0.45; }
-}
-
 /* ---- Сообщения ---- */
 .ds-msg {
     display: flex;

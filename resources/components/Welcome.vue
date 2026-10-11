@@ -13,12 +13,9 @@
   </Teleport>
 
   <section
-    ref="heroRef"
     class="hero"
     :class="{ 'is-ready': ready }"
     aria-labelledby="hero-title"
-    @pointermove="onPointerMove"
-    @pointerleave="resetPointer"
   >
     <div class="hero__wrapper">
       <div class="hero__content">
@@ -99,9 +96,9 @@
           <!-- Двое детей двигаются независимо: обёртка — отклик на мышь, внутри — покачивание и «дыхание» -->
           <div class="stage__duo">
             <div class="kid kid--girl">
-              <span class="kid__sway">
+              <span class="kid__inner">
                 <img
-                  class="ds-character ds-anim-breathe"
+                  class="ds-character"
                   :src="'/images/characters/hero-girl.webp'"
                   width="489"
                   height="971"
@@ -112,9 +109,9 @@
               </span>
             </div>
             <div class="kid kid--boy">
-              <span class="kid__sway">
+              <span class="kid__inner">
                 <img
-                  class="ds-character ds-anim-breathe"
+                  class="ds-character"
                   :src="'/images/characters/hero-boy.webp'"
                   width="433"
                   height="943"
@@ -169,26 +166,8 @@ try { introSeen = sessionStorage.getItem(INTRO_KEY) === '1' } catch {}
 
 const showIntro = ref(!reducedMotion && !introSeen)
 const ready = ref(!showIntro.value)
-const heroRef = ref(null)
 const timers = []
 
-// Отклик персонажей на мышь: координаты в CSS-переменных, обновление раз в кадр
-let frame = 0
-const setPointer = (x, y) => {
-  cancelAnimationFrame(frame)
-  frame = requestAnimationFrame(() => {
-    heroRef.value?.style.setProperty('--px', x.toFixed(3))
-    heroRef.value?.style.setProperty('--py', y.toFixed(3))
-  })
-}
-
-const onPointerMove = (event) => {
-  if (reducedMotion || event.pointerType !== 'mouse') return
-  const rect = heroRef.value.getBoundingClientRect()
-  setPointer((event.clientX - rect.left) / rect.width - 0.5, (event.clientY - rect.top) / rect.height - 0.5)
-}
-
-const resetPointer = () => setPointer(0, 0)
 
 onMounted(() => {
   if (!showIntro.value) return
@@ -199,7 +178,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   timers.forEach(clearTimeout)
-  cancelAnimationFrame(frame)
 })
 
 const nextOlympiadLabel = ref('')
@@ -473,8 +451,6 @@ onMounted(async () => {
 
 /* Пара детей: пропорции исходной картинки 884×971, каждый ребёнок на своём месте */
 .stage__duo {
-  --px: 0;
-  --py: 0;
   position: relative;
   width: 92%;
   aspect-ratio: 884 / 971;
@@ -486,33 +462,22 @@ onMounted(async () => {
 .kid {
   position: absolute;
   bottom: 0;
-  transition: transform 600ms var(--ease-out);
 }
 
 .kid--girl {
   left: 0;
   width: 55.3%;
-  transform: translate(calc(var(--px, 0) * 22px), calc(var(--py, 0) * 12px));
 }
 
 .kid--boy {
   left: 51%;
   width: 49%;
-  transform: translate(calc(var(--px, 0) * 12px), calc(var(--py, 0) * 7px));
 }
 
-.kid__sway { display: block; }
+.kid__inner { display: block; }
 .kid img { width: 100%; height: auto; }
 
-/* Разные периоды и фазы — дети двигаются не синхронно */
-.kid--girl img { animation-duration: 3.4s; }
-.kid--boy img { animation-duration: 3.9s; animation-delay: -1.1s; }
 
-.stage__blob,
-.stage__sparks {
-  translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -10px);
-  transition: translate 700ms var(--ease-out);
-}
 
 /* Пока идёт заставка, анимации первого экрана стоят на старте */
 .hero:not(.is-ready),
