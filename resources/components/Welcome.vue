@@ -99,7 +99,7 @@
           <!-- Двое детей двигаются независимо: обёртка — отклик на мышь, внутри — покачивание и «дыхание» -->
           <div class="stage__duo">
             <div class="kid kid--girl">
-              <span class="ds-anim-sway kid__sway">
+              <span class="kid__sway">
                 <img
                   class="ds-character ds-anim-breathe"
                   :src="'/images/characters/hero-girl.webp'"
@@ -112,7 +112,7 @@
               </span>
             </div>
             <div class="kid kid--boy">
-              <span class="ds-anim-sway kid__sway">
+              <span class="kid__sway">
                 <img
                   class="ds-character ds-anim-breathe"
                   :src="'/images/characters/hero-boy.webp'"
@@ -505,9 +505,7 @@ onMounted(async () => {
 .kid img { width: 100%; height: auto; }
 
 /* Разные периоды и фазы — дети двигаются не синхронно */
-.kid--girl .kid__sway { animation-duration: 4.6s; }
 .kid--girl img { animation-duration: 3.4s; }
-.kid--boy .kid__sway { animation-duration: 5.4s; animation-delay: -1.8s; }
 .kid--boy img { animation-duration: 3.9s; animation-delay: -1.1s; }
 
 .stage__blob,

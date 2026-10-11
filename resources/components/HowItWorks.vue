@@ -23,7 +23,7 @@
             </ul>
           </div>
           <img
-            class="step__art ds-character ds-anim-sway"
+            class="step__art ds-character"
             :src="step.image"
             :width="step.width"
             :height="step.height"
@@ -215,8 +215,7 @@ const steps = [
 .step--1 .step__text { padding-bottom: 0; }
 .step--1 .step__tags { max-width: 60%; }
 
-.step--2 .step__art { height: 210px; animation-duration: 4.2s; animation-delay: -1.4s; }
-.step--3 .step__art { animation-duration: 5.6s; animation-delay: -2.6s; }
+.step--2 .step__art { height: 210px; }
 
 .hiw__cta { display: flex; }
 

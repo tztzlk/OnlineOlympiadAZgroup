@@ -594,11 +594,7 @@ select.ds-input {
     50%      { transform: translateY(-10px); }
 }
 
-/* Живые персонажи: покачивание от ступней, «дыхание», прыжок */
-.ds-anim-sway {
-    transform-origin: 50% 100%;
-    animation: ds-sway 5s ease-in-out infinite;
-}
+/* Живые персонажи: «дыхание» и прыжок */
 .ds-anim-breathe {
     transform-origin: 50% 100%;
     animation: ds-breathe 3.8s ease-in-out infinite;
@@ -606,10 +602,6 @@ select.ds-input {
 .ds-anim-hop {
     transform-origin: 50% 100%;
     animation: ds-hop 2.6s cubic-bezier(0.4, 0, 0.3, 1) infinite;
-}
-@keyframes ds-sway {
-    0%, 100% { transform: rotate(-1.6deg); }
-    50%      { transform: rotate(1.6deg); }
 }
 @keyframes ds-breathe {
     0%, 100% { transform: scale(1, 1); }

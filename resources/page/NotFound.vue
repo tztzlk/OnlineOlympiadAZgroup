@@ -68,14 +68,8 @@
   position: relative;
   width: auto;
   height: clamp(240px, 40vw, 320px);
-  animation: kid-wobble 4s ease-in-out infinite;
-  transform-origin: 50% 100%;
 }
 
-@keyframes kid-wobble {
-  0%, 100% { transform: rotate(-2deg); }
-  50%      { transform: rotate(2deg); }
-}
 
 h1 { font-size: clamp(26px, 4vw, 36px); }
 
